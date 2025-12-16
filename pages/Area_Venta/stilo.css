@@ -1,0 +1,133 @@
+/* ---- Estilos generales ---- */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ---- Contenedor principal ---- */
+.container {
+    margin-left: 260px; /* Espacio para el sidebar */
+    margin-top: 80px; /* Espacio para la navbar */
+    padding: 20px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* ---- Sidebar estilizado ---- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 20px;
+    transition: left 0.3s ease-in-out;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+.sidebar.hide {
+    left: -260px; /* Oculta el sidebar en móviles */
+}
+
+/* ---- Botón de menú para móviles ---- */
+#menuToggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1002;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#menuToggle:hover {
+    background-color: #0056b3;
+}
+
+/* ---- Estilos para el título ---- */
+h2 {
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ---- Formulario de búsqueda ---- */
+#g-3 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#g-3 input, #g-3 select {
+    width: 100%;
+    max-width: 200px;
+}
+
+/* ---- Contenedor de la tabla ---- */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Evita que la tabla se desborde en móviles */
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Estilos de la tabla ---- */
+#datatableventa {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+#datatableventa th, #datatableventa td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+#datatableventa thead {
+    background-color: #007bff;
+    color: white;
+}
+
+/* ---- Botones dentro de la tabla ---- */
+#datatableventa .btn {
+    font-size: 14px;
+    padding: 5px 8px;
+}
+
+/* ---- RESPONSIVIDAD ---- */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -260px;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+    .container {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    #datatableventa {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}

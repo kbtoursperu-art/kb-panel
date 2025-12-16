@@ -1,0 +1,132 @@
+/* ---- Estilos generales ---- */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ---- Contenido principal ---- */
+.container {
+    margin-left: 260px; /* Espacio para el sidebar en pantallas grandes */
+    margin-top: 80px; /* Espacio para la navbar */
+    padding: 20px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* ---- Sidebar estilizado ---- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 20px;
+    transition: left 0.3s ease-in-out;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+.sidebar.hide {
+    left: -260px; /* Oculta el sidebar en móviles */
+}
+
+/* ---- Botón de menú para móviles ---- */
+#menuToggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1002;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#menuToggle:hover {
+    background-color: #0056b3;
+}
+
+/* ---- Contenedor de la tabla ---- */
+.table-container {
+    width: 120%;
+    overflow-x: auto; /* Evita que la tabla se desborde en móviles */
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Estilos de la tabla ---- */
+#clientes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+#clientes-table th, #clientes-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+#clientes-table thead {
+    background-color: #007bff;
+    color: white;
+}
+
+/* ---- Ajuste de imágenes en tabla ---- */
+#clientes-table img {
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- RESPONSIVIDAD ---- */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -260px;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+    .container {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    #clientes-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+.excel-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.excel-form-container input[type="file"] {
+    margin-bottom: 15px;
+}
+
+.excel-form-container .btn {
+    margin: 5px;
+}

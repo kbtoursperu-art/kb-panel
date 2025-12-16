@@ -1,0 +1,189 @@
+/* ======== ESTILO GLOBAL ======== */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f6f9;
+  color: #333;
+  margin: 0;
+}
+
+/* ======== TÍTULOS Y ENCABEZADOS ======== */
+h3 {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+/* ===== 🔒 PROTEGER SIDEBAR Y NAVBAR ===== */
+.sidebar, .sidebar a, .sidebar .nav-link {
+    color: #fff !important;
+    background: inherit !important;
+}
+
+.sidebar {
+    background-color:  #1a2c40 !important;
+}
+
+.sidebar a:hover, .sidebar .nav-link:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ======== TARJETAS DE RESUMEN ======== */
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.card strong {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.card div {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* ======== TABLA ======== */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.table thead.table-dark th {
+  background-color: #1e293b !important;
+  border: none;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f8fafc;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #e2e8f0;
+  transition: background-color 0.2s ease;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* ======== BOTONES DE ACCIÓN ======== */
+.btn-outline-primary, .btn-outline-danger {
+  border-radius: 6px;
+}
+
+.btn-outline-primary:hover {
+  background-color: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.btn-outline-danger:hover {
+  background-color: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+/* ======== MODALES ======== */
+.modal-content {
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  background-color: #1e293b;
+  color: #fff;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.modal-title {
+  font-weight: 500;
+}
+
+.modal-body label {
+  font-weight: 500;
+  color: #334155;
+}
+
+.modal-footer .btn {
+  min-width: 120px;
+}
+
+/* ======== FORMULARIOS ======== */
+.form-select, .form-control {
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+/* ======== DATATABLE ======== */
+.dataTables_wrapper .dataTables_filter input {
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  border-radius: 6px;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  margin: 2px;
+  border: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+}
+
+/* ======== RESPONSIVE ======== */
+@media (max-width: 768px) {
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .card div {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  table.table {
+    font-size: 0.85rem;
+  }
+}

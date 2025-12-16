@@ -1,0 +1,510 @@
+/* =========================================
+   🎨 ESTILOS GENERALES CONTABILIDAD
+   ========================================= */
+
+body {
+    background-color: #f5f7fa;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
+    color: #334155;
+    margin: 0;
+    padding: 0;
+}
+
+/* ======== CONTENEDOR PRINCIPAL ======== */
+.content {
+    margin-top: 30px;
+}
+
+.container-fluid {
+    max-width: 96%;
+    margin: auto;
+}
+
+/* ======== TÍTULO PRINCIPAL ======== */
+h2 {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+    letter-spacing: 0.3px;
+}
+
+/* ======== TARJETA GENERAL ======== */
+.card {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    background: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 25px 30px;
+}
+
+/* ======== ALERTAS ======== */
+.alert {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+}
+
+.alert-info {
+    background-color: #e0f2fe;
+    color: #075985;
+    border: 1px solid #bae6fd;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* ======== TABLA DE DATOS ======== */
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    font-size: 0.92rem;
+}
+
+.table thead {
+    background: linear-gradient(90deg, #1e293b, #334155);
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.table thead th {
+    padding: 10px 14px;
+    text-align: center;
+    vertical-align: middle;
+    border: none !important;
+}
+
+.table tbody tr {
+    background-color: #ffffff;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f5f9;
+    transform: scale(1.005);
+}
+
+.table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-top: 1px solid #e2e8f0;
+}
+
+.table td.text-end {
+    text-align: right !important;
+}
+
+.table td.text-center {
+    text-align: center !important;
+}
+
+/* ======== BADGES DE ESTADO ======== */
+.badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+.badge.bg-success {
+    background-color: #16a34a !important;
+}
+
+.badge.bg-warning {
+    background-color: #facc15 !important;
+    color: #78350f !important;
+}
+
+.badge.bg-secondary {
+    background-color: #94a3b8 !important;
+}
+
+/* ======== BOTONES ======== */
+.btn {
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.25s ease;
+}
+
+/* Botón Ver */
+.btn-info {
+    background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+    border: none;
+    color: white;
+}
+.btn-info:hover {
+    background: linear-gradient(90deg, #0ea5e9, #0284c7);
+    transform: translateY(-2px);
+}
+
+/* Botón Editar */
+.btn-warning {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    border: none;
+    color: #1e293b;
+}
+.btn-warning:hover {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    transform: translateY(-2px);
+}
+
+/* Botón Eliminar */
+.btn-danger {
+    background: linear-gradient(90deg, #ef4444, #b91c1c);
+    border: none;
+}
+.btn-danger:hover {
+    background: linear-gradient(90deg, #dc2626, #991b1b);
+    transform: translateY(-2px);
+}
+
+/* Botón Registrar */
+.btn-success {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    border: none;
+    color: white;
+}
+.btn-success:hover {
+    background: linear-gradient(90deg, #16a34a, #15803d);
+    transform: translateY(-2px);
+}
+
+/* ======== DATATABLES ======== */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 6px 10px;
+    margin-left: 8px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.25);
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    background-color: #fff;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 6px;
+    border: none;
+    padding: 5px 10px;
+    margin: 0 2px;
+    background-color: #e2e8f0;
+    color: #1e293b !important;
+    transition: all 0.3s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #2563eb;
+    color: white !important;
+}
+
+/* ======== RESPONSIVE ======== */
+@media (max-width: 992px) {
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+}
+
+
+/* ===========================
+   🎨 ESTILOS FORMULARIO CONTABILIDAD editar
+   =========================== */
+
+body {
+    background-color: #f5f7fa;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* ======== CARD PRINCIPAL ======== */
+.card {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* ======== ENCABEZADO ======== */
+.card-header {
+    background: linear-gradient(90deg, #1e293b, #334155);
+    padding: 18px 25px;
+    border-bottom: none;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+}
+
+/* ======== FORMULARIO ======== */
+.card-body {
+    padding: 30px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    outline: none;
+}
+
+/* ======== CHECKBOX ======== */
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: #475569;
+    margin-left: 5px;
+}
+
+/* ======== BOTONES ======== */
+.btn {
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 10px 18px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+/* Botón primario */
+.btn-primary {
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #1d4ed8, #1e40af);
+    box-shadow: 0 6px 14px rgba(37,99,235,0.4);
+    transform: translateY(-2px);
+}
+
+/* Botón secundario */
+.btn-secondary {
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+/* ======== ALERTAS ======== */
+.alert {
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert-warning {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fef08a;
+}
+
+/* ======== LAYOUT ======== */
+.content {
+    margin-top: 30px;
+}
+
+.container-fluid {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* ======== EFECTOS RESPONSIVOS ======== */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 20px;
+    }
+
+    .btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+/*veriiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii*/
+
+body {
+    background: #f4f6f9;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== Tarjeta principal ===== */
+.card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+}
+
+/* ===== Encabezado ===== */
+.card-header {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white !important;
+    padding: 20px;
+    border-bottom: none;
+    border-radius: 16px 16px 0 0 !important;
+}
+
+.card-header h4 {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+/* ===== Secciones ===== */
+h5.text-secondary {
+    font-weight: 600;
+    color: #34495e !important;
+    margin-top: 15px;
+}
+
+hr {
+    margin-top: 5px;
+    border-top: 2px solid #eaeaea;
+}
+
+/* ===== Etiquetas y valores ===== */
+label.form-label {
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+p {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* ===== Estilos de badge (estado) ===== */
+.badge {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+/* ===== Contenedor general ===== */
+.container {
+    max-width: 1100px;
+}
+
+/* ===== Sombra elegante ===== */
+.card.shadow-lg {
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08) !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .card-header h4 {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    h5.text-secondary {
+        text-align: center;
+    }
+
+    .col-md-3, .col-md-4, .col-md-5, .col-md-6 {
+        text-align: center;
+    }
+
+    label.form-label {
+        font-weight: 500;
+    }
+}
+
+/* ===== Botón volver ===== */
+.btn-secondary {
+    background-color: #95a5a6;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+

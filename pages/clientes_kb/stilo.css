@@ -1,0 +1,163 @@
+/* ==== ESTILO CLIENTES KB ==== */
+
+/* GENERAL */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* CONTENIDO */
+.content {
+    padding: 25px;
+}
+
+/* TÍTULO */
+h2 {
+    background: linear-gradient(135deg, #007bff, #00bfff);
+    color: #fff;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    letter-spacing: 0.5px;
+    margin-bottom: 25px;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.container {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* BOTONES */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #20c997, #28a745);
+    transform: scale(1.05);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #ff4d6d);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #ff4d6d, #dc3545);
+    transform: scale(1.05);
+}
+
+/* TABLA */
+table.dataTable {
+    border-collapse: collapse;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table.dataTable thead th {
+    background: linear-gradient(135deg, #007bff, #00bfff);
+    color: white;
+    text-align: center;
+    padding: 12px;
+    font-weight: 600;
+    border-bottom: none;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f1f8ff;
+}
+
+table.dataTable td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 10px;
+}
+
+/* FOTO DEL PASAPORTE */
+img.rounded {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+img.rounded:hover {
+    transform: scale(1.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* PAGINACIÓN Y BUSCADOR */
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #007bff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: #007bff !important;
+    color: white !important;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 0 3px;
+    transition: background-color 0.3s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #0056b3 !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    margin-top: 10px;
+    font-weight: 500;
+    color: #555;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .content {
+        padding: 15px;
+    }
+    h2 {
+        font-size: 1.3rem;
+    }
+    table.dataTable td, 
+    table.dataTable th {
+        font-size: 0.9rem;
+    }
+}
+/*editar              -------------------------------------------------------------------*/
+
+/* ===== 🔒 PROTEGER SIDEBAR Y NAVBAR ===== */
+.sidebar, .sidebar a, .sidebar .nav-link {
+    color: #fff !important;
+    background: inherit !important;
+}
+
+.sidebar {
+    background-color:  #1a2c40 !important;
+}
+
+.sidebar a:hover, .sidebar .nav-link:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}

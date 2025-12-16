@@ -1,0 +1,62 @@
+/* Estilos generales */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+.container {
+    max-width: 900px;
+}
+
+/* Tarjeta del formulario */
+.card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+/* Estilos para los inputs */
+.form-control, .form-select {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Botón principal */
+.btn-primary {
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 5px;
+    width: 100%;
+}
+
+/* Espaciado entre filas */
+.row {
+    margin-bottom: 15px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .row > div {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

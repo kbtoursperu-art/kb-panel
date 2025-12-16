@@ -1,0 +1,113 @@
+/* ======== ESTILO GLOBAL SOLO PARA CONTENIDO ======== */
+.contenido-planificacion {
+    margin-left: 250px;
+    padding: 20px;
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* ======== TÍTULO ======== */
+.titulo-seccion {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    color: #fff;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 25px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+/* ===== 🔒 PROTEGER SIDEBAR Y NAVBAR ===== */
+.sidebar, .sidebar a, .sidebar .nav-link {
+    color: #fff !important;
+    background: inherit !important;
+}
+
+.sidebar {
+    background-color:  #1a2c40 !important;
+}
+
+.sidebar a:hover, .sidebar .nav-link:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+/* ======== TABLA ======== */
+.table thead {
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+}
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* ======== BOTONES ======== */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+.btn-success:hover {
+    background-color: #218838;
+}
+.btn-warning {
+    background-color: #ffc107;
+    border: none;
+    color: #000;
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+    color: #fff;
+}
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+}
+.btn-danger:hover {
+    background-color: #b52a38;
+    color: #fff;
+}
+
+/* ======== CARD ======== */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+}
+
+/* ======== BOTÓN TOGGLE ======== */
+.toggle-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    z-index: 1100;
+    display: none;
+}
+.toggle-btn:hover {
+    background-color: #0056b3;
+}
+
+/* ======== RESPONSIVE ======== */
+@media (max-width: 992px) {
+    .contenido-planificacion {
+        margin-left: 0;
+        padding: 15px;
+    }
+    .toggle-btn {
+        display: block;
+    }
+    .table {
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,159 @@
+/* Estilos generales */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+.container {
+    max-width: 100%;
+    overflow-x: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 600px; /* Evita que la tabla se vea demasiado comprimida */
+}
+
+/* Encabezado de la tabla */
+thead {
+    background: #007bff;
+    color: white;
+    
+    text-align: left;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #007bff;
+}
+
+/* Alternar colores de filas */
+tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+/* Efecto hover */
+tbody tr:hover {
+    background: #f1f1f1;
+}
+
+/* Botones de acción */
+.btn {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    display: inline-block;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+/* Paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 20px 0;
+}
+
+.pagination .page-item {
+    margin: 0 5px;
+}
+
+.pagination .page-link {
+    text-decoration: none;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    color: #007bff;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.pagination .page-link:hover {
+    background: #007bff;
+    color: white;
+}
+
+.pagination .active .page-link {
+    background: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+}
+
+/* Responsividad */
+@media screen and (max-width: 768px) {
+    th, td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .pagination .page-link {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .btn {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+
+    th, td {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    .pagination .page-link {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+}

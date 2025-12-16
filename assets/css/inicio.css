@@ -1,0 +1,76 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #d3d1d1;
+}
+
+header {
+    background-color: #000000;
+    color: #ffcf00;
+    padding: 20px 0;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.slider-container {
+    position: relative;
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.slider {
+    width: 100%;
+    margin: auto;
+}
+
+/* Asegúrate de que todas las imágenes tengan el mismo tamaño */
+.swiper-slide img {
+    width: 100%;
+    height: 500px; /* Ajusta este valor según tus necesidades */
+    object-fit: cover; /* Asegura que las imágenes se redimensionen correctamente */
+    border-radius: 8px;
+}
+
+.welcome-container {
+    text-align: center;
+    padding: 70px 0;
+}
+
+.welcome-message {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.btn-ingresar {
+    display: inline-block;
+    padding: 12px 20px;
+    font-size: 18px;
+    text-decoration: none;
+    background-color: #007BFF;
+    color: #fff;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.btn-ingresar:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media only screen and (max-width: 768px) {
+    .welcome-container h1 {
+      font-size: 28px;
+    }
+    .slider-container {
+      width: 90%;
+    }
+}
