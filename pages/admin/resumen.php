@@ -166,7 +166,7 @@ $meses = [
 </div>
 </div>
 </a>
-<a href="dr.php">
+<a href="tous-programados.php">
 <div class="col">
 <div class="card bg-success text-white">
 <div class="card-body">
@@ -176,7 +176,7 @@ $meses = [
 </div>
 </div>
 </a>
-<a href="h.php">
+<a href="nuevos-clientes.php">
 <div class="col">
 <div class="card bg-warning text-dark">
 <div class="card-body">
@@ -200,7 +200,7 @@ $meses = [
 </div>
 </div>
 </a>
-<a href="a.php">
+<a href="ingreso-dia.php">
 <div class="col">
 <div class="card bg-success text-white">
 <div class="card-body">
@@ -210,7 +210,7 @@ $meses = [
 </div>
 </div>
 </a>
-<a href="s.php">
+<a href="saldo-pendiente.php">
 <div class="col">
 <div class="card bg-warning text-dark">
 <div class="card-body">
@@ -220,7 +220,7 @@ $meses = [
 </div>
 </div>
 </a>
-<a href="b.php">
+<a href="balance-general.php">
 <div class="col">
 <div class="card bg-secondary text-white">
 <div class="card-body">
