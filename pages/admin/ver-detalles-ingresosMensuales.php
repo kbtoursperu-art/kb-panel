@@ -1,6 +1,5 @@
 <?php
 include('../../conexion.php');
-include('../header.php');
 include('../sidebar.php');
 
 $year = $_GET['year'] ?? date('Y');
@@ -98,7 +97,7 @@ $res = mysqli_stmt_get_result($stmt);
     </tfoot>
   </table>
 
-  <a href="ingresos_mensual.php?year=<?= $year ?>" class="btn btn-secondary">
+  <a href="ingresos_mensuales.php?year=<?= $year ?>" class="btn btn-secondary">
     ⬅ Volver
   </a>
 </div>
