@@ -1,6 +1,6 @@
 <?php
 include('../../conexion.php');
-include('../sidebar.php');
+
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 error_reporting(E_ALL);
@@ -28,8 +28,7 @@ $metrics = [
 $sql = "
 SELECT COUNT(*) total
 FROM Operaciones
-WHERE fecha_salida IS NOT NULL
-AND fecha_salida >= CURDATE()
+WHERE fecha_salida >= CURDATE()
 ";
 $metrics['reservas_activas'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'];
 
@@ -45,7 +44,7 @@ WHERE fecha_registro >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 ";
 $metrics['nuevos_clientes'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'];
 
-/* 🔹 Ingresos reales del MES */
+/* 🔹 Ingresos mes */
 $sql = "
 SELECT 
 SUM(
@@ -53,13 +52,12 @@ SUM(
     IF(estado='pagado', IFNULL(saldo_pendiente,0), 0)
 ) total
 FROM Contabilidad
-WHERE fecha_pago_saldo IS NOT NULL
-AND MONTH(fecha_pago_saldo)=MONTH(CURDATE())
+WHERE MONTH(fecha_pago_saldo)=MONTH(CURDATE())
 AND YEAR(fecha_pago_saldo)=YEAR(CURDATE())
 ";
 $metrics['ingresos_mes'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
 
-/* 🔹 Ingresos reales del DÍA */
+/* 🔹 Ingresos día */
 $sql = "
 SELECT 
 SUM(
@@ -71,48 +69,43 @@ WHERE fecha_pago_saldo = CURDATE()
 ";
 $metrics['ingresos_dia'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
 
-/* 🔹 Saldo pendiente TOTAL */
+/* 🔹 Saldos pendientes */
 $sql = "
-SELECT 
-SUM(IFNULL(saldo_pendiente,0)) total
+SELECT SUM(IFNULL(saldo_pendiente,0)) total
 FROM Contabilidad
 WHERE estado = 'pendiente'
 ";
 $metrics['saldo_pendiente_total'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
 
-/* 🔹 Gastos (no existen aún) */
 $metrics['gastos_mes'] = 0;
 $metrics['balance_mes'] = $metrics['ingresos_mes'] - $metrics['gastos_mes'];
 
 /* ==========================
-   PRÓXIMOS TOURS
+   Próximos Tours
 ========================== */
 $sql = "
 SELECT nombre_servicio, fecha_salida
 FROM Operaciones
-WHERE fecha_salida IS NOT NULL
-AND fecha_salida >= CURDATE()
+WHERE fecha_salida >= CURDATE()
 ORDER BY fecha_salida ASC
 LIMIT 5
 ";
 $eventos = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
 
 /* ==========================
-   NOTIFICACIONES
+   Notificaciones
 ========================== */
 $sql = "
 SELECT observaciones mensaje, fecha_reserva
 FROM Operaciones
-WHERE observaciones IS NOT NULL
-AND observaciones <> ''
-AND fecha_reserva IS NOT NULL
+WHERE observaciones <> ''
 ORDER BY fecha_reserva DESC
 LIMIT 5
 ";
 $notificaciones = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
 
 /* ==========================
-   ESTADÍSTICAS
+   Estadísticas
 ========================== */
 $sql = "
 SELECT 
@@ -143,10 +136,11 @@ $meses = [
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="css.css">
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
+<?php include('../sidebar.php');?>
+<!-- CONTENT ACOMODADO AL NUEVO SIDEBAR -->
 <div class="content p-4">
 <div class="container-fluid">
 
@@ -156,92 +150,102 @@ $meses = [
 
 <!-- MÉTRICAS PRINCIPALES -->
 <div class="row row-cols-1 row-cols-md-3 g-4 mb-4 text-center">
-    <a href="reservas-activas.php">
+
 <div class="col">
-<div class="card bg-primary text-white">
+<a href="reservas-activas.php" class="text-decoration-none">
+<div class="card bg-primary text-white shadow-sm">
 <div class="card-body">
 <h5>Reservas Activas</h5>
 <h3><?= $metrics['reservas_activas'] ?></h3>
 </div>
 </div>
-</div>
 </a>
-<a href="tous-programados.php">
+</div>
+
 <div class="col">
-<div class="card bg-success text-white">
+<a href="tous-programados.php" class="text-decoration-none">
+<div class="card bg-success text-white shadow-sm">
 <div class="card-body">
 <h5>Tours Programados</h5>
 <h3><?= $metrics['tours_programados'] ?></h3>
 </div>
 </div>
-</div>
 </a>
-<a href="nuevos-clientes.php">
+</div>
+
 <div class="col">
-<div class="card bg-warning text-dark">
+<a href="nuevos-clientes.php" class="text-decoration-none">
+<div class="card bg-warning text-dark shadow-sm">
 <div class="card-body">
 <h5>Nuevos Clientes</h5>
 <h3><?= $metrics['nuevos_clientes'] ?></h3>
 </div>
 </div>
-</div>
 </a>
+</div>
+
 </div>
 
 <!-- FINANZAS -->
 <div class="row row-cols-1 row-cols-md-4 g-4 mb-4 text-center">
-<a href="ingresos_mensuales.php">
+
 <div class="col">
-<div class="card bg-info text-white">
+<a href="ingresos_mensuales.php" class="text-decoration-none">
+<div class="card bg-info text-white shadow-sm">
 <div class="card-body">
 <h5>Ingresos del Mes</h5>
 <h3>S/. <?= number_format($metrics['ingresos_mes'],2) ?></h3>
 </div>
 </div>
-</div>
 </a>
-<a href="ingreso-dia.php">
+</div>
+
 <div class="col">
-<div class="card bg-success text-white">
+<a href="ingreso-dia.php" class="text-decoration-none">
+<div class="card bg-success text-white shadow-sm">
 <div class="card-body">
 <h5>Ingresos del Día</h5>
 <h3>S/. <?= number_format($metrics['ingresos_dia'],2) ?></h3>
 </div>
 </div>
-</div>
 </a>
-<a href="saldo-pendiente.php">
+</div>
+
 <div class="col">
-<div class="card bg-warning text-dark">
+<a href="saldo-pendiente.php" class="text-decoration-none">
+<div class="card bg-warning text-dark shadow-sm">
 <div class="card-body">
 <h5>Saldos Pendientes</h5>
 <h3>S/. <?= number_format($metrics['saldo_pendiente_total'],2) ?></h3>
 </div>
 </div>
-</div>
 </a>
-<a href="balance-general.php">
+</div>
+
 <div class="col">
-<div class="card bg-secondary text-white">
+<a href="balance-general.php" class="text-decoration-none">
+<div class="card bg-secondary text-white shadow-sm">
 <div class="card-body">
 <h5>Balance General</h5>
 <h3>S/. <?= number_format($metrics['balance_mes'],2) ?></h3>
 </div>
 </div>
-</div>
 </a>
+</div>
+
 </div>
 
 <!-- EVENTOS Y NOTIFICACIONES -->
 <div class="row mb-4">
+
 <div class="col-md-6">
-<div class="card h-100">
+<div class="card shadow-sm h-100">
 <div class="card-header bg-info text-white fw-bold">📅 Próximos Tours</div>
 <ul class="list-group list-group-flush">
 <?php foreach($eventos as $e): ?>
 <li class="list-group-item">
 <strong><?= date('d/m/Y',strtotime($e['fecha_salida'])) ?></strong>
-- <?= $e['nombre_servicio'] ?>
+- <?= htmlspecialchars($e['nombre_servicio']) ?>
 </li>
 <?php endforeach; ?>
 </ul>
@@ -249,7 +253,7 @@ $meses = [
 </div>
 
 <div class="col-md-6">
-<div class="card h-100">
+<div class="card shadow-sm h-100">
 <div class="card-header bg-warning text-white fw-bold">🔔 Notificaciones</div>
 <ul class="list-group list-group-flush">
 <?php foreach($notificaciones as $n): ?>
@@ -261,21 +265,18 @@ $meses = [
 </ul>
 </div>
 </div>
+
 </div>
 
 <!-- ESTADÍSTICAS -->
-<div class="card mb-4">
-<div class="card-header bg-dark text-white fw-bold">
+<div class="card shadow-sm mb-5">
+<div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
 📈 Estadísticas por Mes y Tour
-</div>
-<div class="control">
-  <a href="tours_mes.php">
-    <button>Más Detalles</button>
-  </a>
+<a href="tours_mes.php" class="btn btn-sm btn-primary">Más detalles</a>
 </div>
 
 <div class="table-responsive">
-<table class="table table-striped text-center">
+<table class="table table-striped text-center mb-0">
 <thead class="table-dark">
 <tr>
 <th>Mes</th>
@@ -300,5 +301,6 @@ $meses = [
 
 </div>
 </div>
+
 </body>
 </html>

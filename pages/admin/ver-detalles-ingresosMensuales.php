@@ -1,6 +1,6 @@
 <?php
 include('../../conexion.php');
-include('../sidebar.php');
+
 
 $year = $_GET['year'] ?? date('Y');
 $mes  = $_GET['mes'] ?? '';

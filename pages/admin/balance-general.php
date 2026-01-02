@@ -9,13 +9,14 @@ date_default_timezone_set('America/Lima');
 ========================== */
 $resumen_sql = "
 SELECT
-    SUM(monto_pagado) AS total_pagado,
-    SUM(saldo_pendiente) AS total_pendiente,
-    SUM(monto_pagado + saldo_pendiente) AS total_general
-FROM Contabilidad
-WHERE MONTH(fecha_pago) = MONTH(CURDATE())
-AND YEAR(fecha_pago) = YEAR(CURDATE())
+    SUM(c.pagado_a_cuenta + IF(c.estado='pagado', c.saldo_pendiente, 0)) AS total_pagado,
+    SUM(c.saldo_pendiente) AS total_pendiente,
+    SUM(c.precio_servicio) AS total_general
+FROM Contabilidad c
+WHERE MONTH(c.fecha_pago_saldo) = MONTH(CURDATE())
+AND YEAR(c.fecha_pago_saldo) = YEAR(CURDATE())
 ";
+
 $resumen = mysqli_fetch_assoc(mysqli_query($conexion, $resumen_sql));
 
 $total_pagado    = $resumen['total_pagado'] ?? 0;
@@ -27,26 +28,27 @@ $total_general   = $resumen['total_general'] ?? 0;
 ========================== */
 $detalle_sql = "
 SELECT 
-    c.id_contabilidad,
     o.id_operaciones,
     CONCAT(d.nombre,' ',d.apellido) AS cliente,
-    c.monto_pagado,
+    c.precio_servicio,
+    c.pagado_a_cuenta,
     c.saldo_pendiente,
-    (c.monto_pagado + c.saldo_pendiente) AS total_operacion,
-    c.fecha_pago,
-    c.actualizado_en
+    c.fecha_pago_saldo,
+    c.estado
 FROM Contabilidad c
 LEFT JOIN Operaciones o ON o.id_operaciones = c.id_operaciones
 LEFT JOIN Datos_clientes d ON d.id_cliente = o.id_cliente
-WHERE MONTH(c.fecha_pago) = MONTH(CURDATE())
-AND YEAR(c.fecha_pago) = YEAR(CURDATE())
-ORDER BY c.fecha_pago DESC
+WHERE MONTH(c.fecha_pago_saldo) = MONTH(CURDATE())
+AND YEAR(c.fecha_pago_saldo) = YEAR(CURDATE())
+ORDER BY c.fecha_pago_saldo DESC
 ";
 
 $detalle = mysqli_query($conexion, $detalle_sql);
 ?>
 
+<div class="content p-4">
 <div class="container-fluid mt-4">
+
     <h3>📊 Balance General — Mes Actual</h3>
 
     <!-- RESUMEN -->
@@ -72,7 +74,7 @@ $detalle = mysqli_query($conexion, $detalle_sql);
         <div class="col-md-3">
             <div class="card text-white bg-primary shadow">
                 <div class="card-body">
-                    <h6>Ingresos Totales</h6>
+                    <h6>Ingresos Totales (Tours)</h6>
                     <h4>S/. <?= number_format($total_general,2) ?></h4>
                 </div>
             </div>
@@ -100,36 +102,36 @@ $detalle = mysqli_query($conexion, $detalle_sql);
                     <tr>
                         <th>Cliente</th>
                         <th>Operación</th>
-                        <th>Total Tour</th>
-                        <th>Pagado</th>
-                        <th>Pendiente</th>
+                        <th>Precio Servicio</th>
+                        <th>Pagado a Cuenta</th>
+                        <th>Saldo Pendiente</th>
                         <th>Estado</th>
-                        <th>Última Actualización</th>
+                        <th>Fecha Pago</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php while($row = mysqli_fetch_assoc($detalle)): ?>
                     <?php
-                        if ($row['saldo_pendiente'] == 0) {
-                            $estado = '<span class="badge bg-success">Pagado</span>';
-                        } else {
-                            $estado = '<span class="badge bg-danger">Pendiente</span>';
-                        }
+                        $estado = ($row['estado'] === 'pagado') 
+                            ? '<span class="badge bg-success">Pagado</span>'
+                            : '<span class="badge bg-danger">Pendiente</span>';
                     ?>
                     <tr>
                         <td><?= htmlspecialchars($row['cliente']) ?></td>
                         <td>#<?= $row['id_operaciones'] ?></td>
-                        <td>S/. <?= number_format($row['total_operacion'],2) ?></td>
-                        <td>S/. <?= number_format($row['monto_pagado'],2) ?></td>
+                        <td>S/. <?= number_format($row['precio_servicio'],2) ?></td>
+                        <td>S/. <?= number_format($row['pagado_a_cuenta'],2) ?></td>
                         <td>S/. <?= number_format($row['saldo_pendiente'],2) ?></td>
                         <td><?= $estado ?></td>
-                        <td><?= date('d/m/Y H:i', strtotime($row['actualizado_en'])) ?></td>
+                        <td><?= date('d/m/Y', strtotime($row['fecha_pago_saldo'])) ?></td>
                     </tr>
                 <?php endwhile; ?>
                 </tbody>
             </table>
         </div>
     </div>
+
+</div>
 </div>
 
 <script>
