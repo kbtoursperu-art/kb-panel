@@ -11,13 +11,15 @@ $moneda = $_GET['moneda'] ?? '';
 $query = "
     SELECT 
         MONTH(fecha_pago_saldo) AS mes,
-        SUM(precio_servicio) AS total_ingresos,
-        SUM(comision) AS total_comisiones,
-        SUM(pagado_a_cuenta) AS total_pagado,
-        SUM(saldo_pendiente) AS total_saldo
+        SUM(COALESCE(precio_servicio,0)) AS total_ingresos,
+        SUM(COALESCE(comision,0)) AS total_comisiones,
+        SUM(COALESCE(pagado_a_cuenta,0)) AS total_pagado,
+        SUM(COALESCE(saldo_pendiente,0)) AS total_saldo
     FROM Contabilidad
-    WHERE YEAR(fecha_pago_saldo) = ?
+    WHERE fecha_pago_saldo IS NOT NULL
+      AND YEAR(fecha_pago_saldo) = ?
 ";
+
 
 $params = [$year];
 $types  = "i";
@@ -131,7 +133,7 @@ foreach ($datos as $d) {
         <td>S/ <?= number_format($pagado[$n],2) ?></td>
         <td>S/ <?= number_format($saldo[$n],2) ?></td>
         <td>
-          <a href="ver_detalles_contabilidad.php?year=<?= $year ?>&mes=<?= $n ?>"
+          <a href="ver-detalles-ingresosMensuales.php?year=<?= $year ?>&mes=<?= $n ?>"
              class="btn btn-info btn-sm">Ver detalles</a>
         </td>
       </tr>
