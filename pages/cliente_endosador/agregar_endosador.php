@@ -1,6 +1,5 @@
 <?php
 include '../../conexion.php';
-include('./../sidebar.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $_POST['nombre'];
@@ -37,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                      VALUES ('$id_cliente', '$empresa_endosadora', '$contacto', '$telefono_contacto', '$email_contacto')";
 
             if (mysqli_query($conexion, $sql2)) {
-                echo "<script>alert('Cliente Endosador agregado correctamente'); window.location.href='index.php';</script>";
+                echo "<script>alert('Cliente Endosador agregado correctamente'); window.location.href='".$_SERVER['PHP_SELF']."';</script>";
             } else {
                 echo "<div class='alert alert-danger m-4'>Error al insertar en Clientes_Endosadores: " . mysqli_error($conexion) . "</div>";
             }
@@ -63,6 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             max-width: 850px;
             background-color: #fff;
             padding: 30px;
+            margin-top: 70px;     /* altura header */
+
         }
 
         h2 {
@@ -81,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 8px;
             padding: 10px 15px;
             border: 1px solid #ccc;
+            
         }
 
         .form-control:focus {
@@ -116,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-
+<?php include('./../sidebar.php');?>
 <div class="container">
     <div class="card mx-auto">
         <h2>➕ Agregar Cliente Endosador</h2>
@@ -185,6 +187,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <a href="endosadores.php" class="btn btn-secondary px-4">↩️ Cancelar</a>
             </div>
         </form>
+
+        <!-- 🚀 LISTA DE CLIENTES ENDOSADORES -->
+        <hr class="mt-4">
+        <h3 class="text-center text-primary mt-4">📋 Lista de Clientes Endosadores</h3>
+
+        <?php
+        $query_lista = "
+            SELECT 
+                dc.id_cliente,
+                dc.nombre,
+                dc.apellido,
+                dc.genero,
+                dc.nro_pasaporte,
+                ce.empresa_endosadora,
+                ce.contacto,
+                ce.telefono_contacto,
+                ce.email_contacto
+            FROM Datos_clientes dc
+            INNER JOIN Clientes_Endosadores ce ON dc.id_cliente = ce.id_cliente
+            WHERE dc.tipo_cliente = 'Endosador'
+            ORDER BY dc.id_cliente DESC
+        ";
+
+        $result_lista = mysqli_query($conexion, $query_lista);
+        ?>
+
+        <div class="table-responsive mt-3">
+            <table class="table table-striped table-bordered">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Género</th>
+                        <th>Pasaporte</th>
+                        <th>Empresa</th>
+                        <th>Contacto</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($row = mysqli_fetch_assoc($result_lista)) { ?>
+                        <tr>
+                            <td><?= $row['nombre'] ?></td>
+                            <td><?= $row['apellido'] ?></td>
+                            <td><?= $row['genero'] ?></td>
+                            <td><?= $row['nro_pasaporte'] ?></td>
+                            <td><?= $row['empresa_endosadora'] ?></td>
+                            <td><?= $row['contacto'] ?></td>
+                            <td><?= $row['telefono_contacto'] ?></td>
+                            <td><?= $row['email_contacto'] ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </div>
 
