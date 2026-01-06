@@ -1,6 +1,5 @@
 <?php
 include('../../conexion.php');  
-include('./../sidebar.php');
 
 if (!isset($_GET['id_cliente'])) {
     die("ID de cliente no proporcionado.");
@@ -161,7 +160,7 @@ $cliente = mysqli_fetch_assoc($result);
     </style>
 </head>
 <body>
-
+<?php include('./../sidebar.php');?>
 <div class="container">
     <div class="card mx-auto">
         <h2 class="text-center">✏️ Editar Cliente KB</h2>
