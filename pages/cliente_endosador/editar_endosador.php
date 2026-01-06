@@ -1,6 +1,5 @@
 <?php
 include '../../conexion.php';
-include './../sidebar.php';
 
 $id_cliente = $_GET['id'] ?? '';
 
@@ -152,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-
+<?php include './../sidebar.php'; ?>
 <div class="container">
     <h2>Editar Cliente Endosador</h2>
     <form method="POST" enctype="multipart/form-data">
