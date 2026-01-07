@@ -345,7 +345,7 @@ function agregarTour() {
 
     // limpiar selects
     nuevo.querySelectorAll("select").forEach(s => {
-
+    
         if (s.multiple) {
             [...s.options].forEach(o => o.selected = false);
         } else {

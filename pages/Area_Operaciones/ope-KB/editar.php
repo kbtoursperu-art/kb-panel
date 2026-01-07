@@ -116,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-light">
 <?php include '../../sidebar.php'; ?>
+<br>
 <div class="container mt-5">
     <div class="card shadow p-4">
         <h3 class="text-primary mb-4">✏️ Editar Operación - <?= htmlspecialchars($operacion['cliente']) ?></h3>

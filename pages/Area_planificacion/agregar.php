@@ -1,6 +1,6 @@
 <?php
 include '../../conexion.php';
-include('../sidebar.php');
+
 
 // ✅ Verificar que venga el ID de la operación
 if (!isset($_GET['id_operaciones'])) {
@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-container {
             max-width: 700px;
             margin: 40px auto;
+            margin-top: 70px;
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -70,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-
+<?php include('../sidebar.php'); ?>
 <div class="form-container">
     <h2 class="titulo-seccion">➕ Agregar Planificación</h2>
 

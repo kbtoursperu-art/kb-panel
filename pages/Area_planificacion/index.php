@@ -31,7 +31,7 @@ $resultado = mysqli_query($conexion, $query);
     <link rel="stylesheet" href="stilo.css">
 </head>
 <body>
-<?php include '../../sidebar.php'; ?>
+<?php include '../sidebar.php'; ?>
 <!-- Botón de menú responsive -->
 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
 
