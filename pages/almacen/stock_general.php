@@ -1,7 +1,6 @@
 <?php
 // pages/almace/stock_general.php
 include("../../conexion.php");
-include '../sidebar.php';
 error_reporting(E_ALL); ini_set('display_errors',1);
 
 // resumen rápido
@@ -34,6 +33,7 @@ $items = mysqli_query($conexion, "SELECT id_item, nombre, tiene_talla, tiene_col
 <link rel="stylesheet" href="stilo.css">
 </head>
 <body class="bg-light">
+  <?php include '../sidebar.php';?>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>📦 Stock General</h3>
