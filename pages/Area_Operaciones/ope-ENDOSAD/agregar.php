@@ -1,7 +1,6 @@
 <?php
 ob_start();
 include '../../../conexion.php';
-include '../../sidebar.php';
 
 // Validar ID cliente
 if (!isset($_GET['id_cliente'])) {

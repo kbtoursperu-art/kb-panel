@@ -1,6 +1,5 @@
 <?php
 include '../../conexion.php';
-include './../sidebar.php';
 
 // ============================ IMPORTAR DESDE EXCEL ============================
 require '../../vendor/autoload.php'; // Requiere PhpSpreadsheet
@@ -68,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
 </head>
 
 <body>
+    <?php include './../sidebar.php';?>
     <div class="content p-4">
         <div class="container-fluid">
             <h2 class="titulo-seccion mb-4">👥 Clientes Endosadores</h2>
