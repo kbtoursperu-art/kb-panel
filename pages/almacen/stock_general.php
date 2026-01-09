@@ -34,6 +34,9 @@ $items = mysqli_query($conexion, "SELECT id_item, nombre, tiene_talla, tiene_col
 </head>
 <body class="bg-light">
   <?php include '../sidebar.php';?>
+  <br>
+  <br>
+  <br>
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>📦 Stock General</h3>

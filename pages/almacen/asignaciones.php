@@ -88,7 +88,10 @@ $servicios = mysqli_query($conexion, "SELECT id_operaciones AS id_servicio, nomb
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-
+<?php include '../sidebar.php';?>
+<br>
+<br>
+<br>
 <div class="container py-4">
   <div class="d-flex justify-content-between mb-3">
     <h3>Asignaciones</h3>
