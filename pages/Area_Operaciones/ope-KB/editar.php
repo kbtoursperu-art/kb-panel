@@ -54,8 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_salida = $_POST['fecha_salida'];
     $fecha_retorno = $_POST['fecha_retorno'];
     $modalidad_retorno = $_POST['modalidad_retorno'];
-    $incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Sí' : 'No';
-    $servicio_adicional = isset($_POST['servicio_adicional']) ? implode(', ', $_POST['servicio_adicional']) : 'Ninguna';
+    $incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Con ingreso' : 'Sin ingreso';
+   $servicio_adicional = isset($_POST['servicio_adicional'])
+    ? implode(', ', $_POST['servicio_adicional'])
+    : 'Ninguna';
+
     $observaciones = $_POST['observaciones'];
     $Encargado = $_POST['Encargado'];
     $empresa = $_POST['empresa'];
@@ -200,16 +203,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-4 mt-4">
                     <div class="form-check">
                         <input type="checkbox" name="incluye_ingreso" class="form-check-input" id="incluyeIngreso"
-                            <?= ($operacion['incluye_ingreso'] == 'Sí') ? 'checked' : '' ?>>
+                            <?= ($operacion['incluye_ingreso'] == 'Con ingreso') ? 'checked' : '' ?>
+>
                         <label for="incluyeIngreso" class="form-check-label">¿Incluye Ingreso?</label>
                     </div>
                 </div>
 
               <div class="col-md-6">
     <label>Servicio Adicional</label>
-    <select name="servicio_adicional[][]" class="form-control" multiple>
+    <select name="servicio_adicional[]" class="form-control" multiple>
         <?php
-        $servicios_seleccionados = $servicios_seleccionados ?? [];
+        $servicios_seleccionados = !empty($operacion['servicio_adicional'])
+    ? explode(', ', $operacion['servicio_adicional'])
+    : [];
+
         $opciones = [
             "Ninguna",
             "Ingreso a Mollepata",
@@ -254,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Método de Pago</label>
                     <select name="metodo_pago" class="form-select">
                         <?php 
-                        $metodos = ['Efectivo','We travel','Izipay','PAYPAL','Bcp','Otro'];
+                        $metodos = ['Efectivo','We travel','Izipay','PAYPAL','Bcp'];
                         foreach ($metodos as $m) {
                             $sel = ($operacion['metodo_pago'] == $m) ? 'selected' : '';
                             echo "<option value='$m' $sel>$m</option>";
@@ -265,8 +272,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-4">
                     <label>Moneda</label>
                     <select name="tipo_moneda" class="form-select">
-                        <option value="PEN" <?= ($operacion['tipo_moneda'] == 'PEN') ? 'selected' : '' ?>>Soles (PEN)</option>
-                        <option value="USD" <?= ($operacion['tipo_moneda'] == 'USD') ? 'selected' : '' ?>>Dólares (USD)</option>
+                        <option value="Soles" <?= ($operacion['tipo_moneda'] == 'Soles') ? 'selected' : '' ?>>Soles (PEN)</option>
+                        <option value="Dólares" <?= ($operacion['tipo_moneda'] == 'Dólares') ? 'selected' : '' ?>>Dólares (USD)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
