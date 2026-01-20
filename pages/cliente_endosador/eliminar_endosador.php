@@ -26,12 +26,12 @@ $delete = mysqli_query($conexion, "DELETE FROM Datos_clientes WHERE id_cliente =
 if ($delete) {
     echo "<script>
         alert('✅ Cliente Endosador eliminado correctamente');
-        window.location='clientes_endosadores.php';
+        window.location='index.php';
     </script>";
 } else {
     echo "<script>
         alert('❌ Error al eliminar el cliente');
-        window.location='clientes_endosadores.php';
+        window.location='index.php';
     </script>";
 }
 ?>
