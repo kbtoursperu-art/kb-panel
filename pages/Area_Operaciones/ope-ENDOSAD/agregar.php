@@ -24,11 +24,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $fecha_salida      = $_POST['fecha_salida'][$i];
         $fecha_retorno     = $_POST['fecha_retorno'][$i];
         $modalidad_retorno = $_POST['modalidad_retorno'][$i];
-        $incluye_ingreso   = isset($_POST['incluye_ingreso'][$i]) ? 'Sí' : 'No';
+        $incluye_ingreso = isset($_POST['incluye_ingreso'][$i]) ? 'Con ingreso' : 'Sin ingreso';
 
-        $servicios = $_POST['servicio_adicional'][$i] ?? [];
-        if (!is_array($servicios)) $servicios = [$servicios];
-        $servicio_adicional = implode(", ", $servicios);
+$servicios = $_POST['servicio_adicional'][$i] ?? [];
+
+if (is_array($servicios)) {
+    $servicio_adicional = implode(', ', $servicios);
+} else {
+    $servicio_adicional = $servicios;
+}
 
         $observaciones = $_POST['observaciones'][$i];
         $encargado     = $_POST['encargado'][$i];
@@ -170,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <div class="col-md-6">
                         <label>Servicio Adicional</label>
-                        <select name="servicio_adicional[][ ]" class="form-control" multiple>
+                        <select name="servicio_adicional[]" class="form-control" multiple>
                             <option value="Ninguna">Ninguna</option>
                              <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
@@ -194,21 +198,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <select name="metodo_pago[]" class="form-control">
                             <option value="Efectivo">Efectivo</option>
                             <option value="We travel">We travel</option>
+                             <option value="CULQI">CULQI</option>
+                            <option value="Izipay">Izipay</option>
                             <option value="PAYPAL">PAYPAL</option>
+                            <option value="Bcp">Bcp</option>
                         </select>
                     </div>
 
                     <div class="col-md-4">
                         <label>Moneda</label>
-                        <select name="tipo_moneda[]" class="form-control">
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="We travel">We travel</option>
-                             <option value="CULQI">CULQI</option>
-                            <option value="Izipay">Izipay</option>
-                            <option value="PAYPAL">PAYPAL</option>
-                            <option value="Bcp">Bcp</option>
-                            <option value="Otro">Otro</option>
+                        <select name="tipo_moneda[]" class="form-control" required>
+                            <option value="Soles">Soles</option>
+                            <option value="Dólares">Dólares</option>
                         </select>
+
                     </div>
 
                     <div class="col-md-4">
