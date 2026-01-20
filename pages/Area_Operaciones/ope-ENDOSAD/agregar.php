@@ -1,7 +1,7 @@
+
 <?php
 ob_start();
 include '../../../conexion.php';
-
 // Validar ID cliente
 if (!isset($_GET['id_cliente'])) {
     die("❌ Falta el ID del cliente.");
@@ -89,11 +89,37 @@ if (is_array($servicios)) {
     exit;
 }
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nueva Operación Endosador</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div class="container mt-4">
-    <h3 class="text-primary mb-4">➕ Nueva Operación Endosador: <?= htmlspecialchars($cliente['nombre']) ?></h3>
+<!-- ✅ BOOTSTRAP -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <form method="POST">
+<!-- (opcional) tu CSS -->
+<link rel="stylesheet" href="../../stilo.css">
+</head>
+
+<body class="bg-light">
+
+<!-- ✅ SIDEBAR (AHORA SÍ) -->
+<?php include '../../sidebar.php'; ?>
+
+<!-- ✅ CONTENIDO -->
+<div class="container-fluid">
+    <div class="container mt-4">
+
+        <div class="card shadow">
+            <div class="card-body">
+
+                <h4 class="text-primary mb-4">
+                    ➕ Nueva Operación Endosador: <?= htmlspecialchars($cliente['nombre']) ?>
+                </h4>
+
+                <form method="POST">
         <div id="contenedorTours">
 
             <!-- ================= TOUR ================= -->
@@ -247,8 +273,15 @@ if (is_array($servicios)) {
 
         </div>
     </form>
+
+            </div>
+        </div>
+
+    </div>
 </div>
 
+<!-- ✅ JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Calcular saldo
 document.addEventListener("input", e => {
@@ -279,3 +312,8 @@ function eliminarTour(btn) {
     btn.closest(".tour-item").remove();
 }
 </script>
+
+
+</body>
+</html>
+
