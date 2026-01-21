@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
             $contador = 0;
             foreach ($filas as $index => $columna) {
                 if ($index === 0) continue; // Saltar encabezado
-                list($nombre, $apellido, $genero, $pasaporte, $empresa, $contacto, $telefono, $email) = $columna;
+                list($nombre, $apellido, $genero, $pasaporte, $empresa, $grupo, $contacto, $telefono, $email) = $columna;
 
                 // Insertar en Datos_clientes
                 $sql1 = "INSERT INTO Datos_clientes (nombre, apellido, genero, nro_pasaporte, tipo_cliente)
@@ -28,10 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                 $id_cliente = $stmt1->insert_id;
 
                 // Insertar en Clientes_Endosadores
-                $sql2 = "INSERT INTO Clientes_Endosadores (id_cliente, empresa_endosadora, contacto, telefono_contacto, email_contacto)
-                         VALUES (?, ?, ?, ?, ?)";
+                $sql2 = "INSERT INTO Clientes_Endosadores 
+                    (id_cliente, empresa_endosadora, grupo, contacto, telefono_contacto, email_contacto)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+
                 $stmt2 = $conexion->prepare($sql2);
-                $stmt2->bind_param("issss", $id_cliente, $empresa, $contacto, $telefono, $email);
+                $stmt2->bind_param("isssss", $id_cliente, $empresa, $grupo, $contacto, $telefono, $email);
                 $stmt2->execute();
 
                 $contador++;
@@ -120,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                                     <th>Género</th>
                                     <th>Pasaporte</th>
                                     <th>Empresa</th>
+                                    <th>Grupo</th>
                                     <th>Contacto</th>
                                     <th>Teléfono</th>
                                     <th>Email</th>
@@ -135,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                                                 d.genero, 
                                                 d.nro_pasaporte,
                                                 e.empresa_endosadora, 
+                                                e.grupo,
                                                 e.contacto, 
                                                 e.telefono_contacto, 
                                                 e.email_contacto
@@ -154,6 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                                     echo "<td>" . htmlspecialchars($row['genero']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['nro_pasaporte']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['empresa_endosadora']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['grupo']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['contacto']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['telefono_contacto']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['email_contacto']) . "</td>";

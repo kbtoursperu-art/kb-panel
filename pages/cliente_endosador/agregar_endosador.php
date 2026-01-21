@@ -168,6 +168,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <label>Teléfono de Contacto</label>
                         <input type="text" name="telefono_contacto" class="form-control">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grupo</label>
+                        <input type="text" name="grupo" class="form-control" placeholder="Ej: WDG" required>
+                    </div>
+
                     <div class="col-md-6">
                         <label>Email de Contacto</label>
                         <input type="email" name="email_contacto" class="form-control">
