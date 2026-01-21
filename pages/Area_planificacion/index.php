@@ -3,25 +3,29 @@ include '../../conexion.php';
 // 🟢 Consulta principal: muestra todas las operaciones con su planificación (si existe)
 $query = "
 SELECT 
-    g.grupo,
-    MIN(o.nombre_servicio) AS nombre_servicio,
-    MIN(o.fecha_salida) AS fecha_salida,
-    MIN(o.fecha_retorno) AS fecha_retorno,
+    MIN(o.id_operaciones) AS id_operaciones,
+    CONCAT(
+        o.grupo, ' | ',
+        o.nombre_servicio, ' | ',
+        DATE_FORMAT(o.fecha_salida, '%d-%m-%Y')
+    ) AS grupo_operativo,
+    o.nombre_servicio,
+    o.fecha_salida,
+    o.fecha_retorno,
     p.id_planificacion,
     p.nombre_guia,
     p.nombre_cocinero,
     p.nombre_asistente
-FROM (
-    SELECT id_cliente, grupo FROM Clientes_KB
-    UNION ALL
-    SELECT id_cliente, grupo FROM Clientes_Endosadores
-) g
-INNER JOIN Operaciones o ON g.id_cliente = o.id_cliente
-LEFT JOIN Planificacion p ON g.grupo = p.grupo
-GROUP BY g.grupo
-ORDER BY fecha_salida DESC
+FROM Operaciones o
+LEFT JOIN Planificacion p 
+    ON o.id_operaciones = p.id_operaciones
+WHERE o.grupo IS NOT NULL
+GROUP BY 
+    o.grupo,
+    o.nombre_servicio,
+    o.fecha_salida
+ORDER BY o.fecha_salida DESC
 ";
-
 $resultado = mysqli_query($conexion, $query);
 ?>
 
@@ -66,7 +70,9 @@ $resultado = mysqli_query($conexion, $query);
 <?php if ($resultado && mysqli_num_rows($resultado) > 0): ?>
     <?php while ($fila = mysqli_fetch_assoc($resultado)): ?>
         <tr>
-            <td class="text-center fw-bold"><?= htmlspecialchars($fila['grupo']) ?></td>
+<td class="text-center fw-bold">
+    <?= htmlspecialchars($fila['grupo_operativo']) ?>
+</td>
             <td><?= htmlspecialchars($fila['nombre_servicio'] ?? '—') ?></td>
             <td><?= htmlspecialchars($fila['fecha_salida'] ?? '—') ?></td>
             <td><?= htmlspecialchars($fila['fecha_retorno'] ?? '—') ?></td>
@@ -75,8 +81,9 @@ $resultado = mysqli_query($conexion, $query);
             <td><?= htmlspecialchars($fila['nombre_asistente'] ?? '-') ?></td>
             <td class="text-center">
                 <?php if (empty($fila['id_planificacion'])): ?>
-                    <a href="agregar.php?grupo=<?= urlencode($fila['grupo']) ?>" 
-                       class="btn btn-success btn-sm">➕ Agregar</a>
+                    <a href="agregar.php?id_operaciones=<?= $fila['id_operaciones'] ?>" 
+   class="btn btn-success btn-sm">➕ Agregar</a>
+
                 <?php else: ?>
                     <a href="editar.php?id=<?= $fila['id_planificacion'] ?>" 
                        class="btn btn-warning btn-sm">✏️ Editar</a>

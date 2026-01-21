@@ -28,8 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insertar en tabla Planificacion
     $insert = "
-        INSERT INTO Planificacion (id_operaciones, nombre_guia, nombre_cocinero, nombre_asistente)
-        VALUES ('$id_operaciones', '$nombre_guia', '$nombre_cocinero', '$nombre_asistente')
+        INSERT INTO Planificacion (
+    id_operaciones,
+    grupo_operativo,
+    nombre_guia,
+    nombre_cocinero,
+    nombre_asistente
+) VALUES (
+    '$id_operaciones',
+    '$grupo_operativo',
+    '$nombre_guia',
+    '$nombre_cocinero',
+    '$nombre_asistente'
+)
     ";
 
     if (mysqli_query($conexion, $insert)) {
