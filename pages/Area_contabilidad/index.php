@@ -79,7 +79,7 @@ if (function_exists('mysqli_set_charset')) {
                 c.fecha_pago_saldo,
                 c.Nro_Comprobante_adicional,
                 c.estado,
-                c.modalidad_recibo AS tipo_comprobante_pago,
+                IFNULL(c.modalidad_recibo, '—') AS tipo_comprobante_pago,
                 c.nro_boleta_cuenta,
                 c.nro_boleta_total,
                 c.detraccion,

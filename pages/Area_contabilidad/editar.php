@@ -178,12 +178,11 @@ if (!$row) {
     <label class="form-label">Tipo de Comprobante</label>
     <select class="form-control" name="modalidad_recibo" required>
         <option value="FACTURA" <?= ($row['modalidad_recibo'] == 'FACTURA') ? 'selected' : '' ?>>FACTURA</option>
-        <option value="FAC-EXPORTACION" <?= ($row['modalidad_recibo'] == 'FAC-EXPORTACION') ? 'selected' : '' ?>>FAC-EXPORTACIÓN</option>
-        <option value="B/V INTANGIBLE" <?= ($row['modalidad_recibo'] == 'B/V INTANGIBLE') ? 'selected' : '' ?>>B/V INTANGIBLE</option>
-        <option value="B/V IGV" <?= ($row['modalidad_recibo'] == 'B/V IGV') ? 'selected' : '' ?>>B/V IGV</option>
+        <option value="FAC_EXPORTACION" <?= ($row['modalidad_recibo'] == 'FAC_EXPORTACION') ? 'selected' : '' ?>>FAC-EXPORTACIÓN</option>
+        <option value="BV_INTANGIBLE" <?= ($row['modalidad_recibo'] == 'BV_INTANGIBLE') ? 'selected' : '' ?>>B/V INTANGIBLE</option>
+        <option value="BV_IGV" <?= ($row['modalidad_recibo'] == 'BV_IGV') ? 'selected' : '' ?>>B/V IGV</option>
     </select>
 </div>
-
 
                 <!-- Nro boleta cuenta -->
                 <div class="col-md-4 mb-3">
