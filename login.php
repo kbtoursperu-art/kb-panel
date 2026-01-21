@@ -199,10 +199,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <select class="form-control" name="area" required>
                     <option selected disabled>Seleccione área</option>
                     <option value="Operaciones">Operaciones</option>
-                    <option value="Ventas">Ventas</option>
                     <option value="Almacén">Almacén</option>
                     <option value="Contabilidad">Contabilidad</option>
                     <option value="Planificación">Planificación</option>
+                    <option value="Administrador">Administrador</option>
                 </select>
 
             </div>

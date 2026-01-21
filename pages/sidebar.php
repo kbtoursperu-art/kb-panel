@@ -213,11 +213,7 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
         <?php if ($esAdmin == 1 || $area == "Planificación"): ?>
             <a class="nav-link" href="/pages/Area_planificacion/index.php"><i class="fas fa-cogs"></i> Planificación</a>
         <?php endif; ?>
-
-        <?php if ($esAdmin == 1 || $area == "Ventas"): ?>
-            <a class="nav-link" href="/pages/Area_Venta/index.php"><i class="fas fa-shopping-cart"></i> Ventas</a>
-        <?php endif; ?>
-
+        
         <?php if ($esAdmin == 1 || $area == "Contabilidad"): ?>
             <a class="nav-link" href="/pages/Area_contabilidad/index.php"><i class="fas fa-calculator"></i> Contabilidad</a>
         <?php endif; ?>
