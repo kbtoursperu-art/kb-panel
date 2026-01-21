@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $genero = $_POST['genero'];
     $nro_pasaporte = $_POST['nro_pasaporte'];
     $empresa_endosadora = $_POST['empresa_endosadora'];
+    $grupo = $_POST['grupo'];
     $contacto = $_POST['contacto'];
     $telefono_contacto = $_POST['telefono_contacto'];
     $email_contacto = $_POST['email_contacto'];
@@ -32,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             // Insertar en Clientes_Endosadores
-            $sql2 = "INSERT INTO Clientes_Endosadores (id_cliente, empresa_endosadora, contacto, telefono_contacto, email_contacto)
-                     VALUES ('$id_cliente', '$empresa_endosadora', '$contacto', '$telefono_contacto', '$email_contacto')";
+            $sql2 = "INSERT INTO Clientes_Endosadores (id_cliente, empresa_endosadora, grupo, contacto, telefono_contacto, email_contacto)
+                     VALUES ('$id_cliente', '$empresa_endosadora', '$contacto','$grupo', '$telefono_contacto', '$email_contacto')";
 
             if (mysqli_query($conexion, $sql2)) {
                 echo "<script>alert('Cliente Endosador agregado correctamente'); window.location.href='".$_SERVER['PHP_SELF']."';</script>";

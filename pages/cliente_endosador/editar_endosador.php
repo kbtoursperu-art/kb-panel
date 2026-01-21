@@ -12,6 +12,7 @@ if (!$id_cliente || !is_numeric($id_cliente)) {
 $sql = "SELECT 
             d.*, 
             e.empresa_endosadora, 
+            e.grupo,
             e.contacto, 
             e.telefono_contacto, 
             e.email_contacto
@@ -34,6 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $genero = $_POST['genero'];
     $nro_pasaporte = $_POST['nro_pasaporte'];
     $empresa = $_POST['empresa'];
+    $grupo = $_POST['grupo'];
     $contacto = $_POST['contacto'];
     $telefono = $_POST['telefono'];
     $email = $_POST['email'];
@@ -57,11 +59,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     WHERE id_cliente=$id_cliente";
 
     $updateEndosador = "UPDATE Clientes_Endosadores 
-                        SET empresa_endosadora='$empresa',
-                            contacto='$contacto',
-                            telefono_contacto='$telefono',
-                            email_contacto='$email'
-                        WHERE id_cliente=$id_cliente";
+                    SET empresa_endosadora='$empresa',
+                        grupo='$grupo',
+                        contacto='$contacto',
+                        telefono_contacto='$telefono',
+                        email_contacto='$email'
+                    WHERE id_cliente=$id_cliente";
+
 
     if (mysqli_query($conexion, $updateDatos) && mysqli_query($conexion, $updateEndosador)) {
         echo "<script>alert('Cliente actualizado correctamente'); window.location='index.php';</script>";
@@ -193,6 +197,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" name="contacto" class="form-control" value="<?= htmlspecialchars($cliente['contacto']) ?>">
             </div>
         </div>
+        <div class="col-md-6">
+    <label>Grupo</label>
+    <input 
+        type="text" 
+        name="grupo" 
+        class="form-control"
+        value="<?= htmlspecialchars($cliente['grupo']) ?>"
+        required
+    >
+</div>
+
 
         <div class="row mb-3">
             <div class="col-md-6">
