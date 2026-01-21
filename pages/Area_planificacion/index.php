@@ -3,18 +3,25 @@ include '../../conexion.php';
 // 🟢 Consulta principal: muestra todas las operaciones con su planificación (si existe)
 $query = "
 SELECT 
-    o.id_operaciones, 
-    o.nombre_servicio, 
-    o.fecha_salida, 
-    o.fecha_retorno, 
-    p.id_planificacion, 
-    p.nombre_guia, 
-    p.nombre_cocinero, 
-    p.nombre_asistente 
-FROM Operaciones o 
-LEFT JOIN Planificacion p ON o.id_operaciones = p.id_operaciones
-ORDER BY o.id_operaciones DESC
+    g.grupo,
+    MIN(o.nombre_servicio) AS nombre_servicio,
+    MIN(o.fecha_salida) AS fecha_salida,
+    MIN(o.fecha_retorno) AS fecha_retorno,
+    p.id_planificacion,
+    p.nombre_guia,
+    p.nombre_cocinero,
+    p.nombre_asistente
+FROM (
+    SELECT id_cliente, grupo FROM Clientes_KB
+    UNION ALL
+    SELECT id_cliente, grupo FROM Clientes_Endosadores
+) g
+INNER JOIN Operaciones o ON g.id_cliente = o.id_cliente
+LEFT JOIN Planificacion p ON g.grupo = p.grupo
+GROUP BY g.grupo
+ORDER BY fecha_salida DESC
 ";
+
 $resultado = mysqli_query($conexion, $query);
 ?>
 
@@ -45,7 +52,7 @@ $resultado = mysqli_query($conexion, $query);
                 <table id="tablaPlanificacion" class="table table-striped table-bordered nowrap">
                     <thead class="table-primary text-center">
                         <tr>
-                            <th>ID Planificación</th>
+                            <th>Grupo</th>
                             <th>Servicio</th>
                             <th>Fecha Salida</th>
                             <th>Fecha Retorno</th>
@@ -55,32 +62,39 @@ $resultado = mysqli_query($conexion, $query);
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php 
-                        if ($resultado && mysqli_num_rows($resultado) > 0):
-                            while ($fila = mysqli_fetch_assoc($resultado)): ?>
-                                <tr>
-                                    <td class="text-center"><?= $fila['id_planificacion'] ?? '—' ?></td>
-                                    <td><?= htmlspecialchars($fila['nombre_servicio'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($fila['fecha_salida'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($fila['fecha_retorno'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($fila['nombre_guia'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($fila['nombre_cocinero'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($fila['nombre_asistente'] ?? '-') ?></td>
-                                    <td class="text-center">
-                                        <?php if (empty($fila['id_planificacion'])): ?>
-                                            <a href="agregar.php?id_operaciones=<?= $fila['id_operaciones'] ?>" class="btn btn-success btn-sm">➕ Agregar</a>
-                                        <?php else: ?>
-                                            <a href="editar.php?id=<?= $fila['id_planificacion'] ?>" class="btn btn-warning btn-sm">✏️ Editar</a>
-                                            <a href="eliminar.php?id=<?= $fila['id_planificacion'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta planificación?')">🗑 Eliminar</a>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endwhile;
-                        else: ?>
-                            <tr><td colspan="8" class="text-center text-muted">No hay registros disponibles</td></tr>
-                        <?php endif; ?>
-                    </tbody>
+                   <tbody>
+<?php if ($resultado && mysqli_num_rows($resultado) > 0): ?>
+    <?php while ($fila = mysqli_fetch_assoc($resultado)): ?>
+        <tr>
+            <td class="text-center fw-bold"><?= htmlspecialchars($fila['grupo']) ?></td>
+            <td><?= htmlspecialchars($fila['nombre_servicio'] ?? '—') ?></td>
+            <td><?= htmlspecialchars($fila['fecha_salida'] ?? '—') ?></td>
+            <td><?= htmlspecialchars($fila['fecha_retorno'] ?? '—') ?></td>
+            <td><?= htmlspecialchars($fila['nombre_guia'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($fila['nombre_cocinero'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($fila['nombre_asistente'] ?? '-') ?></td>
+            <td class="text-center">
+                <?php if (empty($fila['id_planificacion'])): ?>
+                    <a href="agregar.php?grupo=<?= urlencode($fila['grupo']) ?>" 
+                       class="btn btn-success btn-sm">➕ Agregar</a>
+                <?php else: ?>
+                    <a href="editar.php?id=<?= $fila['id_planificacion'] ?>" 
+                       class="btn btn-warning btn-sm">✏️ Editar</a>
+                    <a href="eliminar.php?id=<?= $fila['id_planificacion'] ?>" 
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('¿Eliminar esta planificación?')">🗑 Eliminar</a>
+                <?php endif; ?>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+<?php else: ?>
+    <tr>
+        <td colspan="8" class="text-center text-muted">
+            No hay registros disponibles
+        </td>
+    </tr>
+<?php endif; ?>
+</tbody>
                 </table>
             </div>
         </div>
