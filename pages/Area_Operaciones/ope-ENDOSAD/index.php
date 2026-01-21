@@ -50,6 +50,7 @@ SELECT
     d.id_cliente,
     CONCAT(d.nombre, ' ', d.apellido) AS cliente,
     e.empresa_endosadora AS empresa,
+    e.grupo AS grupo,
     o.id_operaciones,
     o.nombre_servicio,
     o.fecha_reserva,
@@ -120,6 +121,7 @@ if (!$resultado) {
                             <th>#</th>
                             <th>Cliente</th>
                             <th>Empresa</th>
+                            <th>Grupo</th>
                             <th>Servicio</th>
                             <th>Fecha Reserva</th>
                             <th>Salida</th>
@@ -145,6 +147,7 @@ if (!$resultado) {
                                     <td><?= $i++ ?></td>
                                     <td><?= htmlspecialchars($row['cliente']) ?></td>
                                     <td><?= htmlspecialchars($row['empresa'] ?? '—') ?></td>
+                                    <td class="fw-bold text-center"><?= htmlspecialchars($row['grupo'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['nombre_servicio'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['fecha_reserva'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['fecha_salida'] ?? '—') ?></td>
