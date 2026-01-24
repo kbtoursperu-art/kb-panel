@@ -42,6 +42,11 @@ if (is_array($servicios)) {
         $precio        = floatval($_POST['precio_servicio'][$i]);
         $pagado        = floatval($_POST['pagado_a_cuenta'][$i]);
         $saldo         = $precio - $pagado;
+        // ADICIONAL
+        $precio_adicional = floatval($_POST['precio_servicio_adicional'][$i] ?? 0);
+        $pagado_adicional = floatval($_POST['pagado_adicional'][$i] ?? 0);
+        $saldo_adicional  = $precio_adicional - $pagado_adicional;
+        $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'][$i] ?? null;
 
         // INSERT OPERACIONES
         $sqlOp = "INSERT INTO Operaciones 
@@ -67,21 +72,20 @@ if (is_array($servicios)) {
         $id_operaciones = mysqli_insert_id($conexion);
 
         // INSERT CONTABILIDAD
-        $sqlCont = "INSERT INTO Contabilidad
-        (id_operaciones, metodo_pago, tipo_moneda, precio_servicio, pagado_a_cuenta, saldo_pendiente)
-        VALUES (?,?,?,?,?,?)";
+$sqlCont = "INSERT INTO Contabilidad
+(
+    id_operaciones, metodo_pago, tipo_moneda, precio_servicio, pagado_a_cuenta, saldo_pendiente, precio_servicio_adicional, tipo_moneda_adicional, pagado_adicional,
+    saldo_adicional
+)
+VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-        $stmtCont = mysqli_prepare($conexion, $sqlCont);
-        mysqli_stmt_bind_param(
-            $stmtCont,
-            "issddd",
-            $id_operaciones,
-            $metodo_pago,
-            $tipo_moneda,
-            $precio,
-            $pagado,
-            $saldo
-        );
+$stmtCont = mysqli_prepare($conexion, $sqlCont);
+mysqli_stmt_bind_param(
+    $stmtCont, "issddddsdd", $id_operaciones, $metodo_pago, $tipo_moneda, $precio, $pagado, $saldo, $precio_adicional,
+    $tipo_moneda_adicional, $pagado_adicional, $saldo_adicional
+);
+mysqli_stmt_execute($stmtCont);
+
         mysqli_stmt_execute($stmtCont);
     }
 
@@ -255,6 +259,41 @@ if (is_array($servicios)) {
                         <input type="number" step="0.01" name="saldo_pendiente[]" class="form-control saldo_pendiente" readonly>
                     </div>
                 </div>
+                <hr>
+<h6 class="text-secondary">💰 Servicio Adicional</h6>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label>Precio Adicional</label>
+        <input type="number" step="0.01"
+               name="precio_servicio_adicional[]"
+               class="form-control precio_adicional">
+    </div>
+
+    <div class="col-md-4">
+        <label>Pagado Adicional</label>
+        <input type="number" step="0.01"
+               name="pagado_adicional[]"
+               class="form-control pagado_adicional">
+    </div>
+
+    <div class="col-md-4">
+        <label>Saldo Adicional</label>
+        <input type="number" step="0.01"
+               class="form-control saldo_adicional"
+               readonly>
+    </div>
+
+    <div class="col-md-4">
+        <label>Moneda Adicional</label>
+        <select name="tipo_moneda_adicional[]" class="form-control">
+            <option value="">--</option>
+            <option value="Soles">Soles</option>
+            <option value="Dólares">Dólares</option>
+        </select>
+    </div>
+</div>
+
 
                     <div class="mt-4">
                         <button type="button" class="btn btn-success" onclick="agregarTour()">
@@ -285,14 +324,32 @@ if (is_array($servicios)) {
 <script>
 // Calcular saldo
 document.addEventListener("input", e => {
-    if (e.target.classList.contains("precio_servicio") || e.target.classList.contains("pagado_a_cuenta")) {
+    const bloque = e.target.closest(".tour-item");
+    if (!bloque) return;
+
+    // TOUR
+    const precio = parseFloat(bloque.querySelector(".precio_servicio")?.value) || 0;
+    const pagado = parseFloat(bloque.querySelector(".pagado_a_cuenta")?.value) || 0;
+    const saldoInput = bloque.querySelector(".saldo_pendiente");
+    if (saldoInput) saldoInput.value = (precio - pagado).toFixed(2);
+
+    // ADICIONAL
+    const precioA = parseFloat(bloque.querySelector(".precio_adicional")?.value) || 0;
+    const pagadoA = parseFloat(bloque.querySelector(".pagado_adicional")?.value) || 0;
+    const saldoAInput = bloque.querySelector(".saldo_adicional");
+    if (saldoAInput) saldoAInput.value = (precioA - pagadoA).toFixed(2);
+});
+// ================== EVENTOS ==================
+document.addEventListener("change", function (e) {
+
+    if (
+        e.target.name === "nombre_servicio[]" ||
+        e.target.name === "fecha_salida[]"
+    ) {
         const bloque = e.target.closest(".tour-item");
-        const precio = parseFloat(bloque.querySelector(".precio_servicio").value) || 0;
-        const pagado = parseFloat(bloque.querySelector(".pagado_a_cuenta").value) || 0;
-        bloque.querySelector(".saldo_pendiente").value = (precio - pagado).toFixed(2);
+        if (bloque) calcularFechaRetorno(bloque);
     }
 });
-
 // Agregar tour
 function agregarTour() {
     const contenedor = document.getElementById("contenedorTours");
@@ -310,6 +367,60 @@ function eliminarTour(btn) {
         return;
     }
     btn.closest(".tour-item").remove();
+}
+// ================== DURACIÓN DE TOURS ==================
+const DURACION_TOURS = {
+    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
+    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+    "SALKANTAY TREK 5D / 4N WITH LUXURY DOMES": 5,
+    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
+    "SALKANTAY TREK 2D / 1N WITH LUXURY DOMES": 2,
+    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
+    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
+    "CAMINO INCA 4 DÍAS": 4,
+    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
+    "CAMINO INCA 2 DÍAS": 2,
+    "MACHU PICCHU DE UN DÍA": 1,
+    "MACHU PICCHU EN TREN 2 DÍAS": 2,
+    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
+    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
+    "CHOQUEQUIRAO 4 DÍAS": 4,
+    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
+    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
+    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
+    "INCA JUNGLE TRAIL 4 DAYS": 4,
+    "LAGUNA HUMANTAY DE UN DÍA": 1,
+    "MONTAÑA DE COLORES DE UN DÍA": 1,
+    "PALCOYO DE UN DÍA": 1,
+    "VALLE SAGRADO VIP DE UN DÍA": 1,
+    "VALLE TRADICIONAL": 1,
+    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
+    "MARAS MORAY DE UN DÍA": 1,
+    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
+    "WAQRAPUKARA DE UN DÍA": 1,
+    "CITY TOUR CUSCO MEDIO DÍA": 1,
+    "CUATRIMOTOS": 1,
+    "ICA – PARACAS DE UN DÍA": 1,
+    "PUNO DE UN DÍA": 1,
+    "MANU 4 DÍAS Y 3 NOCHES": 4
+};
+// ================== CALCULAR FECHA RETORNO ==================
+function calcularFechaRetorno(bloque) {
+
+    const servicio = bloque.querySelector('select[name="nombre_servicio[]"]').value;
+    const salidaInput = bloque.querySelector('input[name="fecha_salida[]"]');
+    const retornoInput = bloque.querySelector('input[name="fecha_retorno[]"]');
+
+    if (!servicio || !salidaInput.value) return;
+
+    const dias = DURACION_TOURS[servicio] ?? 1;
+
+    const fechaSalida = new Date(salidaInput.value);
+    fechaSalida.setDate(fechaSalida.getDate() + (dias - 1));
+
+    retornoInput.value = fechaSalida.toISOString().split('T')[0];
 }
 </script>
 

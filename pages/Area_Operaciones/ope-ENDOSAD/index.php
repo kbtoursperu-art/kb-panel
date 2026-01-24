@@ -51,6 +51,7 @@ SELECT
     CONCAT(d.nombre, ' ', d.apellido) AS cliente,
     e.empresa_endosadora AS empresa,
     e.grupo AS grupo,
+
     o.id_operaciones,
     o.nombre_servicio,
     o.fecha_reserva,
@@ -61,11 +62,17 @@ SELECT
     o.servicio_adicional,
     o.observaciones,
     o.Encargado,
+
     c.metodo_pago,
     c.tipo_moneda,
     c.precio_servicio,
     c.pagado_a_cuenta,
-    c.saldo_pendiente
+    c.saldo_pendiente,
+
+    c.precio_servicio_adicional,
+    c.estado,
+    c.modalidad_recibo
+
 FROM Datos_clientes d
 INNER JOIN Clientes_Endosadores e ON d.id_cliente = e.id_cliente
 LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
@@ -129,11 +136,15 @@ if (!$resultado) {
                             <th>Ingreso</th>
                             <th>Modalidad</th>
                             <th>Adicional</th>
+                            <th>Precio Adic.</th>        <!-- NUEVO -->
+                            <th>Moneda Adic.</th>        <!-- NUEVO -->
                             <th>Encargado</th>
                             <th>Método Pago</th>
                             <th>Precio</th>
                             <th>Pagado</th>
                             <th>Saldo</th>
+                            <th>Estado</th>              <!-- NUEVO -->
+                            <th>Comprobante</th>             <!-- NUEVO -->
                             <th>Observaciones</th>
                             <th>Acciones</th>
                         </tr>
@@ -155,11 +166,34 @@ if (!$resultado) {
                                     <td><?= htmlspecialchars($row['incluye_ingreso'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['modalidad_retorno'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['servicio_adicional'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['Encargado'] ?? '—') ?></td>
+                                    <td>
+                                        <?= isset($row['precio_servicio_adicional']) 
+                                            ? number_format($row['precio_servicio_adicional'], 2) 
+                                            : '—' ?>
+                                    </td>
+
+                                    <td><?= htmlspecialchars($row['tipo_moneda'] ?? '—') ?></td>
+                                                                        <td><?= htmlspecialchars($row['Encargado'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['metodo_pago'] ?? '—') ?></td>
                                     <td><?= isset($row['precio_servicio']) ? number_format($row['precio_servicio'], 2) : '—' ?></td>
                                     <td><?= isset($row['pagado_a_cuenta']) ? number_format($row['pagado_a_cuenta'], 2) : '—' ?></td>
                                     <td><?= isset($row['saldo_pendiente']) ? number_format($row['saldo_pendiente'], 2) : '—' ?></td>
+                                    <td class="text-center">
+                                        <?php
+                                        $estado = $row['estado'] ?? 'pendiente';
+
+                                        $clase = match ($estado) {
+                                            'pagado'      => 'bg-success',
+                                            'reembolsado' => 'bg-danger',
+                                            'pendiente'   => 'bg-warning',
+                                            default       => 'bg-secondary'
+                                        };
+                                        ?>
+                                        <span class="badge <?= $clase ?>">
+                                            <?= strtoupper($estado) ?>
+                                        </span>
+                                        </td>
+                                        <td><?= htmlspecialchars($row['modalidad_recibo'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['observaciones'] ?? '') ?></td>
                                     <td class="text-center">
                                         <?php if (!empty($row['id_operaciones'])): ?>

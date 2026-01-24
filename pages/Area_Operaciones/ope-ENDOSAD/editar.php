@@ -16,11 +16,23 @@ $query = "
 SELECT 
     o.*, 
     CONCAT(d.nombre, ' ', d.apellido) AS cliente_nombre,
+
     c.metodo_pago,
     c.tipo_moneda,
     c.precio_servicio,
     c.pagado_a_cuenta,
-    c.saldo_pendiente
+    c.saldo_pendiente,
+
+    c.precio_servicio_adicional,
+    c.pagado_adicional,
+    c.saldo_adicional,
+    c.tipo_moneda_adicional,
+
+    c.metodo_pago_saldo,
+    c.tipo_moneda_saldo,
+    c.monto_pago_saldo,
+    c.fecha_pago_saldo
+
 FROM Operaciones o
 INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
 LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
@@ -54,6 +66,10 @@ $servicios_seleccionados = explode(', ', $operacion['servicio_adicional']);
 // 🔹 GUARDAR CAMBIOS
 // =======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // ==========================
+    // 1️⃣ DATOS PRINCIPALES
+    // ==========================
     $nombre_servicio = $_POST['nombre_servicio'];
     $fecha_reserva = $_POST['fecha_reserva'];
     $fecha_salida = $_POST['fecha_salida'];
@@ -63,16 +79,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $servicio_adicional = implode(', ', $_POST['servicio_adicional']);
     $observaciones = $_POST['observaciones'];
     $encargado = $_POST['encargado'];
+
     $metodo_pago = $_POST['metodo_pago'];
     $tipo_moneda = $_POST['tipo_moneda'];
-    $precio_servicio = $_POST['precio_servicio'];
-    $pagado_a_cuenta = $_POST['pagado_a_cuenta'];
+    $precio_servicio = floatval($_POST['precio_servicio']);
+    $pagado_a_cuenta = floatval($_POST['pagado_a_cuenta']);
     $saldo_pendiente = $precio_servicio - $pagado_a_cuenta;
 
-    // Actualizar Operaciones
-    $sql_op = "
-        UPDATE Operaciones 
-        SET nombre_servicio='$nombre_servicio',
+    if ($saldo_pendiente < 0) $saldo_pendiente = 0;
+
+    // ==========================
+    // 2️⃣ ACTUALIZAR OPERACIONES
+    // ==========================
+    mysqli_query($conexion, "
+        UPDATE Operaciones SET
+            nombre_servicio='$nombre_servicio',
             fecha_reserva='$fecha_reserva',
             fecha_salida='$fecha_salida',
             fecha_retorno='$fecha_retorno',
@@ -82,24 +103,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             observaciones='$observaciones',
             Encargado='$encargado'
         WHERE id_operaciones=$id_operaciones
-    ";
-    mysqli_query($conexion, $sql_op);
+    ");
 
-    // Actualizar Contabilidad
-    $sql_cont = "
-        UPDATE Contabilidad 
-        SET metodo_pago='$metodo_pago',
+    // ==========================
+    // 3️⃣ ACTUALIZAR CONTABILIDAD
+    // ==========================
+    mysqli_query($conexion, "
+        UPDATE Contabilidad SET
+            metodo_pago='$metodo_pago',
             tipo_moneda='$tipo_moneda',
             precio_servicio='$precio_servicio',
             pagado_a_cuenta='$pagado_a_cuenta',
             saldo_pendiente='$saldo_pendiente'
         WHERE id_operaciones=$id_operaciones
-    ";
-    mysqli_query($conexion, $sql_cont);
+    ");
+
+    // ==========================
+    // 4️⃣ PAGO DE SALDO (SI EXISTE)
+    // ==========================
+    if (!empty($_POST['monto_pago_saldo'])) {
+
+        $monto_pago = floatval($_POST['monto_pago_saldo']);
+        $nuevo_saldo = $saldo_pendiente - $monto_pago;
+
+        if ($nuevo_saldo < 0) $nuevo_saldo = 0;
+
+        $metodo_pago_saldo = $_POST['metodo_pago_saldo'];
+        $tipo_moneda_saldo = $_POST['tipo_moneda_saldo'];
+        $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
+
+        mysqli_query($conexion, "
+            UPDATE Contabilidad SET
+                monto_pago_saldo = '$monto_pago',
+                metodo_pago_saldo = '$metodo_pago_saldo',
+                tipo_moneda_saldo = '$tipo_moneda_saldo',
+                fecha_pago_saldo = '$fecha_pago_saldo',
+                saldo_pendiente = '$nuevo_saldo',
+                estado = IF($nuevo_saldo = 0, 'pagado', 'pendiente')
+            WHERE id_operaciones = $id_operaciones
+        ");
+    }
 
     echo "<script>alert('✅ Operación actualizada correctamente'); window.location='index.php';</script>";
     exit;
 }
+
 ?>
 <br>
 <br>
@@ -271,10 +319,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="number" step="0.01" name="saldo_pendiente" class="form-control" value="<?= $operacion['saldo_pendiente'] ?>" readonly>
             </div>
         </div>
+        <hr>
+<h5 class="text-secondary">💰 Servicio Adicional</h5>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>Precio Adicional</label>
+        <input type="number" step="0.01" class="form-control"
+               value="<?= $operacion['precio_servicio_adicional'] ?>" readonly>
+    </div>
+
+    <div class="col-md-3">
+        <label>Pagado Adicional</label>
+        <input type="number" step="0.01" class="form-control"
+               value="<?= $operacion['pagado_adicional'] ?>" readonly>
+    </div>
+
+    <div class="col-md-3">
+        <label>Saldo Adicional</label>
+        <input type="number" step="0.01" class="form-control"
+               value="<?= $operacion['saldo_adicional'] ?>" readonly>
+    </div>
+
+    <div class="col-md-3">
+        <label>Moneda</label>
+        <input type="text" class="form-control"
+               value="<?= $operacion['tipo_moneda_adicional'] ?>" readonly>
+    </div>
+</div>
+
 
         <button type="submit" class="btn btn-success">💾 Actualizar</button>
         <a href="index.php" class="btn btn-secondary">↩ Volver</a>
         <hr class="my-5">
+<?php if ($operacion['saldo_pendiente'] > 0): ?>
+<hr>
+<h5 class="text-danger">💳 Completar Pago de Saldo</h5>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>Método de Pago</label>
+        <select name="metodo_pago_saldo" class="form-control">
+            <option value="">-- Seleccione --</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="We travel">We travel</option>
+            <option value="Izipay">Izipay</option>
+            <option value="PAYPAL">PAYPAL</option>
+            <option value="Bcp">BCP</option>
+            <option value="CULQI">CULQI</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label>Moneda</label>
+        <select name="tipo_moneda_saldo" class="form-control">
+            <option value="Soles">Soles</option>
+            <option value="Dólares">Dólares</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label>Monto Pagado</label>
+        <input type="number" step="0.01"
+               name="monto_pago_saldo"
+               class="form-control">
+    </div>
+
+    <div class="col-md-3">
+        <label>Fecha de Pago</label>
+        <input type="date"
+               name="fecha_pago_saldo"
+               class="form-control"
+               value="<?= date('Y-m-d') ?>">
+    </div>
+</div>
+<?php endif; ?>
 
 
 <div class="d-flex justify-content-between align-items-center mb-3">
