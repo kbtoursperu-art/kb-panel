@@ -1,56 +1,39 @@
-
 <?php
 ob_start();
 include '../../../conexion.php';
-// Validar ID cliente
+
 if (!isset($_GET['id_cliente'])) {
     die("❌ Falta el ID del cliente.");
 }
 
 $id_cliente = (int)$_GET['id_cliente'];
 
-// Obtener nombre cliente
 $sqlCliente = "SELECT CONCAT(nombre,' ',apellido) AS nombre FROM Datos_clientes WHERE id_cliente=$id_cliente";
 $resCliente = mysqli_query($conexion, $sqlCliente);
 $cliente = mysqli_fetch_assoc($resCliente);
 
-// ======================= GUARDAR =======================
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     foreach ($_POST['nombre_servicio'] as $i => $v) {
 
+        // ================= OPERACIÓN =================
         $nombre_servicio   = $_POST['nombre_servicio'][$i];
         $fecha_reserva     = $_POST['fecha_reserva'][$i];
         $fecha_salida      = $_POST['fecha_salida'][$i];
         $fecha_retorno     = $_POST['fecha_retorno'][$i];
         $modalidad_retorno = $_POST['modalidad_retorno'][$i];
-        $incluye_ingreso = isset($_POST['incluye_ingreso'][$i]) ? 'Con ingreso' : 'Sin ingreso';
+        $incluye_ingreso   = isset($_POST['incluye_ingreso'][$i]) ? 'Con ingreso' : 'Sin ingreso';
 
-$servicios = $_POST['servicio_adicional'][$i] ?? [];
-
-if (is_array($servicios)) {
-    $servicio_adicional = implode(', ', $servicios);
-} else {
-    $servicio_adicional = $servicios;
-}
+        $servicios = $_POST['servicio_adicional'][$i] ?? [];
+        $servicio_adicional = is_array($servicios) ? implode(', ', $servicios) : $servicios;
 
         $observaciones = $_POST['observaciones'][$i];
         $encargado     = $_POST['encargado'][$i];
 
-        $metodo_pago   = $_POST['metodo_pago'][$i];
-        $tipo_moneda   = $_POST['tipo_moneda'][$i];
-        $precio        = floatval($_POST['precio_servicio'][$i]);
-        $pagado        = floatval($_POST['pagado_a_cuenta'][$i]);
-        $saldo         = $precio - $pagado;
-        // ADICIONAL
-        $precio_adicional = floatval($_POST['precio_servicio_adicional'][$i] ?? 0);
-        $pagado_adicional = floatval($_POST['pagado_adicional'][$i] ?? 0);
-        $saldo_adicional  = $precio_adicional - $pagado_adicional;
-        $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'][$i] ?? null;
-
-        // INSERT OPERACIONES
-        $sqlOp = "INSERT INTO Operaciones 
-        (id_cliente, nombre_servicio, fecha_reserva, fecha_salida, fecha_retorno, modalidad_retorno, incluye_ingreso, servicio_adicional, observaciones, Encargado)
+        // ================= INSERT OPERACIONES =================
+        $sqlOp = "INSERT INTO Operaciones
+        (id_cliente,nombre_servicio,fecha_reserva,fecha_salida,fecha_retorno,
+        modalidad_retorno,incluye_ingreso,servicio_adicional,observaciones,Encargado)
         VALUES (?,?,?,?,?,?,?,?,?,?)";
 
         $stmtOp = mysqli_prepare($conexion, $sqlOp);
@@ -71,25 +54,69 @@ if (is_array($servicios)) {
         mysqli_stmt_execute($stmtOp);
         $id_operaciones = mysqli_insert_id($conexion);
 
-        // INSERT CONTABILIDAD
-$sqlCont = "INSERT INTO Contabilidad
-(
-    id_operaciones, metodo_pago, tipo_moneda, precio_servicio, pagado_a_cuenta, saldo_pendiente, precio_servicio_adicional, tipo_moneda_adicional, pagado_adicional,
-    saldo_adicional
-)
-VALUES (?,?,?,?,?,?,?,?,?,?)";
+        // ================= CONTABILIDAD =================
 
-$stmtCont = mysqli_prepare($conexion, $sqlCont);
-mysqli_stmt_bind_param(
-    $stmtCont, "issddddsdd", $id_operaciones, $metodo_pago, $tipo_moneda, $precio, $pagado, $saldo, $precio_adicional,
-    $tipo_moneda_adicional, $pagado_adicional, $saldo_adicional
-);
-        mysqli_stmt_execute($stmtCont);
- 
-}
-header("Location: index.php?mensaje=agregado");
+        // TOUR
+        $precio = floatval($_POST['precio_servicio'][$i] ?? 0);
+        $pagado = floatval($_POST['pagado_a_cuenta'][$i] ?? 0);
+        $saldo  = max(0, $precio - $pagado);
+
+        $metodo_pago = $_POST['metodo_pago'][$i];
+        $tipo_moneda = $_POST['tipo_moneda'][$i];
+
+        // ADICIONAL
+        $precio_adicional = floatval($_POST['precio_servicio_adicional'][$i] ?? 0);
+        $pagado_adicional = floatval($_POST['pagado_adicional'][$i] ?? 0);
+        $saldo_adicional  = max(0, $precio_adicional - $pagado_adicional);
+
+        $metodo_pago_adicional = $_POST['metodo_pago_adicional'][$i] ?? null;
+        $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'][$i] ?? null;
+
+        // ESTADO
+        $estado = ($saldo == 0 && $saldo_adicional == 0) ? 'pagado' : 'pendiente';
+
+        // ================= INSERT CONTABILIDAD (ÚNICO) =================
+        $sqlCont = "INSERT INTO Contabilidad (
+            id_operaciones,
+            metodo_pago,
+            tipo_moneda,
+            precio_servicio,
+            pagado_a_cuenta,
+            saldo_pendiente,
+            precio_servicio_adicional,
+            metodo_pago_adicional,
+            tipo_moneda_adicional,
+            pagado_adicional,
+            saldo_adicional,
+            estado
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+
+        $stmt = mysqli_prepare($conexion, $sqlCont);
+        mysqli_stmt_bind_param(
+            $stmt,
+            "issddddssdds",
+            $id_operaciones,
+            $metodo_pago,
+            $tipo_moneda,
+            $precio,
+            $pagado,
+            $saldo,
+            $precio_adicional,
+            $metodo_pago_adicional,
+            $tipo_moneda_adicional,
+            $pagado_adicional,
+            $saldo_adicional,
+            $estado
+        );
+
+        mysqli_stmt_execute($stmt);
+    }
+
+    header("Location: index.php");
     exit;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -262,23 +289,30 @@ header("Location: index.php?mensaje=agregado");
 <div class="row g-3">
     <div class="col-md-4">
         <label>Precio Adicional</label>
-        <input type="number" step="0.01"
-               name="precio_servicio_adicional[]"
-               class="form-control precio_adicional">
+        <input type="number" step="0.01" name="precio_servicio_adicional[]" class="form-control precio_adicional">
     </div>
 
     <div class="col-md-4">
         <label>Pagado Adicional</label>
-        <input type="number" step="0.01"
-               name="pagado_adicional[]"
-               class="form-control pagado_adicional">
+        <input type="number" step="0.01" name="pagado_adicional[]" class="form-control pagado_adicional">
     </div>
 
     <div class="col-md-4">
         <label>Saldo Adicional</label>
-        <input type="number" step="0.01"
-               class="form-control saldo_adicional"
-               readonly>
+        <input type="number" step="0.01" class="form-control saldo_adicional" readonly>
+    </div>
+
+    <div class="col-md-4">
+        <label>Método Pago Adicional</label>
+        <select name="metodo_pago_adicional[]" class="form-control">
+            <option value="">--</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="We travel">We travel</option>
+            <option value="CULQI">CULQI</option>
+            <option value="Izipay">Izipay</option>
+            <option value="PAYPAL">PAYPAL</option>
+            <option value="Bcp">Bcp</option>
+        </select>
     </div>
 
     <div class="col-md-4">
@@ -289,6 +323,8 @@ header("Location: index.php?mensaje=agregado");
             <option value="Dólares">Dólares</option>
         </select>
     </div>
+</div>
+
 </div>
 
 
@@ -424,4 +460,3 @@ function calcularFechaRetorno(bloque) {
 
 </body>
 </html>
-
