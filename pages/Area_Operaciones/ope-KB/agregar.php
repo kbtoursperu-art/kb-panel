@@ -35,8 +35,6 @@ $servicio_adicional = implode(", ", $servicios);
 
         $observaciones = $_POST['observaciones'][$i];
         $encargado = $_POST['Encargado'][$i];
-        $empresa = $_POST['empresa'][$i];
-
         $metodo_pago = $_POST['metodo_pago'][$i];
         $tipo_moneda = $_POST['tipo_moneda'][$i];
         $precio_servicio = floatval($_POST['precio_servicio'][$i]);
@@ -44,29 +42,24 @@ $servicio_adicional = implode(", ", $servicios);
         $saldo_pendiente = floatval($_POST['saldo_pendiente'][$i]);
         $fecha_pago_saldo = $_POST['fecha_pago_saldo'][$i];
         $comision = $_POST['comision'][$i];
+        $metodo_adicional = $_POST['metodo_pago_ingreso'][$i] ?? null;
+        $moneda_adicional = $_POST['tipo_moneda_ingreso'][$i] ?? null;
+        $precio_adicional = floatval($_POST['precio_servicio_adicional'][$i] ?? 0);
+        $pagado_adicional = floatval($_POST['pagado_ingreso'][$i] ?? 0);
+        $saldo_adicional  = floatval($_POST['saldo_ingreso'][$i] ?? 0);
+
 
         // INSERTAR OPERACIÓN
         $queryOp = "INSERT INTO Operaciones (
-            id_cliente, fecha_reserva, nombre_servicio, fecha_salida, fecha_retorno,
-            modalidad_retorno, incluye_ingreso, servicio_adicional,
-            observaciones, Encargado, empresa
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            id_cliente, fecha_reserva, nombre_servicio, fecha_salida, fecha_retorno, modalidad_retorno, incluye_ingreso, servicio_adicional,
+            observaciones, Encargado
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmtOp = mysqli_prepare($conexion, $queryOp);
         mysqli_stmt_bind_param(
             $stmtOp,
-            "issssssssss",
-            $id_cliente,
-            $fecha_reserva,
-            $nombre_servicio,
-            $fecha_salida,
-            $fecha_retorno,
-            $modalidad_retorno,
-            $incluye_ingreso,
-            $servicio_adicional,
-            $observaciones,
-            $encargado,
-            $empresa
+            "isssssssss", $id_cliente, $fecha_reserva, $nombre_servicio, $fecha_salida, $fecha_retorno, $modalidad_retorno, $incluye_ingreso,
+            $servicio_adicional, $observaciones, $encargado
         );
 
         mysqli_stmt_execute($stmtOp);
@@ -74,23 +67,17 @@ $servicio_adicional = implode(", ", $servicios);
 
         // INSERTAR CONTABILIDAD
         $queryCont = "INSERT INTO Contabilidad (
-            id_operaciones, metodo_pago, tipo_moneda, precio_servicio,
-            pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, comision
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            id_operaciones, metodo_pago, tipo_moneda, precio_servicio, pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, comision,
+            precio_servicio_adicional, metodo_pago_adicional, tipo_moneda_adicional, pagado_adicional, saldo_adicional, modalidad_recibo
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'FACTURA')";
 
         $stmtCont = mysqli_prepare($conexion, $queryCont);
-        mysqli_stmt_bind_param(
-            $stmtCont,
-            "issdddss",
-            $id_operaciones,
-            $metodo_pago,
-            $tipo_moneda,
-            $precio_servicio,
-            $pagado_a_cuenta,
-            $saldo_pendiente,
-            $fecha_pago_saldo,
-            $comision
-        );
+      mysqli_stmt_bind_param(
+    $stmtCont,
+    "issdddsddssdd", $id_operaciones,$metodo_pago, $tipo_moneda, $precio_servicio, $pagado_a_cuenta, $saldo_pendiente, $fecha_pago_saldo, 
+    $comision, $precio_adicional, $metodo_adicional, $moneda_adicional, $pagado_adicional, $saldo_adicional
+); 
+
 
         mysqli_stmt_execute($stmtCont);
     }
@@ -206,14 +193,11 @@ $servicio_adicional = implode(", ", $servicios);
                             <option value="Ninguna">Ninguna</option>
                             <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
+                            <option value="Bastones">Bastones</option>
+                            <option value="Hotel">Hotel</option>
                             <option value="Trans. Mochilas Playa-Idro">Trans. Mochilas Playa-Idro</option>
                             <option value="Trans. Mochilas Hidro-Aguas">Trans. Mochilas Hidro-Aguas</option>
                         </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label>Empresa</label>
-                        <input type="text" name="empresa[]" class="form-control">
                     </div>
 
                     <div class="col-md-6">
@@ -278,8 +262,52 @@ $servicio_adicional = implode(", ", $servicios);
 
                     <div class="col-md-4">
                         <label>Comisión</label>
-                        <input type="text" name="comision[]" class="form-control">
+                        <input type="number" step="0.01" name="comision[]" class="form-control">
                     </div>
+                    <hr>
+<h5 class="text-secondary">🎟 Ingreso / Servicio Adicional</h5>
+
+<div class="row g-3">
+
+  <div class="col-md-4">
+    <label>Método de Pago (Ingreso)</label>
+    <select name="metodo_pago_ingreso[]" class="form-select">
+      <option value="">-- No aplica --</option>
+      <option value="Efectivo">Efectivo</option>
+      <option value="We travel">We travel</option>
+      <option value="Izipay">Izipay</option>
+      <option value="PAYPAL">PAYPAL</option>
+      <option value="Bcp">Bcp</option>
+      <option value="CULQI">CULQI</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <label>Moneda (Ingreso)</label>
+    <select name="tipo_moneda_ingreso[]" class="form-select">
+      <option value="">-- No aplica --</option>
+      <option value="Soles">Soles</option>
+      <option value="Dólares">Dólares</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <label>Precio Ingreso Adi...</label>
+    <input type="number" step="0.01" name="precio_servicio_adicional[]" class="form-control precio_adicional">
+  </div>
+
+  <div class="col-md-4">
+    <label>Pagado Ingreso Adi...</label>
+    <input type="number" step="0.01" name="pagado_ingreso[]" class="form-control pagado_adicional">
+  </div>
+
+  <div class="col-md-4">
+    <label>Saldo Ingreso</label>
+    <input type="number" step="0.01" name="saldo_ingreso[]" class="form-control saldo_adicional" readonly>
+  </div>
+
+
+</div>
 <div class="mt-4 d-flex gap-2 flex-wrap">
     <button type="button" class="btn btn-success" onclick="agregarTour()">+ Agregar otro tour</button>
 
@@ -298,7 +326,6 @@ $servicio_adicional = implode(", ", $servicios);
 
         </div>
 
-       
 
     </form>
 
@@ -307,22 +334,47 @@ $servicio_adicional = implode(", ", $servicios);
 
 <!-- ================= JAVASCRIPT FINAL ================= -->
 <script>
-// 🟦 Calcular saldo por cada bloque independiente
 document.addEventListener("input", function(e) {
 
+    // 🔵 SALDO SERVICIO PRINCIPAL
     if (
         e.target.classList.contains("precio_servicio") ||
         e.target.classList.contains("pagado_a_cuenta")
     ) {
-        let bloque = e.target.closest(".tour-item");
+        const bloque = e.target.closest(".tour-item");
 
-        let precio = parseFloat(bloque.querySelector(".precio_servicio").value) || 0;
-        let pagado = parseFloat(bloque.querySelector(".pagado_a_cuenta").value) || 0;
+        const precio = parseFloat(
+            bloque.querySelector(".precio_servicio").value
+        ) || 0;
 
-        bloque.querySelector(".saldo_pendiente").value = (precio - pagado).toFixed(2);
+        const pagado = parseFloat(
+            bloque.querySelector(".pagado_a_cuenta").value
+        ) || 0;
+
+        bloque.querySelector(".saldo_pendiente").value =
+            (precio - pagado).toFixed(2);
     }
 
+    // 🟢 SALDO SERVICIO ADICIONAL
+    if (
+        e.target.classList.contains("precio_adicional") ||
+        e.target.classList.contains("pagado_adicional")
+    ) {
+        const bloque = e.target.closest(".tour-item");
+
+        const precio = parseFloat(
+            bloque.querySelector(".precio_adicional").value
+        ) || 0;
+
+        const pagado = parseFloat(
+            bloque.querySelector(".pagado_adicional").value
+        ) || 0;
+
+        bloque.querySelector(".saldo_adicional").value =
+            (precio - pagado).toFixed(2);
+    }
 });
+
 
 
 // 🟩 Agregar otro tour
@@ -372,6 +424,77 @@ function eliminarTour(btn) {
     // Eliminar solo el bloque donde se presionó el botón
     btn.closest(".tour-item").remove();
 }
+document.addEventListener("input", function(e) {
+
+  if (e.target.name.includes("precio_ingreso") ||
+      e.target.name.includes("pagado_ingreso")) {
+
+    let bloque = e.target.closest(".tour-item");
+
+    let precio = parseFloat(bloque.querySelector("[name='precio_ingreso[]']").value) || 0;
+    let pagado = parseFloat(bloque.querySelector("[name='pagado_ingreso[]']").value) || 0;
+
+    bloque.querySelector("[name='saldo_ingreso[]']").value =
+        (precio - pagado).toFixed(2);
+  }
+
+});
+const DURACION_TOURS = {
+    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
+    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
+    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
+
+    "CAMINO INCA 4 DÍAS": 4,
+    "CAMINO INCA 2 DÍAS": 2,
+
+    "MACHU PICCHU EN TREN 2 DÍAS": 2,
+    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
+
+    "CHOQUEQUIRAO 4 DÍAS": 4,
+    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
+
+    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+    "INCA JUNGLE TRAIL 4 DAYS": 4,
+
+    // FULL DAY / UN DÍA
+    "MACHU PICCHU DE UN DÍA": 1,
+    "LAGUNA HUMANTAY DE UN DIA": 1,
+    "MONTAÑA DE COLORES DE UN DIA": 1,
+    "PALCOYO DE UN DIA": 1,
+    "VALLE SAGRADO VIP DE UN DIA": 1,
+    "MARAS MORAY DE UN DIA": 1,
+    "WAQRAPUKARA DE UN DIA": 1,
+    "7 LAGUNAS DE AUSANGATE DE UN DIA": 1,
+    "CITY TOUR CUSCO MEDIO DIA": 1
+};
+document.addEventListener("change", function(e) {
+
+    // Cuando cambia el servicio o la fecha de salida
+    if (
+        e.target.name === "nombre_servicio[]" ||
+        e.target.name === "fecha_salida[]"
+    ) {
+
+        const bloque = e.target.closest(".tour-item");
+
+        const servicio = bloque.querySelector("[name='nombre_servicio[]']").value;
+        const salidaInput = bloque.querySelector("[name='fecha_salida[]']");
+        const retornoInput = bloque.querySelector("[name='fecha_retorno[]']");
+
+        if (!servicio || !salidaInput.value) return;
+
+        const dias = DURACION_TOURS[servicio];
+
+        if (!dias) return;
+
+        const fechaSalida = new Date(salidaInput.value);
+        fechaSalida.setDate(fechaSalida.getDate() + (dias - 1));
+
+        retornoInput.value = fechaSalida.toISOString().split("T")[0];
+    }
+});
 </script>
 <?php include '../../footer.php'; ?>
 </body>

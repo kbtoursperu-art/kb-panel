@@ -24,7 +24,11 @@ SELECT
     o.Encargado,
     c.metodo_pago,
     c.tipo_moneda,
+    c.modalidad_recibo,      -- 👈 NUEVO
+    c.estado,                 -- ✅ AQUI
     c.precio_servicio,
+    c.precio_servicio_adicional,
+    c.tipo_moneda_adicional,
     c.pagado_a_cuenta,
     c.saldo_pendiente,
     c.comision
@@ -114,9 +118,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             <th>Ingreso</th>
                             <th>Modalidad</th>
                             <th>Adicional</th>
+                            <th>Precio</th>
+                            <th>Moneda</th>
                             <th>Encargado</th>
                             <th>Método Pago</th>
                             <th>Tipo Moneda</th>
+                            <th>Comprobante</th> <!-- 👈 NUEVO -->
+                            <th>Estado</th>
                             <th>Precio</th>
                             <th>Pagado</th>
                             <th>Saldo</th>
@@ -142,9 +150,34 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <td><?= htmlspecialchars($row['incluye_ingreso'] ?? '—') ?></td>
                                 <td><?= htmlspecialchars($row['modalidad_retorno'] ?? '—') ?></td>
                                 <td><?= htmlspecialchars($row['servicio_adicional'] ?? '—') ?></td>
+                                <td>
+                                    <?= isset($row['precio_servicio_adicional']) 
+                                        ? number_format($row['precio_servicio_adicional'], 2) 
+                                        : '—' ?>
+                                </td>
+
+                                <td><?= htmlspecialchars($row['tipo_moneda_adicional'] ?? '—') ?></td>
+
                                 <td><?= htmlspecialchars($row['Encargado'] ?? '—') ?></td>
                                 <td><?= htmlspecialchars($row['metodo_pago'] ?? '—') ?></td>
                                 <td><?= htmlspecialchars($row['tipo_moneda'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($row['modalidad_recibo'] ?? '—') ?></td> <!-- ✅ -->
+                                <td>
+                                    <?php
+                                    $estado = $row['estado'] ?? 'pendiente';
+
+                                    $clase = match ($estado) {
+                                        'pagado'      => 'bg-success',   // 🟢 VERDE
+                                        'reembolsado' => 'bg-danger',    // 🔴 ROJO (cancelado)
+                                        'pendiente'   => 'bg-warning',   // 🟠 NARANJA
+                                        default       => 'bg-secondary'
+                                    };
+                                    ?>
+
+                                    <span class="badge <?= $clase ?>">
+                                        <?= strtoupper($estado) ?>
+                                    </span>
+                                </td>
                                 <td><?= isset($row['precio_servicio']) ? number_format($row['precio_servicio'], 2) : '—' ?></td>
                                 <td><?= isset($row['pagado_a_cuenta']) ? number_format($row['pagado_a_cuenta'], 2) : '—' ?></td>
                                 <td><?= isset($row['saldo_pendiente']) ? number_format($row['saldo_pendiente'], 2) : '—' ?></td>
@@ -162,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </tr>
                         <?php endwhile;
                     else: ?>
-                        <tr><td colspan="20" class="text-center text-muted">No hay clientes KB registrados</td></tr>
+                        <tr><td colspan="21" class="text-center text-muted">No hay clientes KB registrados</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
