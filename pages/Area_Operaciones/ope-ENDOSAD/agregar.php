@@ -84,14 +84,11 @@ mysqli_stmt_bind_param(
     $stmtCont, "issddddsdd", $id_operaciones, $metodo_pago, $tipo_moneda, $precio, $pagado, $saldo, $precio_adicional,
     $tipo_moneda_adicional, $pagado_adicional, $saldo_adicional
 );
-mysqli_stmt_execute($stmtCont);
-
         mysqli_stmt_execute($stmtCont);
-    }
-
-    header("Location: index.php?mensaje=agregado");
-    exit;
+ 
 }
+header("Location: index.php?mensaje=agregado");
+    exit;
 ?>
 <!DOCTYPE html>
 <html lang="es">

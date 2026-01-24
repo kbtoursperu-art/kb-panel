@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_reserva = $_POST['fecha_reserva'];
     $fecha_salida = $_POST['fecha_salida'];
     $fecha_retorno = $_POST['fecha_retorno'];
-    $incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Sí' : 'No';
+    $incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Con ingreso' : 'Sin ingreso';
     $modalidad_retorno = $_POST['modalidad_retorno'];
     $servicio_adicional = implode(', ', $_POST['servicio_adicional']);
     $observaciones = $_POST['observaciones'];
@@ -131,6 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $metodo_pago_saldo = $_POST['metodo_pago_saldo'];
         $tipo_moneda_saldo = $_POST['tipo_moneda_saldo'];
         $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
+
+        $precio_adicional = floatval($_POST['precio_servicio_adicional'] ?? 0);
+$pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
+$saldo_adicional  = max(0, $precio_adicional - $pagado_adicional);
+$tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
+
 
         mysqli_query($conexion, "
             UPDATE Contabilidad SET
@@ -237,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-check">
                     <input type="checkbox" name="incluye_ingreso" value="Sí" 
                            class="form-check-input" id="incluye_ingreso"
-                           <?= ($operacion['incluye_ingreso'] === 'Sí') ? 'checked' : '' ?>>
+                           <?= ($operacion['incluye_ingreso'] === 'Con ingreso') ? 'checked' : '' ?>
                     <label class="form-check-label" for="incluye_ingreso">Sí</label>
                 </div>
             </div>
