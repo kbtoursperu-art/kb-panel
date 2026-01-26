@@ -351,11 +351,14 @@ $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
                value="<?= $operacion['saldo_adicional'] ?>" >
     </div>
 
-    <div class="col-md-3">
-        <label>Moneda</label>
-        <input type="text" class="form-control"
-               value="<?= $operacion['tipo_moneda_adicional'] ?>" >
-    </div>
+      <div class="col-md-4">
+    <label>Moneda (Ingreso)</label>
+    <select name="tipo_moneda_adicional" class="form-select">
+      <option value="">-- No aplica --</option>
+      <option value="Soles" <?= ($operacion['tipo_moneda_adicional']=='Soles')?'selected':'' ?>>Soles</option>
+      <option value="Dólares" <?= ($operacion['tipo_moneda_adicional']=='Dólares')?'selected':'' ?>>Dólares</option>
+    </select>
+  </div>
 </div>
 
 
