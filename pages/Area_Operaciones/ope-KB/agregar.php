@@ -195,6 +195,8 @@ $servicio_adicional = implode(", ", $servicios);
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
                             <option value="Bastones">Bastones</option>
                             <option value="Hotel">Hotel</option>
+                            <option value="Montaña Huayna Picchu">Montaña Huayna Picchu</option>
+                            <option value="Montaña Machu Picchu">Montaña Machu Picchu</option>
                             <option value="Trans. Mochilas Playa-Idro">Trans. Mochilas Playa-Idro</option>
                             <option value="Trans. Mochilas Hidro-Aguas">Trans. Mochilas Hidro-Aguas</option>
                         </select>
@@ -440,34 +442,41 @@ document.addEventListener("input", function(e) {
 
 });
 const DURACION_TOURS = {
-    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+      "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
     "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
     "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+    "SALKANTAY TREK 5D / 4N WITH LUXURY DOMES": 5,
+    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
+    "SALKANTAY TREK 2D / 1N WITH LUXURY DOMES": 2,
     "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
     "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
-
     "CAMINO INCA 4 DÍAS": 4,
+    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
     "CAMINO INCA 2 DÍAS": 2,
-
+    "MACHU PICCHU DE UN DÍA": 1,
     "MACHU PICCHU EN TREN 2 DÍAS": 2,
     "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
-
-    "CHOQUEQUIRAO 4 DÍAS": 4,
     "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
-
+    "CHOQUEQUIRAO 4 DÍAS": 4,
+    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
     "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
+    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
     "INCA JUNGLE TRAIL 4 DAYS": 4,
-
-    // FULL DAY / UN DÍA
-    "MACHU PICCHU DE UN DÍA": 1,
-    "LAGUNA HUMANTAY DE UN DIA": 1,
-    "MONTAÑA DE COLORES DE UN DIA": 1,
-    "PALCOYO DE UN DIA": 1,
-    "VALLE SAGRADO VIP DE UN DIA": 1,
-    "MARAS MORAY DE UN DIA": 1,
-    "WAQRAPUKARA DE UN DIA": 1,
-    "7 LAGUNAS DE AUSANGATE DE UN DIA": 1,
-    "CITY TOUR CUSCO MEDIO DIA": 1
+    "LAGUNA HUMANTAY DE UN DÍA": 1,
+    "MONTAÑA DE COLORES DE UN DÍA": 1,
+    "PALCOYO DE UN DÍA": 1,
+    "VALLE SAGRADO VIP DE UN DÍA": 1,
+    "VALLE TRADICIONAL": 1,
+    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
+    "MARAS MORAY DE UN DÍA": 1,
+    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
+    "WAQRAPUKARA DE UN DÍA": 1,
+    "CITY TOUR CUSCO MEDIO DÍA": 1,
+    "CUATRIMOTOS": 1,
+    "ICA – PARACAS DE UN DÍA": 1,
+    "PUNO DE UN DÍA": 1,
+    "MANU 4 DÍAS Y 3 NOCHES": 4
 };
 document.addEventListener("change", function(e) {
 
@@ -493,6 +502,7 @@ document.addEventListener("change", function(e) {
         fechaSalida.setDate(fechaSalida.getDate() + (dias - 1));
 
         retornoInput.value = fechaSalida.toISOString().split("T")[0];
+        
     }
 });
 </script>

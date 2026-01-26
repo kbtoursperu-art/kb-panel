@@ -263,13 +263,17 @@ $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
                 <select name="servicio_adicional[]" class="form-control" multiple required>
                     <?php
                     $opciones = [
-                        "Ninguna",
-                        "Ingreso a Mollepata",
-                        "Desayuno en Mollepata",
-                        "Bolsa de Dormir",
-                        "Trans. Playa-Idro Pax",
-                        "Trans. Mochilas Playa-Idro",
-                        "Trans. Mochilas Hidro-Aguas"
+                         "Ninguna",
+                            "Ingreso a Mollepata",
+                            "Desayuno en Mollepata",
+                            "Bolsa de Dormir",
+                            "Bastones",
+                            "Hotel",
+                            "Montaña Huayna Picchu",
+                            "Montaña Machu Picchu",
+                            "Trans. Playa-Idro Pax",
+                            "Trans. Mochilas Playa-Idro",
+                            "Trans. Mochilas Hidro-Aguas"   
                     ];
                     foreach ($opciones as $op) {
                         $selected = in_array($op, $servicios_seleccionados) ? 'selected' : '';
@@ -332,25 +336,25 @@ $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
     <div class="col-md-3">
         <label>Precio Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['precio_servicio_adicional'] ?>" readonly>
+               value="<?= $operacion['precio_servicio_adicional'] ?>" >
     </div>
 
     <div class="col-md-3">
         <label>Pagado Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['pagado_adicional'] ?>" readonly>
+               value="<?= $operacion['pagado_adicional'] ?>" >
     </div>
 
     <div class="col-md-3">
         <label>Saldo Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['saldo_adicional'] ?>" readonly>
+               value="<?= $operacion['saldo_adicional'] ?>" >
     </div>
 
     <div class="col-md-3">
         <label>Moneda</label>
         <input type="text" class="form-control"
-               value="<?= $operacion['tipo_moneda_adicional'] ?>" readonly>
+               value="<?= $operacion['tipo_moneda_adicional'] ?>" >
     </div>
 </div>
 

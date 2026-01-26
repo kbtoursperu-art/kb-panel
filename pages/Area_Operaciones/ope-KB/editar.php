@@ -309,6 +309,8 @@ WHERE id_operaciones = ?
             "Bolsa de Dormir",
             "Bastones",
             "Hotel",
+            "Montaña Huayna Picchu",
+            "Montaña Machu Picchu",
             "Trans. Playa-Idro Pax",
             "Trans. Mochilas Playa-Idro",
             "Trans. Mochilas Hidro-Aguas"   

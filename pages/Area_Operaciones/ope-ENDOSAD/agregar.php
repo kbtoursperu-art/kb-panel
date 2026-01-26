@@ -228,10 +228,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <div class="col-md-6">
                         <label>Servicio Adicional</label>
-                        <select name="servicio_adicional[]" class="form-control" multiple>
+                        <select name="servicio_adicional[]" class="form-select" multiple>
                             <option value="Ninguna">Ninguna</option>
-                             <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
+                            <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
+                            <option value="Bastones">Bastones</option>
+                            <option value="Hotel">Hotel</option>
+                            <option value="Huayna Picchu">Montaña Huayna Picchu</option>
+                            <option value="Machu Picchu">Montaña Machu Picchu</option>
                             <option value="Trans. Mochilas Playa-Idro">Trans. Mochilas Playa-Idro</option>
                             <option value="Trans. Mochilas Hidro-Aguas">Trans. Mochilas Hidro-Aguas</option>
                         </select>
