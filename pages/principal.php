@@ -41,12 +41,12 @@ $observaciones = mysqli_query($conexion, "
 ");
 
 // Artículos en uso (almacén)
+// Artículos en uso (almacén) - basado en salidas reales
 $articulosUso = mysqli_query($conexion, "
-    SELECT a.tipo_articulo, COUNT(*) AS total
-    FROM almacen_pasajeros a
-    WHERE a.estado = 'En uso'
-    GROUP BY a.tipo_articulo
+    SELECT SUM(s.cantidad) AS total
+    FROM almacen_salidas s
 ");
+
 
 // Mensajes de sistema
 $fecha = date('d/m/Y');
@@ -103,11 +103,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="card-body">
                         <h5>📦 Artículos en Uso</h5>
                         <?php 
-                        $totalUso = 0;
-                        while ($fila = mysqli_fetch_assoc($articulosUso)) {
-                            $totalUso += $fila['total'];
-                        }
+                       $filaUso = mysqli_fetch_assoc($articulosUso);
+                        $totalUso = $filaUso['total'] ?? 0;
                         echo "<h3 class='text-info'>$totalUso</h3>";
+
                         ?>
                     </div>
                 </div>

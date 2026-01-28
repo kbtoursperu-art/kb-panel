@@ -1,163 +1,239 @@
-/* ==== ESTILO CLIENTES KB ==== */
+/* ==================================================
+   🎨 VARIABLES
+================================================== */
+:root {
+    --primary: #0d6efd;
+    --success: #198754;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --dark: #212529;
+    --bg: #f4f6f9;
+    --radius: 14px;
+}
 
-/* GENERAL */
+/* ==================================================
+   🔹 BASE
+================================================== */
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f4f6f9;
     margin: 0;
-    padding: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
     color: #333;
+    font-size: .9rem;
 }
 
-/* CONTENIDO */
+/* ==================================================
+   🧭 CONTENIDO
+================================================== */
 .content {
-    padding: 25px;
+    min-height: 100vh;
+    background: var(--bg);
 }
 
-/* TÍTULO */
-h2 {
-    background: linear-gradient(135deg, #007bff, #00bfff);
-    color: #fff;
-    text-align: center;
-    padding: 12px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-    letter-spacing: 0.5px;
-    margin-bottom: 25px;
-}
-
-/* CONTENEDOR PRINCIPAL */
-.container {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-/* BOTONES */
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #20c997, #28a745);
-    transform: scale(1.05);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #dc3545, #ff4d6d);
-    border: none;
-}
-
-.btn-danger:hover {
-    background: linear-gradient(135deg, #ff4d6d, #dc3545);
-    transform: scale(1.05);
-}
-
-/* TABLA */
-table.dataTable {
-    border-collapse: collapse;
-    width: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-table.dataTable thead th {
-    background: linear-gradient(135deg, #007bff, #00bfff);
-    color: white;
-    text-align: center;
-    padding: 12px;
+h2, h3 {
     font-weight: 600;
-    border-bottom: none;
+    color: var(--dark);
 }
 
-table.dataTable tbody tr:hover {
-    background-color: #f1f8ff;
+/* ==================================================
+   🧱 CARDS
+================================================== */
+.card {
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
 }
 
-table.dataTable td {
-    vertical-align: middle;
-    text-align: center;
-    padding: 10px;
+.card-body {
+    padding: 1rem;
 }
 
-/* FOTO DEL PASAPORTE */
-img.rounded {
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-img.rounded:hover {
-    transform: scale(1.8);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* PAGINACIÓN Y BUSCADOR */
-.dataTables_wrapper .dataTables_filter input {
-    border: 1px solid #007bff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.dataTables_wrapper .dataTables_filter input:focus {
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    background-color: #007bff !important;
-    color: white !important;
-    border-radius: 6px;
-    padding: 5px 10px;
-    margin: 0 3px;
-    transition: background-color 0.3s ease;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    background-color: #0056b3 !important;
-}
-
-.dataTables_wrapper .dataTables_info {
-    margin-top: 10px;
+/* ==================================================
+   🔘 BOTONES
+================================================== */
+.btn {
+    border-radius: 10px;
     font-weight: 500;
-    color: #555;
+    transition: all .2s ease;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .content {
-        padding: 15px;
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* ==================================================
+   📊 TABLAS
+================================================== */
+.table {
+    font-size: .85rem;
+    vertical-align: middle;
+}
+
+.table thead th {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.table td {
+    white-space: nowrap;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* ==================================================
+   🖼️ IMÁGENES EN TABLA
+================================================== */
+.table img {
+    max-width: 50px;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* ==================================================
+   📈 DATATABLES
+================================================== */
+.dataTables_wrapper {
+    width: 100%;
+}
+
+.dataTables_filter input,
+.dataTables_length select {
+    border-radius: 8px;
+    padding: .35rem .6rem;
+    border: 1px solid #ccc;
+}
+
+.dataTables_wrapper .dt-buttons .btn {
+    margin-bottom: .5rem;
+}
+
+/* ==================================================
+   🪟 MODALES
+================================================== */
+.modal-content {
+    border-radius: 16px;
+}
+
+.modal-header {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+/* ==================================================
+   📱 MOBILE (≤ 479px)
+================================================== */
+@media (max-width: 479px) {
+
+    body {
+        font-size: .85rem;
     }
+
     h2 {
-        font-size: 1.3rem;
+        font-size: 1.25rem;
+        text-align: center;
     }
-    table.dataTable td, 
-    table.dataTable th {
-        font-size: 0.9rem;
+
+    .btn {
+        width: 100%;
+    }
+
+    .table {
+        font-size: .75rem;
+    }
+
+    .dt-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+
+    .table img {
+        max-width: 40px;
     }
 }
-/*editar              -------------------------------------------------------------------*/
 
-/* ===== 🔒 PROTEGER SIDEBAR Y NAVBAR ===== */
-.sidebar, .sidebar a, .sidebar .nav-link {
-    color: #fff !important;
-    background: inherit !important;
+/* ==================================================
+   📱 CELULAR GRANDE (≥ 480px)
+================================================== */
+@media (min-width: 480px) {
+
+    body {
+        font-size: .9rem;
+    }
+
+    .btn {
+        width: auto;
+    }
 }
 
-.sidebar {
-    background-color:  #1a2c40 !important;
+/* ==================================================
+   📱 TABLET (≥ 768px)
+================================================== */
+@media (min-width: 768px) {
+
+    body {
+        font-size: 1rem;
+    }
+
+    .card-body {
+        padding: 1.4rem;
+    }
+
+    .table {
+        font-size: .9rem;
+    }
 }
 
-.sidebar a:hover, .sidebar .nav-link:hover {
-    color: #f8f9fa !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
+/* ==================================================
+   💻 LAPTOP (≥ 1024px)
+================================================== */
+@media (min-width: 1024px) {
+
+    body {
+        font-size: 1.05rem;
+    }
+
+    .container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* ==================================================
+   🖥️ DESKTOP GRANDE (≥ 1440px)
+================================================== */
+@media (min-width: 1440px) {
+
+    body {
+        font-size: 1.1rem;
+    }
+
+    .container-fluid {
+        max-width: 1400px;
+        margin: auto;
+    }
+}
+
+/* ==================================================
+   🖥️ ULTRA WIDE / 4K (≥ 1920px)
+================================================== */
+@media (min-width: 1920px) {
+
+    body {
+        font-size: 1.15rem;
+    }
+
+    .container-fluid {
+        max-width: 1650px;
+    }
+
+    .table {
+        font-size: 1rem;
+    }
 }

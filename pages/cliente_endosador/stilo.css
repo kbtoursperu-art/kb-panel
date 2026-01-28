@@ -1,148 +1,226 @@
-/* ========== ESTILO GENERAL DEL PANEL ========== */
+/* ==================================================
+   🎨 VARIABLES DE COLOR (fácil de mantener)
+================================================== */
+:root {
+    --primary: #0d6efd;
+    --success: #198754;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --dark: #212529;
+    --light: #f8f9fa;
+    --bg: #f4f6f9;
+    --card-radius: 14px;
+}
+
+/* ==================================================
+   🔹 BASE GLOBAL (mobile first)
+================================================== */
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg);
+    color: #333;
+    font-size: .9rem;
     margin: 0;
-    padding: 0;
 }
 
-/* ===== 🔒 PROTEGER SIDEBAR Y NAVBAR ===== */
-.sidebar, .sidebar a, .sidebar .nav-link {
-    color: #fff !important;
-    background: inherit !important;
-}
-
-.sidebar {
-    background-color:  #1a2c40 !important;
-}
-
-.sidebar a:hover, .sidebar .nav-link:hover {
-    color: #f8f9fa !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ========== CONTENIDO PRINCIPAL ========== */
+/* ==================================================
+   📦 CONTENIDO PRINCIPAL
+================================================== */
 .content {
-    margin-left: 250px; /* espacio para sidebar */
-    transition: all 0.3s ease;
+    min-height: 100vh;
+    background: var(--bg);
 }
 
-/* ========== TITULOS DE SECCION ========== */
 .titulo-seccion {
-    background: linear-gradient(90deg, #007bff, #0056b3);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
     font-weight: 600;
+    color: var(--dark);
 }
 
-/* ========== BOTONES ========== */
-.btn-success {
-    background-color: #28a745;
+/* ==================================================
+   🧱 TARJETAS
+================================================== */
+.card {
     border: none;
+    border-radius: var(--card-radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* ==================================================
+   🔘 BOTONES
+================================================== */
+.btn {
+    border-radius: 10px;
     font-weight: 500;
-    transition: 0.3s;
-}
-.btn-success:hover {
-    background-color: #218838;
+    transition: all .2s ease;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    border: none;
-}
-.btn-primary:hover {
-    background-color: #0056b3;
+.btn:hover {
+    transform: translateY(-1px);
 }
 
-.btn-danger {
-    background-color: #dc3545;
-    border: none;
-}
-.btn-danger:hover {
-    background-color: #bb2d3b;
-}
-
-/* ========== TABLAS ========== */
+/* ==================================================
+   📊 TABLAS
+================================================== */
 .table {
-    border-radius: 8px;
-    overflow: hidden;
+    font-size: .85rem;
+    vertical-align: middle;
 }
 
 .table thead th {
-    background-color: #007bff;
-    color: white;
-    font-weight: 500;
     text-align: center;
+    white-space: nowrap;
 }
 
-.table tbody tr:hover {
-    background-color: #f1f1f1;
+.table td {
+    white-space: nowrap;
 }
 
-/* ========== TARJETAS ========== */
-.card {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+.table-responsive {
+    border-radius: 12px;
 }
-/* ===== Responsive: quitar margen lateral en pantallas pequeñas ===== */
-@media (max-width: 991.98px) {
-    /* Para tablets y móviles quitamos el margen que reservaba el sidebar */
-    .content {
-        margin-left: 0;
-        padding: 15px;
+
+/* ==================================================
+   📈 DATATABLES
+================================================== */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: .35rem .6rem;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 8px;
+}
+
+.dataTables_wrapper .dt-buttons .btn {
+    margin-bottom: .5rem;
+}
+
+/* ==================================================
+   🪟 MODALES
+================================================== */
+.modal-content {
+    border-radius: 16px;
+}
+
+.modal-header {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+/* ==================================================
+   📱 MOBILE (< 480px)
+================================================== */
+@media (max-width: 479px) {
+
+    body {
+        font-size: .85rem;
     }
 
-    /* Ajustes de tamaño del título */
     .titulo-seccion {
-        font-size: 1.05rem;
-        padding: 10px;
+        font-size: 1.2rem;
+        text-align: center;
     }
 
-    /* Tablas: fuente ligeramente menor */
-    .table, .table th, .table td {
-        font-size: 0.9rem;
+    .btn {
+        width: 100%;
     }
 
-    /* Botones en una sola columna en móviles */
-    .text-end .btn {
-        display: inline-block;
-        margin-bottom: 8px;
+    .table {
+        font-size: .75rem;
+    }
+
+    .dt-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
     }
 }
 
-/* ===== Mobile small ===== */
-@media (max-width: 575.98px) {
-    .titulo-seccion {
+/* ==================================================
+   📱 CELULAR GRANDE (≥ 480px)
+================================================== */
+@media (min-width: 480px) {
+
+    body {
+        font-size: .9rem;
+    }
+
+    .btn {
+        width: auto;
+    }
+}
+
+/* ==================================================
+   📱 TABLET (≥ 768px)
+================================================== */
+@media (min-width: 768px) {
+
+    body {
         font-size: 1rem;
     }
 
-    .table thead th {
-        font-size: 0.85rem;
-        padding: 8px;
+    .card-body {
+        padding: 1.4rem;
     }
 
-    .table tbody td {
-        padding: 6px;
+    .table {
+        font-size: .9rem;
     }
 }
 
-/* ===== Sidebar colapsado: cuando agregues la clase .sidebar-collapsed al body ===== */
-body.sidebar-collapsed .content {
-    margin-left: 0;
+/* ==================================================
+   💻 LAPTOP (≥ 1024px)
+================================================== */
+@media (min-width: 1024px) {
+
+    body {
+        font-size: 1.05rem;
+    }
+
+    .container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
 }
 
-/* ===== Mejorar overflow de tablas en pantallas pequeñas ===== */
-.table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+/* ==================================================
+   🖥️ DESKTOP GRANDE (≥ 1440px)
+================================================== */
+@media (min-width: 1440px) {
+
+    body {
+        font-size: 1.1rem;
+    }
+
+    .container-fluid {
+        max-width: 1400px;
+        margin: auto;
+    }
 }
 
-/* ===== Opcional: compactar botones en filas pequeñas ===== */
-@media (max-width: 768px) {
-    .table .btn {
-        padding: .25rem .45rem;
-        font-size: .85rem;
+/* ==================================================
+   🖥️ ULTRA WIDE / 4K (≥ 1920px)
+================================================== */
+@media (min-width: 1920px) {
+
+    body {
+        font-size: 1.15rem;
+    }
+
+    .container-fluid {
+        max-width: 1650px;
+    }
+
+    .table {
+        font-size: 1rem;
     }
 }
