@@ -82,7 +82,7 @@ if (!$result_kb) {
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="clientes-kb" class="table table-striped table-bordered nowrap">
+                    <table id="clientes-kb" class="table table-striped table-bordered">
                         <thead class="table-dark text-center">
                             <tr>
                                 <th>ID</th>
@@ -174,9 +174,8 @@ if (!$result_kb) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
 <script>
-$(document).ready(function () {
-    $(document).ready(function() {
-    let table = new DataTable('#clientes-kb', {
+$(function () {
+    new DataTable('#clientes-kb', {
         dom: 'Bfrtip',
         buttons: [{
             extend: 'excelHtml5',
@@ -185,20 +184,16 @@ $(document).ready(function () {
             title: 'clientes-kb',
             exportOptions: { columns: ':visible:not(:last-child)' }
         }],
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json' },
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json'
+        },
         pageLength: 10,
-        order: [[0, "desc"]]
-    });
-
-    $("#search_date_from, #search_date_to").on("change", function() {
-        var from = $("#search_date_from").val();
-        var to = $("#search_date_to").val();
-        location.href = "?search_date_from=" + from + "&search_date_to=" + to;
+        order: [[0, "desc"]],
+        scrollX: true   // 👈 ESTO es el scroll correcto
     });
 });
-});
-
 </script>
+
 
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

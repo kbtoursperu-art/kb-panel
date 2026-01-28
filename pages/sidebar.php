@@ -167,6 +167,30 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
 .content.full {
     margin-left: 0;
 }
+/* =====================
+   LAYOUT PRINCIPAL
+===================== */
+
+.content {
+    margin-left: 260px; /* ancho del sidebar */
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
+
+.content.full {
+    margin-left: 0;
+}
+
+/* ===== SIDEBAR MINI (ESCRITORIO) ===== */
+@media (min-width: 993px) {
+    #sidebar.hidden {
+        transform: translateX(-260px);
+    }
+
+    .content.full {
+        margin-left: 0;
+    }
+}
 
     </style>
 </head>
@@ -238,13 +262,48 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
 <script>
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggle-sidebar");
+const content = document.querySelector(".content");
 
-// Mostrar/Ocultar Sidebar
-toggleBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("active");
+/* =====================
+   RESTAURAR ESTADO
+===================== */
+document.addEventListener("DOMContentLoaded", () => {
+    const estado = localStorage.getItem("sidebar");
+
+    if (estado === "closed") {
+        if (window.innerWidth > 992) {
+            sidebar.classList.add("hidden");
+            content?.classList.add("full");
+        } else {
+            sidebar.classList.remove("active");
+        }
+    }
 });
 
-// Cerrar en móviles al hacer clic afuera
+/* =====================
+   BOTÓN HAMBURGUESA
+===================== */
+toggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    if (window.innerWidth <= 992) {
+        // 📱 Móvil
+        sidebar.classList.toggle("active");
+    } else {
+        // 🖥️ Escritorio
+        sidebar.classList.toggle("hidden");
+        content?.classList.toggle("full");
+
+        localStorage.setItem(
+            "sidebar",
+            sidebar.classList.contains("hidden") ? "closed" : "open"
+        );
+    }
+});
+
+/* =====================
+   CLICK FUERA (MÓVIL)
+===================== */
 document.addEventListener("click", (e) => {
     if (window.innerWidth <= 992) {
         if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
@@ -253,22 +312,46 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Submenús dinámicos
+/* =====================
+   SUBMENÚS (ABRIR / CERRAR)
+===================== */
 document.querySelectorAll(".toggle-menu").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+
         const submenu = document.getElementById(btn.dataset.target);
         const icon = btn.querySelector(".toggle-icon");
-        
-        document.querySelectorAll(".submenu").forEach(s => s.style.display = "none");
-        document.querySelectorAll(".toggle-icon").forEach(i => i.classList.remove("rotate"));
+        const isOpen = submenu.classList.contains("open");
 
-        if (submenu.style.display !== "block") {
+        document.querySelectorAll(".submenu").forEach(s => {
+            s.classList.remove("open");
+            s.style.display = "none";
+        });
+        document.querySelectorAll(".toggle-icon").forEach(i => {
+            i.classList.remove("rotate");
+        });
+
+        if (!isOpen) {
             submenu.style.display = "block";
+            submenu.classList.add("open");
             icon.classList.add("rotate");
         }
     });
 });
+
+/* =====================
+   CERRAR AL HACER CLICK EN LINK (MÓVIL)
+===================== */
+document.querySelectorAll("#sidebar a").forEach(link => {
+    link.addEventListener("click", () => {
+        if (window.innerWidth <= 992) {
+            sidebar.classList.remove("active");
+        }
+    });
+});
 </script>
+
+
 
 </body>
 </html>

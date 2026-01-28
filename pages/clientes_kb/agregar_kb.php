@@ -131,26 +131,13 @@ $clientes_res = mysqli_query($conexion, $clientes_sql);
     <!-- Select2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-    <style>
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            margin-top: 70px;     /* altura header */
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
 </head>
 
 <body class="bg-light">
 
 <?php include('../sidebar.php'); ?>
 
-<div class="main-content">
+<div class="content p-4">
 <div class="container-fluid">
 
     <h3 class="text-center text-white bg-primary p-2 rounded mb-4">
