@@ -1,0 +1,154 @@
+/* =========================
+   RESET BÁSICO
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f4f6f9;
+    min-height: 100vh;
+}
+
+/* =========================
+   NAVBAR SUPERIOR
+========================= */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 60px;
+    width: 100%;
+    background: #1f2937;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+.navbar h5 {
+    font-size: 16px;
+}
+
+.user-img {
+    border-radius: 50%;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+#sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 260px;
+    height: calc(100vh - 60px);
+    background: #111827;
+    color: #fff;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+#sidebar.hidden {
+    transform: translateX(-260px);
+}
+
+#sidebar.active {
+    transform: translateX(0);
+}
+
+.user-section {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid #374151;
+}
+
+.user-section img {
+    width: 70px;
+    margin-bottom: 10px;
+}
+
+.nav-link {
+    color: #d1d5db;
+    padding: 12px 20px;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    background: #1f2937;
+    color: #fff;
+}
+
+.toggle-icon {
+    float: right;
+    transition: transform 0.3s;
+}
+
+.toggle-icon.rotate {
+    transform: rotate(90deg);
+}
+
+/* =========================
+   SUBMENÚ
+========================= */
+.submenu {
+    display: none;
+    background: #1f2937;
+}
+
+.submenu .nav-link {
+    padding-left: 40px;
+    font-size: 14px;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+========================= */
+.content {
+    margin-top: 60px;
+    margin-left: 260px;
+    padding: 25px;
+    transition: margin-left 0.3s ease;
+    min-height: calc(100vh - 100px);
+}
+
+.content.full {
+    margin-left: 0;
+}
+
+/* =========================
+   FOOTER
+========================= */
+.footer {
+    background: #1f2937;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 992px) {
+    #sidebar {
+        transform: translateX(-260px);
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    .footer {
+        position: relative;
+    }
+}

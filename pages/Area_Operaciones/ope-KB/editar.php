@@ -589,6 +589,5 @@ document.addEventListener("input", function(e) {
     }
 });
 </script>
-<?php include '../../footer.php'; ?>
 </body>
 </html>

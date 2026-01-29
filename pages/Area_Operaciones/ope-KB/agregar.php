@@ -506,6 +506,5 @@ document.addEventListener("change", function(e) {
     }
 });
 </script>
-<?php include '../../footer.php'; ?>
 </body>
 </html>

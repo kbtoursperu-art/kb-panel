@@ -51,19 +51,6 @@ $articulosUso = mysqli_query($conexion, "
 // Mensajes de sistema
 $fecha = date('d/m/Y');
 ?>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("toggle-sidebar");
-    const body = document.body;
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", function () {
-            body.classList.toggle("sidebar-collapsed");
-        });
-    }
-});
-</script>
-
 <div class="content p-4">
     <div class="container-fluid">
 
