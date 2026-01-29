@@ -178,5 +178,3 @@ $fecha = date('d/m/Y');
 
     </div>
 </div>
-
-<?php include './footer.php'; ?>
