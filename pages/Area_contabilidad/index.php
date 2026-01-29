@@ -59,43 +59,54 @@ if (function_exists('mysqli_set_charset')) {
 
         <?php
         // Consulta principal
-        $query = "
-            SELECT 
-                o.id_operaciones,
-                d.id_cliente,
-                CONCAT(d.nombre, ' ', d.apellido) AS cliente,
-                d.nro_pasaporte,
-                o.nombre_servicio,
-                d.tipo_cliente,
-                c.id_contabilidad,
-                c.metodo_pago,
-                c.tipo_moneda,
-                c.comision,
-                o.servicio_adicional,
-                c.precio_servicio,
-                IFNULL(am_sum.total_adicionales, 0) AS precio_articulo_almacen,
-                c.pagado_a_cuenta,
-                c.saldo_pendiente,
-                c.fecha_pago_saldo,
-                c.Nro_Comprobante_adicional,
-                c.estado,
-                IFNULL(c.modalidad_recibo, '—') AS tipo_comprobante_pago,
-                c.nro_boleta_cuenta,
-                c.nro_boleta_total,
-                c.detraccion,
-                c.NotaCredito,
-                o.observaciones
-            FROM Operaciones o
-            INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-            LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-            LEFT JOIN (
-                SELECT ap.id_servicio AS id_servicio, SUM(am.monto) AS total_adicionales
-                FROM almacen_pasajeros ap
-                LEFT JOIN almacen_movimientos am ON am.id_stock = ap.id_stock
-                GROUP BY ap.id_servicio
-            ) am_sum ON am_sum.id_servicio = o.id_operaciones
-            ORDER BY o.id_operaciones DESC
-        ";
+$query = "
+SELECT 
+    o.id_operaciones,
+    d.id_cliente,
+    CONCAT(d.nombre, ' ', d.apellido) AS cliente,
+    d.nro_pasaporte,
+    o.nombre_servicio,
+    d.tipo_cliente,
+
+    c.id_contabilidad,
+
+    -- PRECIO GENERAL
+    c.metodo_pago,
+    c.tipo_moneda,
+    IFNULL(c.precio_servicio,0)   AS precio_servicio,
+    IFNULL(c.pagado_a_cuenta,0)   AS pagado_a_cuenta,
+    IFNULL(c.saldo_pendiente,0)   AS saldo_pendiente,
+    IFNULL(c.comision,0)          AS comision,
+
+    -- SERVICIO ADICIONAL
+    o.servicio_adicional,
+    c.metodo_pago_adicional,
+    c.tipo_moneda_adicional,
+    IFNULL(c.precio_servicio_adicional,0) AS precio_servicio_adicional,
+    IFNULL(c.pagado_adicional,0)           AS pagado_adicional,
+    IFNULL(c.saldo_adicional,0)            AS saldo_adicional,
+
+    -- SALDO FINAL
+    c.metodo_pago_saldo,
+    c.tipo_moneda_saldo,
+    IFNULL(c.monto_pago_saldo,0) AS monto_pago_saldo,
+    c.fecha_pago_saldo,
+
+    -- OTROS
+    c.Nro_Comprobante_adicional,
+    c.estado,
+    IFNULL(c.modalidad_recibo,'—') AS tipo_comprobante_pago,
+    c.nro_boleta_cuenta,
+    c.nro_boleta_total,
+    IFNULL(c.detraccion,0) AS detraccion,
+    c.NotaCredito,
+    o.observaciones
+
+FROM Operaciones o
+INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
+ORDER BY o.id_operaciones DESC
+";
 
         $resultado = mysqli_query($conexion, $query);
 
@@ -129,15 +140,29 @@ if (function_exists('mysqli_set_charset')) {
                                 <th>Pasaporte</th>
                                 <th>Servicio</th>
                                 <th>Tipo cliente</th>
+                               <!-- PRECIO GENERAL -->
                                 <th>Método Pago</th>
                                 <th>Moneda</th>
-                                <th>Comisión</th>
+                                <th>Precio</th>
+                                <th>Pagado</th>
+                                <th>Saldo</th>
+                                <th>Comisión</th>     
+
+                                <!-- SERVICIO ADICIONAL -->
                                 <th>Servicio Adicional</th>
-                                <th>Precio Servicio</th>
-                                <th>Adicional Almacén</th>
-                                <th>Pagado a Cuenta</th>
-                                <th>Saldo Pendiente</th>
-                                <th>Fecha Pago Saldo</th>
+                                <th>Mét. Adic.</th>
+                                <th>Mon. Adic.</th>
+                                <th>Precio Adic.</th>
+                                <th>Pagado Adic.</th>
+                                <th>Saldo Adic.</th>
+
+                                <!-- SALDO FINAL -->
+                                <th>Mét. Saldo</th>
+                                <th>Mon. Saldo</th>
+                                <th>Monto Saldo</th>
+                                <th>Fecha Saldo</th>
+                                
+                            
                                 <th>N° Comp. Adic.</th>
                                 <th>Estado</th>
                                 <th>Tipo Comprobante</th>
@@ -153,72 +178,95 @@ if (function_exists('mysqli_set_charset')) {
                         <tbody>
 
                         <?php
-                        if (!empty($datos)) {
+                       if (!empty($datos)) {
                             foreach ($datos as $row) {
 
                                 $id_conta = $row['id_contabilidad'] ?? '';
-                                $id_oper = $row['id_operaciones'] ?? '';
+                                $id_oper  = $row['id_operaciones'] ?? '';
 
                                 echo "<tr>
-                                    <td class='d-none'>{$id_oper}</td>
-                                    <td>" . ($id_conta ?: '—') . "</td>
-                                    <td>" . htmlspecialchars($row['cliente']) . "</td>
-                                    <td>" . htmlspecialchars($row['nro_pasaporte']) . "</td>
-                                    <td>" . htmlspecialchars($row['nombre_servicio']) . "</td>
-                                    <td>" . htmlspecialchars($row['tipo_cliente']) . "</td>
-                                    <td>" . htmlspecialchars($row['metodo_pago']) . "</td>
-                                    <td>" . htmlspecialchars($row['tipo_moneda']) . "</td>
-                                    <td class='text-end'>" . number_format($row['comision'], 2) . "</td>
-                                    <td>" . htmlspecialchars($row['servicio_adicional']) . "</td>
-                                    <td class='text-end'>" . number_format($row['precio_servicio'], 2) . "</td>
-                                    <td class='text-end'>" . number_format($row['precio_articulo_almacen'], 2) . "</td>
-                                    <td class='text-end'>" . number_format($row['pagado_a_cuenta'], 2) . "</td>
-                                    <td class='text-end'>" . number_format($row['saldo_pendiente'], 2) . "</td>
-                                    <td>" . ($row['fecha_pago_saldo'] ?: '-') . "</td>
-                                    <td>" . htmlspecialchars($row['Nro_Comprobante_adicional']) . "</td>
-                                    <td class='text-center'>";
+
+                                <td class='d-none'>{$id_oper}</td>
+                                <td>" . ($id_conta ?: '—') . "</td>
+                                <td>" . htmlspecialchars($row['cliente']) . "</td>
+                                <td>" . htmlspecialchars($row['nro_pasaporte']) . "</td>
+                                <td>" . htmlspecialchars($row['nombre_servicio']) . "</td>
+                                <td>" . htmlspecialchars($row['tipo_cliente']) . "</td>
+
+                                <!-- PRECIO GENERAL -->
+                                <td>" . htmlspecialchars($row['metodo_pago']) . "</td>
+                                <td>" . htmlspecialchars($row['tipo_moneda']) . "</td>
+                                <td class='text-end'>" . number_format($row['precio_servicio'] ?? 0, 2) . "</td>
+                                <td class='text-end'>" . number_format($row['pagado_a_cuenta'] ?? 0, 2) . "</td>
+                                <td class='text-end'>" . number_format($row['saldo_pendiente'] ?? 0, 2) . "</td>
+                                <td class='text-end'>" . number_format($row['comision'] ?? 0, 2) . "</td>
+
+                                <!-- SERVICIO ADICIONAL -->
+                                <td>" . htmlspecialchars($row['servicio_adicional']) . "</td>
+                                <td>" . htmlspecialchars($row['metodo_pago_adicional']) . "</td>
+                                <td>" . htmlspecialchars($row['tipo_moneda_adicional']) . "</td>
+                                <td class='text-end'>" . number_format($row['precio_servicio_adicional'] ?? 0, 2) . "</td>
+                                <td class='text-end'>" . number_format($row['pagado_adicional'] ?? 0, 2) . "</td>
+                                <td class='text-end'>" . number_format($row['saldo_adicional'] ?? 0, 2) . "</td>
+
+                                <!-- SALDO FINAL -->
+                                <td>" . htmlspecialchars($row['metodo_pago_saldo']) . "</td>
+                                <td>" . htmlspecialchars($row['tipo_moneda_saldo']) . "</td>
+                                <td class='text-end'>" . number_format($row['monto_pago_saldo'] ?? 0, 2) . "</td>
+                                <td>" . ($row['fecha_pago_saldo'] ?: '-') . "</td>
+
+                                <td>" . htmlspecialchars($row['Nro_Comprobante_adicional']) . "</td>
+
+                                <td class='text-center'>";
 
                                 // Badge estado
                                 switch ($row['estado']) {
-                                    case 'pagado':
-                                        echo "<span class='badge bg-success'>Pagado</span>";
-                                        break;
-                                    case 'pendiente':
-                                        echo "<span class='badge bg-warning text-dark'>Pendiente</span>";
-                                        break;
-                                    case 'reembolsado':
-                                        echo "<span class='badge bg-secondary'>Reembolsado</span>";
-                                        break;
-                                    default:
-                                        echo htmlspecialchars($row['estado'] ?: '-');
-                                }
+                                        case 'pagado':
+                                            echo "<span class='badge bg-success'>Pagado</span>";
+                                            break;
+                                        case 'pendiente':
+                                            echo "<span class='badge bg-warning text-dark'>Pendiente</span>";
+                                            break;
+                                        case 'reembolsado':
+                                            echo "<span class='badge bg-secondary'>Reembolsado</span>";
+                                            break;
+                                        default:
+                                            echo "-";
+                                    }
+
 
                                 echo "</td>
-                                    <td>" . htmlspecialchars($row['tipo_comprobante_pago']) . "</td>
-                                    <td>" . htmlspecialchars($row['nro_boleta_cuenta']) . "</td>
-                                    <td>" . htmlspecialchars($row['nro_boleta_total']) . "</td>
-                                    <td class='text-end'>" . number_format($row['detraccion'], 2) . "</td>
-                                    <td>" . ($row['NotaCredito'] ? 'Sí' : 'No') . "</td>
-                                    <td>" . htmlspecialchars($row['observaciones']) . "</td>
-                                    <td class='text-center'>";
+                                        <td>" . htmlspecialchars($row['tipo_comprobante_pago']) . "</td>
+                                        <td>" . htmlspecialchars($row['nro_boleta_cuenta']) . "</td>
+                                        <td>" . htmlspecialchars($row['nro_boleta_total']) . "</td>
+                                        <td class='text-end'>" . number_format($row['detraccion'] ?? 0, 2) . "</td>
+                                        <td class='text-center'>" . ($row['NotaCredito'] ? 'Sí' : 'No') . "</td>
+                                        <td>" . htmlspecialchars($row['observaciones']) . "</td>
+
+                                        <td class='text-center'>";
+
 
                                 // Acciones
-                                if (!empty($id_conta)) {
-                                    echo "
-                                        <a href='ver.php?id={$id_conta}' class='btn btn-info btn-sm mb-1'>👁 Ver</a>
-                                        <a href='editar.php?id={$id_conta}' class='btn btn-warning btn-sm mb-1'>✏️ Editar</a>
-                                        <a href='eliminar.php?id={$id_conta}' class='btn btn-danger btn-sm' onclick='return confirm(\"¿Eliminar este registro contable?\")'>🗑 Eliminar</a>
-                                    ";
-                                } else {
-                                    echo "<a href='../Area_Operaciones/ope-KB/agregar.php?id_operaciones={$id_oper}' class='btn btn-success btn-sm'>➕ Registrar</a>";
-                                }
-
-                                echo "</td></tr>";
+                               if ($id_conta) {
+                                echo "
+                                    <a href='ver.php?id={$id_conta}' class='btn btn-info btn-sm mb-1'>👁</a>
+                                    <a href='editar.php?id={$id_conta}' class='btn btn-warning btn-sm mb-1'>✏️</a>
+                                    <a href='eliminar.php?id={$id_conta}' class='btn btn-danger btn-sm'
+                                    onclick='return confirm(\"¿Eliminar este registro contable?\")'>🗑</a>
+                                ";
+                            } else {
+                                echo "
+                                    <a href='../Area_Operaciones/ope-KB/agregar.php?id_operaciones={$id_oper}'
+                                    class='btn btn-success btn-sm'>➕</a>
+                                ";
                             }
-                        }
-                        ?>
 
-                        </tbody>
+                            echo "</td></tr>";
+                                }
+                            }
+                            ?>
+                            </tbody>
+
                     </table>
                 </div>
 

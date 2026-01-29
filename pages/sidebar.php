@@ -81,7 +81,7 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
         <?php endif; ?>
 
         <?php if ($esAdmin == 1 || $area == "Almacén"): ?>
-            <a class="nav-link" href="/pages/almacen/stock_general.php">
+            <a class="nav-link" href="/pages/alma/dashboard_almacen.php">
                 <i class="fas fa-box"></i> Almacén
             </a>
         <?php endif; ?>

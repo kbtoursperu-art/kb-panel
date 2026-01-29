@@ -1,4 +1,5 @@
-<?php include '../../conexion.php'; ?>
+<?php include '../../conexion.php';?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,6 +12,7 @@
 </head>
 
 <body class="bg-light">
+  <?php include '../sidebar.php'; ?>
 <div class="container mt-4">
 
 <h3 class="mb-4">📊 Dashboard de Almacén</h3>

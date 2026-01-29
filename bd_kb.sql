@@ -200,76 +200,195 @@ CREATE TABLE correos_enviados (
 -- 📦 SISTEMA DE ALMACÉN TURÍSTICO - ESTRUCTURA FINAL
 -- ==========================================================
 
-CREATE TABLE IF NOT EXISTS almacen_items (
-    id_item INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    categoria ENUM('Ropa', 'Equipo', 'Accesorio', 'Garantía') NOT NULL,
-    tiene_talla BOOLEAN DEFAULT FALSE,
-    tiene_color BOOLEAN DEFAULT FALSE,
-    tiene_serie BOOLEAN DEFAULT FALSE,
-    descripcion TEXT
+-- =======================================
+-- 🔹 TABLA DE PRODUCTOS
+-- =======================================
+CREATE TABLE almacen_items (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    tipo ENUM('Consumible','Retornable','Garantia') NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS almacen_tallas (
-    id_talla INT AUTO_INCREMENT PRIMARY KEY,
-    id_item INT NOT NULL,
-    talla VARCHAR(10),
-    FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE
+-- =======================================
+-- 🔹 TABLA DE STOCK
+-- =======================================
+CREATE TABLE almacen_stock (
+    id_stock INT AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    talla VARCHAR(10) NULL,
+    cantidad_total INT NOT NULL DEFAULT 0,
+    cantidad_disponible INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS almacen_stock (
-    id_stock INT AUTO_INCREMENT PRIMARY KEY,
-    id_item INT NOT NULL,
-    id_talla INT NULL,
-    numero_serie VARCHAR(50) NULL,        -- 🆔 Solo para maletas
-    color VARCHAR(30) NULL,               -- 🎨 Solo para maletas
-    cantidad_total INT DEFAULT 0,
-    cantidad_disponible INT DEFAULT 0,
-    FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE,
-    FOREIGN KEY (id_talla) REFERENCES almacen_tallas(id_talla) ON DELETE SET NULL
+-- =======================================
+-- 🔹 TABLA DE SALIDAS (a guías)
+-- =======================================
+CREATE TABLE almacen_salidas (
+    id_salida INT AUTO_INCREMENT PRIMARY KEY,
+    id_stock INT NOT NULL,
+    nombre_guia VARCHAR(100) NOT NULL,
+    cantidad INT NOT NULL,
+    fecha_salida DATE NOT NULL,
+    garantia_original DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    observacion TEXT,
+    estado ENUM('Pendiente','Parcial','Devuelto') NOT NULL DEFAULT 'Pendiente',
+    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS almacen_movimientos (
-    id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
-    id_stock INT NOT NULL,
-    tipo_movimiento ENUM('Entrada','Salida','Alquiler','Devolucion','Regalo','Garantía') NOT NULL,
-    cantidad INT NOT NULL DEFAULT 1,
-    monto DECIMAL(10,2) DEFAULT 0.00,
-    observacion VARCHAR(255) DEFAULT NULL,
-    registrado_por VARCHAR(100) DEFAULT NULL,
-    fecha_movimiento DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE CASCADE
+-- =======================================
+-- 🔹 TABLA DE DEVOLUCIONES
+-- =======================================
+CREATE TABLE almacen_devoluciones (
+    id_devolucion INT AUTO_INCREMENT PRIMARY KEY,
+    id_salida INT NOT NULL,
+    cantidad_devuelta INT NOT NULL,
+    monto_devuelto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    fecha_devolucion DATE NOT NULL DEFAULT CURRENT_DATE,
+    observacion TEXT,
+    FOREIGN KEY (id_salida) REFERENCES almacen_salidas(id_salida) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS almacen_pasajeros (
-    id_asignacion INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    id_stock INT NOT NULL,
-    id_servicio INT NULL,   -- 🔗 se relacionará con Operaciones.id_operaciones
-    cantidad INT DEFAULT 1,
-    tipo_articulo ENUM('Bastón','Sleeping Bag','Dafor','Maleta','Polo') NOT NULL,
-    tipo_uso ENUM('Alquiler','Garantía','Regalo','Uso') DEFAULT 'Uso',
-    monto DECIMAL(10,2) DEFAULT 0.00,
-    fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
-    fecha_retorno DATETIME NULL,
-    estado ENUM('En uso','Devuelto','Entregado') DEFAULT 'En uso',
-    observacion TEXT,
-    
-    -- 🔗 Relaciones (foreign keys)
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE,
-    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE CASCADE,
-    FOREIGN KEY (id_servicio) REFERENCES Operaciones(id_operaciones) ON DELETE SET NULL
+-- =======================================
+-- 🔹 TABLA DE MOVIMIENTOS (KARDEX)
+-- =======================================
+CREATE TABLE almacen_movimientos (
+    id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
+    id_stock INT NULL,
+    tipo ENUM('Ingreso','Salida','Devolucion','Regalo','Garantia') NOT NULL,
+    cantidad INT NOT NULL,
+    monto DECIMAL(10,2) DEFAULT 0.00,
+    referencia VARCHAR(100),
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE SET NULL
 );
 
+-- =======================================
+-- 🔹 VISTA DE SALIDAS PENDIENTES
+-- =======================================
+CREATE VIEW vista_pendientes AS
+SELECT
+    s.id_salida,
+    i.nombre AS producto,
+    s.nombre_guia,
+    s.cantidad,
+    IFNULL(SUM(d.cantidad_devuelta),0) AS devuelto,
+    (s.cantidad - IFNULL(SUM(d.cantidad_devuelta),0)) AS pendiente
+FROM almacen_salidas s
+JOIN almacen_stock st ON s.id_stock = st.id_stock
+JOIN almacen_items i ON st.id_item = i.id_item
+LEFT JOIN almacen_devoluciones d ON s.id_salida = d.id_salida
+GROUP BY s.id_salida
+HAVING pendiente > 0;
 
-CREATE TABLE IF NOT EXISTS almacen_historial (
-    id_historial INT AUTO_INCREMENT PRIMARY KEY,
-    id_asignacion INT,
-    accion ENUM('Entrega','Devolución','Entrada','Salida','Regalo','Garantía') NOT NULL,
-    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-    detalles TEXT,
-    FOREIGN KEY (id_asignacion) REFERENCES almacen_pasajeros(id_asignacion) ON DELETE CASCADE
-);
+-- =======================================
+-- 🔹 DATA INICIAL
+-- =======================================
+
+INSERT INTO almacen_items (nombre, tipo) VALUES
+('Bastón', 'Retornable'),
+('Sleeping Bag', 'Retornable'),
+('Dafor Bag', 'Garantia'),
+('Polo KB', 'Consumible');
+
+INSERT INTO almacen_stock (id_item, talla, cantidad_total, cantidad_disponible) VALUES
+(1, NULL, 10, 10),
+(2, NULL, 5, 5),
+(3, NULL, 3, 3),
+(4, 'S', 20, 20),
+(4, 'M', 20, 20),
+(4, 'L', 20, 20),
+(4, 'XL', 15, 15);
+
+CREATE OR REPLACE VIEW vista_garantias_guias AS
+SELECT
+    s.nombre_guia AS guia,
+
+    SUM(
+        CASE
+            WHEN i.tipo = 'Garantia'
+            THEN s.garantia_original
+            ELSE 0
+        END
+    ) AS total_entregado,
+
+    SUM(
+        CASE
+            WHEN i.tipo = 'Garantia'
+            THEN IFNULL(d.total_devuelto,0)
+            ELSE 0
+        END
+    ) AS total_devuelto,
+
+    SUM(
+        CASE
+            WHEN i.tipo = 'Garantia'
+            THEN (s.garantia_original - IFNULL(d.total_devuelto,0))
+            ELSE 0
+        END
+    ) AS pendiente
+
+FROM almacen_salidas s
+JOIN almacen_stock st ON s.id_stock = st.id_stock
+JOIN almacen_items i ON st.id_item = i.id_item
+
+LEFT JOIN (
+    SELECT
+        id_salida,
+        SUM(monto_devuelto) AS total_devuelto
+    FROM almacen_devoluciones
+    GROUP BY id_salida
+) d ON d.id_salida = s.id_salida
+
+GROUP BY s.nombre_guia
+HAVING total_entregado > 0;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_calcular_monto_devuelto
+BEFORE INSERT ON almacen_devoluciones
+FOR EACH ROW
+BEGIN
+    DECLARE g_total DECIMAL(10,2);
+    DECLARE cant_total INT;
+
+    SELECT garantia_original, cantidad
+    INTO g_total, cant_total
+    FROM almacen_salidas
+    WHERE id_salida = NEW.id_salida;
+
+    SET NEW.monto_devuelto =
+        (g_total / cant_total) * NEW.cantidad_devuelta;
+END$$
+
+DELIMITER ;
+
+UPDATE almacen_devoluciones d
+JOIN almacen_salidas s ON s.id_salida = d.id_salida
+SET d.monto_devuelto = (s.garantia_original / s.cantidad) * d.cantidad_devuelta
+WHERE d.monto_devuelto = 0;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_devolver_stock
+AFTER INSERT ON almacen_devoluciones
+FOR EACH ROW
+BEGIN
+    DECLARE v_id_stock INT;
+
+    -- Obtener el id_stock desde la salida
+    SELECT id_stock
+    INTO v_id_stock
+    FROM almacen_salidas
+    WHERE id_salida = NEW.id_salida;
+
+    -- DEVOLVER AL STOCK DISPONIBLE
+    UPDATE almacen_stock
+    SET cantidad_disponible = cantidad_disponible + NEW.cantidad_devuelta
+    WHERE id_stock = v_id_stock;
+END$$
+
+DELIMITER ;
 
 -- =======================================
 -- 📌 TABLA DE USUARIOS
