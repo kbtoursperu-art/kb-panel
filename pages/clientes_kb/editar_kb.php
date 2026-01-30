@@ -181,10 +181,18 @@ $cliente = mysqli_fetch_assoc($result);
                         <input type="text" class="form-control" name="apellido" id="apellido" value="<?= htmlspecialchars($cliente['apellido']) ?>" required>
                     </div>
 
-                    <div class="col-md-4">
-                        <label for="edad" class="form-label">Edad</label>
-                        <input type="number" class="form-control" name="edad" id="edad" value="<?= htmlspecialchars($cliente['edad']) ?>" required>
-                    </div>
+                   <div class="col-md-4">
+    <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+    <input 
+        type="date"
+        class="form-control"
+        name="fecha_nacimiento"
+        id="fecha_nacimiento"
+        value="<?= htmlspecialchars($cliente['fecha_nacimiento'] ?? '') ?>"
+        required
+    >
+</div>
+
 
                     <div class="col-md-4">
                         <label for="genero" class="form-label">Género</label>

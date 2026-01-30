@@ -114,9 +114,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             tipo_moneda='$tipo_moneda',
             precio_servicio='$precio_servicio',
             pagado_a_cuenta='$pagado_a_cuenta',
-            saldo_pendiente='$saldo_pendiente'
+            saldo_pendiente='$saldo_pendiente',
+
+            precio_servicio_adicional='$precio_adicional',
+            pagado_adicional='$pagado_adicional',
+            saldo_adicional='$saldo_adicional',
+            tipo_moneda_adicional='$tipo_moneda_adicional'
         WHERE id_operaciones=$id_operaciones
     ");
+
 
     // ==========================
     // 4️⃣ PAGO DE SALDO (SI EXISTE)
@@ -133,10 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
 
         $precio_adicional = floatval($_POST['precio_servicio_adicional'] ?? 0);
-$pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
-$saldo_adicional  = max(0, $precio_adicional - $pagado_adicional);
-$tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
-
+        $pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
+        $saldo_adicional  = max(0, $precio_adicional - $pagado_adicional);
+        $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
 
         mysqli_query($conexion, "
             UPDATE Contabilidad SET
@@ -144,8 +149,7 @@ $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
                 metodo_pago_saldo = '$metodo_pago_saldo',
                 tipo_moneda_saldo = '$tipo_moneda_saldo',
                 fecha_pago_saldo = '$fecha_pago_saldo',
-                saldo_pendiente = '$nuevo_saldo',
-                estado = IF($nuevo_saldo = 0, 'pagado', 'pendiente')
+                saldo_pendiente = '$nuevo_saldo'
             WHERE id_operaciones = $id_operaciones
         ");
     }
@@ -335,19 +339,23 @@ $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
     <div class="col-md-3">
         <label>Precio Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['precio_servicio_adicional'] ?>" >
+       name="precio_servicio_adicional"
+       value="<?= $operacion['precio_servicio_adicional'] ?>">
     </div>
 
     <div class="col-md-3">
         <label>Pagado Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['pagado_adicional'] ?>" >
+       name="pagado_adicional"
+       value="<?= $operacion['pagado_adicional'] ?>">
     </div>
 
     <div class="col-md-3">
         <label>Saldo Adicional</label>
         <input type="number" step="0.01" class="form-control"
-               value="<?= $operacion['saldo_adicional'] ?>" >
+       name="saldo_adicional"
+       value="<?= $operacion['saldo_adicional'] ?>"
+       readonly>
     </div>
 
       <div class="col-md-4">
