@@ -65,6 +65,7 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
                 <a class="nav-link" href="/pages/cliente_endosador/index.php">Clientes Endosador</a>
                 <a class="nav-link" href="/pages/Area_Operaciones/ope-KB/index.php">Operaciones KB</a>
                 <a class="nav-link" href="/pages/Area_Operaciones/ope-ENDOSAD/index.php">Operaciones Endosador</a>
+                <a class="nav-link" href="/pages/alma/dashboard_almacen.php"> <i class="fas fa-box"></i> Almacén</a>
             </div>
         <?php endif; ?>
 
@@ -77,12 +78,6 @@ $esAdmin = $_SESSION["EsAdmin"] ?? 0;
         <?php if ($esAdmin == 1 || $area == "Contabilidad"): ?>
             <a class="nav-link" href="/pages/Area_contabilidad/index.php">
                 <i class="fas fa-calculator"></i> Contabilidad
-            </a>
-        <?php endif; ?>
-
-        <?php if ($esAdmin == 1 || $area == "Almacén"): ?>
-            <a class="nav-link" href="/pages/alma/dashboard_almacen.php">
-                <i class="fas fa-box"></i> Almacén
             </a>
         <?php endif; ?>
 

@@ -223,7 +223,6 @@ WHERE id_operaciones = ?
                     <option value="">-- Seleccione una opción --</option>
                     <?php
                     $servicios = [
-                        "SALKANTAY A MACHU PICCHU 5 DÍAS (PRIVADO)",
                         "SALKANTAY A MACHU PICCHU 5 DÍAS",
                         "SALKANTAY A MACHU PICCHU 4 DÍAS",
                         "SALKANTAY A MACHU PICCHU 3 DÍAS",
@@ -323,12 +322,6 @@ WHERE id_operaciones = ?
     </select>
     <small class="text-muted">Usa CTRL o CMD para seleccionar varios</small>
 </div>
-
-
-                <div class="col-md-6">
-                    <label>Empresa</label>
-                    <input type="text" name="empresa" class="form-control" value="<?= htmlspecialchars($operacion['empresa']) ?>">
-                </div>
 
                 <div class="col-md-6">
                     <label>Encargado</label>
@@ -471,6 +464,7 @@ WHERE id_operaciones = ?
             <option value="PAYPAL">PAYPAL</option>
             <option value="Bcp">Bcp</option>
             <option value="CULQI">CULQI</option>
+            <option value="YAPE">YAPE</option>
         </select>
     </div>
 
@@ -588,6 +582,75 @@ document.addEventListener("input", function(e) {
             (precio - pagado).toFixed(2);
     }
 });
+</script>
+<script>
+// ================== DURACIÓN DE TOURS ==================
+const DURACION_TOURS = {
+    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
+    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+    "SALKANTAY TREK 5D/4N WITH LUXURY DOMES": 5,
+    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
+    "SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES": 2,
+    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
+    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
+    "CAMINO INCA 4 DÍAS": 4,
+    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
+    "CAMINO INCA 2 DÍAS": 2,
+    "MACHU PICCHU DE UN DÍA": 1,
+    "MACHU PICCHU EN TREN 2 DÍAS": 2,
+    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
+    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
+    "CHOQUEQUIRAO 4 DÍAS": 4,
+    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
+    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
+    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
+    "INCA JUNGLE TRAIL 4 DAYS": 4,
+    "LAGUNA HUMANTAY DE UN DÍA": 1,
+    "MONTAÑA DE COLORES DE UN DÍA": 1,
+    "PALCOYO DE UN DÍA": 1,
+    "VALLE SAGRADO VIP DE UN DÍA": 1,
+    "VALLE TRADICIONAL": 1,
+    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
+    "MARAS MORAY DE UN DÍA": 1,
+    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
+    "WAQRAPUKARA DE UN DÍA": 1,
+    "CITY TOUR CUSCO MEDIO DÍA": 1,
+    "CUATRIMOTOS": 1,
+    "ICA – PARACAS DE UN DÍA": 1,
+    "PUNO DE UN DÍA": 1,
+    "MANU 4 DÍAS Y 3 NOCHES": 4
+};
+
+// ================== CALCULAR FECHA RETORNO ==================
+function normalizarServicio(nombre) {
+    return nombre
+        .replace(/\(PRIVADO\)/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function calcularFechaRetorno() {
+    const servicioRaw = document.querySelector('[name="nombre_servicio"]').value;
+    const salida = document.querySelector('[name="fecha_salida"]').value;
+    const retorno = document.querySelector('[name="fecha_retorno"]');
+
+    if (!servicioRaw || !salida) return;
+
+    const servicio = normalizarServicio(servicioRaw);
+
+    if (!DURACION_TOURS[servicio]) return;
+
+    const dias = DURACION_TOURS[servicio];
+    const fecha = new Date(salida);
+    fecha.setDate(fecha.getDate() + (dias - 1));
+
+    retorno.value = fecha.toISOString().split('T')[0];
+}
+
+document.querySelector('[name="nombre_servicio"]').addEventListener('change', calcularFechaRetorno);
+document.querySelector('[name="fecha_salida"]').addEventListener('change', calcularFechaRetorno);
 </script>
 </body>
 </html>

@@ -128,7 +128,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- (opcional) tu CSS -->
-<link rel="stylesheet" href="../../stilo.css">
 </head>
 
 <body class="bg-light">
@@ -260,6 +259,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <option value="Izipay">Izipay</option>
                             <option value="PAYPAL">PAYPAL</option>
                             <option value="Bcp">Bcp</option>
+                            <option value="YAPE">YAPE</option>
                         </select>
                     </div>
 
@@ -407,42 +407,55 @@ function eliminarTour(btn) {
 }
 // ================== DURACIÓN DE TOURS ==================
 const DURACION_TOURS = {
-    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
-    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
-    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
-    "SALKANTAY TREK 5D / 4N WITH LUXURY DOMES": 5,
-    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
-    "SALKANTAY TREK 2D / 1N WITH LUXURY DOMES": 2,
-    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
-    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
-    "CAMINO INCA 4 DÍAS": 4,
-    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
-    "CAMINO INCA 2 DÍAS": 2,
-    "MACHU PICCHU DE UN DÍA": 1,
-    "MACHU PICCHU EN TREN 2 DÍAS": 2,
-    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
-    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
-    "CHOQUEQUIRAO 4 DÍAS": 4,
-    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
-    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
-    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
-    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
-    "INCA JUNGLE TRAIL 4 DAYS": 4,
-    "LAGUNA HUMANTAY DE UN DÍA": 1,
-    "MONTAÑA DE COLORES DE UN DÍA": 1,
-    "PALCOYO DE UN DÍA": 1,
-    "VALLE SAGRADO VIP DE UN DÍA": 1,
-    "VALLE TRADICIONAL": 1,
-    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
-    "MARAS MORAY DE UN DÍA": 1,
-    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
-    "WAQRAPUKARA DE UN DÍA": 1,
-    "CITY TOUR CUSCO MEDIO DÍA": 1,
-    "CUATRIMOTOS": 1,
-    "ICA – PARACAS DE UN DÍA": 1,
-    "PUNO DE UN DÍA": 1,
-    "MANU 4 DÍAS Y 3 NOCHES": 4
+  "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+  "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
+  "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+
+  "SALKANTAY TREK 5D/4N WITH LUXURY DOMES (PRIVADO)": 5,
+  "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES (PRIVADO)": 4,
+  "SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES (PRIVADO)": 2,
+
+  "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
+  "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
+
+  "CAMINO INCA 4 DÍAS": 4,
+  "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
+  "CAMINO INCA 2 DÍAS": 2,
+
+  "MACHU PICCHU DE UN DÍA": 1,
+  "MACHU PICCHU EN TREN 2 DÍAS": 2,
+  "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
+
+  "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
+  "CHOQUEQUIRAO 4 DÍAS": 4,
+  "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
+
+  "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+  "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
+  "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
+
+  "INCA JUNGLE TRAIL 4 DAYS": 4,
+
+  "LAGUNA HUMANTAY DE UN DIA": 1,
+  "MONTAÑA DE COLORES DE UN DIA": 1,
+  "PALCOYO DE UN DIA": 1,
+
+  "VALLE SAGRADO VIP DE UN DIA": 1,
+  "VALLE TRADICIONAL": 1,
+  "7 LAGUNAS DE AUSANGATE DE UN DIA": 1,
+  "MARAS MORAY DE UN DIA": 1,
+
+  "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
+  "WAQRAPUKARA DE UN DIA": 1,
+
+  "CITY TOUR CUSCO MEDIO DIA": 1,
+  "CUATRIMOTOS": 1,
+  "ICA – PARACAS DE UN DIA": 1,
+  "PUNO DE UN DÍA": 1,
+
+  "MANU 4 DÍAS Y 3 NOCHES": 4
 };
+
 // ================== CALCULAR FECHA RETORNO ==================
 function calcularFechaRetorno(bloque) {
 

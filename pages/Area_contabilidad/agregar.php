@@ -136,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Modalidad Recibo:</label>
                     <select class="form-control" name="modalidad_recibo" id="modalidad_recibo_select">
+                        <option value="">__</option>
                         <option value="Factura">Factura</option>
                         <option value="Boleta">Boleta</option>
                         <option value="otro">Otro (Especificar)</option>

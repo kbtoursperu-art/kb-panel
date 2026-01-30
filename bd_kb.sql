@@ -115,7 +115,7 @@ CREATE TABLE Operaciones (
 CREATE TABLE Contabilidad (
     id_contabilidad INT AUTO_INCREMENT PRIMARY KEY, 
     id_operaciones INT NOT NULL,
-    metodo_pago ENUM('Efectivo', 'We travel', 'Izipay', 'PAYPAL', 'Bcp','CULQI'),
+    metodo_pago ENUM('Efectivo', 'We travel', 'Izipay', 'PAYPAL', 'Bcp','CULQI', 'YAPE'),
     tipo_moneda ENUM('Dólares', 'Soles'),
     precio_servicio_adicional DECIMAL (10,2),
     comision DECIMAL(10,2),
