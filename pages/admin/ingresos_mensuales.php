@@ -1,83 +1,91 @@
 <?php
-// ================================
-// INCLUDES
-// ================================
 include('../../conexion.php');
-include('../sidebar.php');
 
 date_default_timezone_set('America/Lima');
 
-// ================================
-// PARAMETROS
-// ================================
+/* ================================
+   PARAMETROS
+================================ */
 $year   = $_GET['year'] ?? date('Y');
 $month  = $_GET['month'] ?? '';
 $estado = $_GET['estado'] ?? '';
 $moneda = $_GET['moneda'] ?? '';
 
-// ================================
-// QUERY CONTABLE REAL
-// ================================
+/* ================================
+   QUERY
+================================ */
 $query = "
 SELECT 
-    MONTH(fecha_pago_saldo) AS mes,
+    MONTH(o.fecha_reserva) AS mes,
 
-    SUM(COALESCE(pagado_a_cuenta,0))  AS ingreso_general,
-    SUM(COALESCE(pagado_adicional,0)) AS ingreso_adicional,
-    SUM(COALESCE(monto_pago_saldo,0)) AS ingreso_saldo,
+    SUM(COALESCE(c.pagado_a_cuenta,0))  AS ingreso_general,
+    SUM(COALESCE(c.pagado_adicional,0)) AS ingreso_adicional,
+    SUM(COALESCE(c.monto_pago_saldo,0)) AS ingreso_saldo,
 
     SUM(
-        COALESCE(pagado_a_cuenta,0) +
-        COALESCE(pagado_adicional,0) +
-        COALESCE(monto_pago_saldo,0)
+        COALESCE(c.pagado_a_cuenta,0) +
+        COALESCE(c.pagado_adicional,0) +
+        COALESCE(c.monto_pago_saldo,0)
     ) AS ingreso_total,
 
-    SUM(COALESCE(comision,0)) AS total_comisiones,
-    SUM(COALESCE(saldo_pendiente,0)) AS total_saldo
+    SUM(COALESCE(c.comision,0)) AS total_comisiones,
+    SUM(COALESCE(c.saldo_pendiente,0)) AS total_saldo
 
-FROM Contabilidad
-WHERE fecha_pago_saldo IS NOT NULL
-  AND YEAR(fecha_pago_saldo) = ?
+FROM contabilidad c
+INNER JOIN operaciones o 
+    ON c.id_operaciones = o.id_operaciones
+
+WHERE o.fecha_reserva IS NOT NULL
+  AND YEAR(o.fecha_reserva) = ?
 ";
 
 $params = [$year];
 $types  = "i";
 
+/* ================================
+   FILTROS
+================================ */
 if ($month !== '') {
-    $query .= " AND MONTH(fecha_pago_saldo) = ?";
-    $params[] = $month; $types .= "i";
+    $query .= " AND MONTH(o.fecha_reserva) = ?";
+    $params[] = $month;
+    $types .= "i";
 }
+
 if ($estado !== '') {
     $query .= " AND estado = ?";
-    $params[] = $estado; $types .= "s";
+    $params[] = $estado;
+    $types .= "s";
 }
+
 if ($moneda !== '') {
     $query .= " AND tipo_moneda = ?";
-    $params[] = $moneda; $types .= "s";
+    $params[] = $moneda;
+    $types .= "s";
 }
 
 $query .= " GROUP BY mes ORDER BY mes";
 
-// ================================
-// EJECUCION
-// ================================
+/* ================================
+   EJECUCION
+================================ */
 $stmt = mysqli_prepare($conexion, $query);
 mysqli_stmt_bind_param($stmt, $types, ...$params);
 mysqli_stmt_execute($stmt);
 $res = mysqli_stmt_get_result($stmt);
 $data = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
-// ================================
-// MESES
-// ================================
+/* ================================
+   MESES
+================================ */
 $meses = [
-    1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',
-    7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'
+1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',
+5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',
+9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'
 ];
 
-// ================================
-// ARRAYS
-// ================================
+/* ================================
+   ARRAYS
+================================ */
 $general = $adicional = $saldoPago = $total = $comisiones = $saldoPend = array_fill(1,12,0);
 
 foreach ($data as $d) {
@@ -90,6 +98,7 @@ foreach ($data as $d) {
     $saldoPend[$m]  = (float)$d['total_saldo'];
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -107,7 +116,8 @@ foreach ($data as $d) {
 </head>
 
 <body>
-<div class="content">
+<?php include '../sidebar.php'; ?>
+<div class="content p-4">
 <div class="container-fluid">
 
 <h3 class="fw-bold text-primary mb-4">📊 Ingresos Mensuales <?= $year ?></h3>
@@ -132,19 +142,20 @@ foreach ($data as $d) {
     <div class="col-md-2">
         <label>Estado</label>
         <select name="estado" class="form-select">
-            <option value="">Todos</option>
-            <option value="pagado">Pagado</option>
-            <option value="pendiente">Pendiente</option>
-        </select>
+    <option value="">Todos</option>
+    <option value="pagado" <?= $estado=='pagado'?'selected':'' ?>>Pagado</option>
+    <option value="pendiente" <?= $estado=='pendiente'?'selected':'' ?>>Pendiente</option>
+</select>
+
     </div>
 
     <div class="col-md-2">
         <label>Moneda</label>
         <select name="moneda" class="form-select">
-            <option value="">Todas</option>
-            <option value="Soles">Soles</option>
-            <option value="Dólares">Dólares</option>
-        </select>
+    <option value="">Todas</option>
+    <option value="Soles" <?= $moneda=='Soles'?'selected':'' ?>>Soles</option>
+    <option value="Dólares" <?= $moneda=='Dólares'?'selected':'' ?>>Dólares</option>
+</select>
     </div>
 
     <div class="col-md-2 align-self-end">

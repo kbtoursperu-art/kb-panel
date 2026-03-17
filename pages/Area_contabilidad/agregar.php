@@ -8,10 +8,41 @@ if ($id_cliente == 0) {
 }
 
 // Obtener datos del cliente y la operación asociada
-$query = "SELECT d.nombre AS cliente_nombre, d.nro_pasaporte, o.id_operaciones, o.nombre_servicio
-          FROM Datos_clientes d
-          LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
-          WHERE d.id_cliente = ?";
+$query = "
+
+SELECT 
+
+d.id_cliente,
+CONCAT(d.nombre,' ',d.apellido) AS cliente_nombre,
+d.nro_pasaporte,
+
+o.id_operaciones,
+o.nombre_servicio,
+
+g.nombre_grupo,
+
+c.metodo_pago,
+c.tipo_moneda
+
+FROM datos_clientes d
+
+LEFT JOIN operaciones o 
+    ON d.id_cliente = o.id_cliente
+
+LEFT JOIN clientes_kb kb 
+    ON d.id_cliente = kb.id_cliente
+
+LEFT JOIN grupos g 
+    ON kb.id_grupo = g.id_grupo
+
+LEFT JOIN contabilidad c 
+    ON o.id_operaciones = c.id_operaciones
+
+WHERE d.id_cliente = ?
+
+LIMIT 1
+
+";
 $stmt = mysqli_prepare($conexion, $query);
 mysqli_stmt_bind_param($stmt, "i", $id_cliente);
 mysqli_stmt_execute($stmt);

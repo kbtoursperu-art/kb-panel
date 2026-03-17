@@ -59,27 +59,50 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 
 $sql = "
-    SELECT 
-        c.id_contabilidad,
-        c.id_operaciones,
-        c.metodo_pago,
-        c.tipo_moneda,
-        c.comision,
-        c.precio_servicio,
-        c.pagado_a_cuenta,
-        c.saldo_pendiente,
-        c.fecha_pago_saldo,
-        c.Nro_Comprobante_adicional,
-        c.estado,
-        c.modalidad_recibo,
-        c.nro_boleta_cuenta,
-        c.nro_boleta_total,
-        c.detraccion,
-        c.NotaCredito,
-        o.observaciones
-    FROM Contabilidad c
-    INNER JOIN Operaciones o ON o.id_operaciones = c.id_operaciones
-    WHERE c.id_contabilidad = $id
+
+SELECT 
+
+c.id_contabilidad,
+c.id_operaciones,
+
+c.metodo_pago,
+c.tipo_moneda,
+c.comision,
+c.precio_servicio,
+c.pagado_a_cuenta,
+c.saldo_pendiente,
+c.fecha_pago_saldo,
+
+c.Nro_Comprobante_adicional,
+c.estado,
+c.modalidad_recibo,
+c.nro_boleta_cuenta,
+c.nro_boleta_total,
+c.detraccion,
+c.NotaCredito,
+
+o.observaciones,
+
+d.nombre,
+d.apellido,
+g.nombre_grupo
+
+FROM Contabilidad c
+
+INNER JOIN Operaciones o 
+    ON o.id_operaciones = c.id_operaciones
+
+LEFT JOIN datos_clientes d 
+    ON d.id_cliente = o.id_cliente
+
+LEFT JOIN clientes_kb kb 
+    ON kb.id_cliente = d.id_cliente
+
+LEFT JOIN grupos g 
+    ON g.id_grupo = kb.id_grupo
+
+WHERE c.id_contabilidad = $id
+
 ";
 
 $res = mysqli_query($conexion, $sql);
@@ -105,15 +128,48 @@ if (!$row) {
             <input type="hidden" name="id_contabilidad" value="<?= $row['id_contabilidad'] ?>">
 
             <div class="row">
-
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cliente</label>
+                        <input type="text" class="form-control"
+                        value="<?= $row['nombre'].' '.$row['apellido'] ?>"
+                        disabled>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Grupo</label>
+                        <input type="text" class="form-control"
+                        value="<?= $row['nombre_grupo'] ?>"
+                        disabled>
+                    </div>
                 <!-- MÉTODO PAGO -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Método de Pago</label>
                     <select class="form-control" name="metodo_pago" disabled>
+
                         <option <?= ($row['metodo_pago'] == 'Efectivo') ? 'selected' : '' ?>>Efectivo</option>
-                        <option <?= ($row['metodo_pago'] == 'Yape') ? 'selected' : '' ?>>Yape</option>
-                        <option <?= ($row['metodo_pago'] == 'Transferencia') ? 'selected' : '' ?>>Transferencia</option>
-                        <option <?= ($row['metodo_pago'] == 'Tarjeta') ? 'selected' : '' ?>>Tarjeta</option>
+
+                        <option <?= ($row['metodo_pago'] == 'We travel') ? 'selected' : '' ?>>We travel</option>
+
+                        <option <?= ($row['metodo_pago'] == 'Izipay') ? 'selected' : '' ?>>
+                        Izipay
+                        </option>
+
+1                        <option <?= ($row['metodo_pago'] == 'PAYPAL') ? 'selected' : '' ?>>
+                        PAYPAL
+                        </option>
+
+                        <option <?= ($row['metodo_pago'] == 'Bcp') ? 'selected' : '' ?>>
+                        Bcp
+                        </option>
+
+                        <option <?= ($row['metodo_pago'] == 'CULQI') ? 'selected' : '' ?>>
+                        CULQI
+                        </option>
+
+                        <option <?= ($row['metodo_pago'] == 'YAPE') ? 'selected' : '' ?>>
+                        YAPE
+                        </option>
+
+</select>
                     </select>
                 </div>
 
@@ -121,9 +177,15 @@ if (!$row) {
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Moneda</label>
                     <select class="form-control" name="tipo_moneda" disabled>
-                        
-                        <option <?= ($row['tipo_moneda'] == 'PEN') ? 'selected' : '' ?>>Soles (PEN)</option>
-                        <option <?= ($row['tipo_moneda'] == 'USD') ? 'selected' : '' ?>>Dólares (USD)</option>
+
+                        <option <?= ($row['tipo_moneda'] == 'Soles') ? 'selected' : '' ?>>
+                            Soles (PEN)
+                        </option>
+
+                        <option <?= ($row['tipo_moneda'] == 'Dólares') ? 'selected' : '' ?>>
+                            Dólares (USD)
+                        </option>
+
                     </select>
                 </div>
 

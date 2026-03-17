@@ -1,6 +1,5 @@
 <?php
 include '../../../conexion.php';
-include '../../sidebar.php';
 require '../../../vendor/autoload.php'; // Librería PhpSpreadsheet
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -46,39 +45,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo_excel'])) {
 
 // ====================== 🔹 CONSULTA PRINCIPAL ======================
 $query = "
+
 SELECT 
-    d.id_cliente,
-    CONCAT(d.nombre, ' ', d.apellido) AS cliente,
-    e.empresa_endosadora AS empresa,
-    e.grupo AS grupo,
 
-    o.id_operaciones,
-    o.nombre_servicio,
-    o.fecha_reserva,
-    o.fecha_salida,
-    o.fecha_retorno,
-    o.incluye_ingreso,
-    o.modalidad_retorno,
-    o.servicio_adicional,
-    o.observaciones,
-    o.Encargado,
+g.id_grupo,
+g.nombre_grupo AS grupo,
+MAX(g.cantidad) AS cantidad_grupo,
 
-    c.metodo_pago,
-    c.tipo_moneda,
-    c.precio_servicio,
-    c.pagado_a_cuenta,
-    c.saldo_pendiente,
+MAX(d.id_cliente) AS id_cliente,
+MAX(CONCAT(d.nombre,' ',d.apellido)) AS primer_nombre,
 
-    c.precio_servicio_adicional,
-    c.estado,
-    c.modalidad_recibo
+MAX(e.empresa_endosadora) AS empresa,
 
-FROM Datos_clientes d
-INNER JOIN Clientes_Endosadores e ON d.id_cliente = e.id_cliente
-LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-WHERE d.tipo_cliente = 'Endosador'
-ORDER BY o.id_operaciones DESC
+MAX(o.id_operaciones) AS id_operaciones,
+MAX(o.nombre_servicio) AS nombre_servicio,
+MAX(o.fecha_reserva) AS fecha_reserva,
+MAX(o.fecha_salida) AS fecha_salida,
+MAX(o.fecha_retorno) AS fecha_retorno,
+MAX(o.modalidad_retorno) AS modalidad_retorno,
+MAX(o.incluye_ingreso) AS incluye_ingreso,
+MAX(o.servicio_adicional) AS servicio_adicional,
+MAX(o.observaciones) AS observaciones,
+MAX(o.Encargado) AS Encargado,
+
+MAX(c.metodo_pago) AS metodo_pago,
+MAX(c.tipo_moneda) AS tipo_moneda,
+MAX(c.precio_servicio) AS precio_servicio,
+MAX(c.pagado_a_cuenta) AS pagado_a_cuenta,
+MAX(c.saldo_pendiente) AS saldo_pendiente,
+
+MAX(c.metodo_pago_adicional) AS metodo_pago_adicional,
+MAX(c.tipo_moneda_adicional) AS tipo_moneda_adicional,
+MAX(c.precio_servicio_adicional) AS precio_servicio_adicional,
+MAX(c.pagado_adicional) AS pagado_adicional,
+MAX(c.saldo_adicional) AS saldo_adicional,
+
+MAX(c.comision) AS comision,
+MAX(c.detraccion) AS detraccion,
+
+MAX(c.metodo_pago_saldo) AS metodo_pago_saldo,
+MAX(c.tipo_moneda_saldo) AS tipo_moneda_saldo,
+MAX(c.monto_pago_saldo) AS monto_pago_saldo,
+MAX(c.fecha_pago_saldo) AS fecha_pago_saldo,
+
+MAX(c.estado) AS estado,
+MAX(c.modalidad_recibo) AS modalidad_recibo,
+MAX(c.nro_boleta_cuenta) AS nro_boleta_cuenta,
+MAX(c.nro_boleta_total) AS nro_boleta_total,
+MAX(c.Nro_Comprobante_adicional) AS Nro_Comprobante_adicional
+
+FROM grupos g
+
+INNER JOIN clientes_endosadores e
+ON g.id_grupo = e.id_grupo
+
+INNER JOIN Datos_clientes d
+ON e.id_cliente = d.id_cliente
+
+LEFT JOIN operaciones o
+ON d.id_cliente = o.id_cliente
+
+LEFT JOIN contabilidad c
+ON o.id_operaciones = c.id_operaciones
+
+WHERE d.tipo_cliente = 'END'
+AND g.nombre_grupo LIKE 'C-END-%'
+
+GROUP BY g.id_grupo
+
+ORDER BY g.nombre_grupo ASC
+
 ";
 
 $resultado = mysqli_query($conexion, $query);
@@ -103,120 +139,210 @@ if (!$resultado) {
 
 </head>
 <body>
+    <?php include '../../sidebar.php'; ?>
 <div class="content p-4">
-<div class="container-fluid">
+    <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="titulo-seccion">📋 Operaciones - Endosadores</h2>
-        <div>
-            <a href="../clientes_endosador/endosadores.php" class="btn btn-success me-2">
-                ➕ Nuevo Endosador
-            </a>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalImportar">
-                📥 Importar Excel
-            </button>
-        </div>
-    </div>
-
-    <!-- ====================== 🔹 TABLA PRINCIPAL ====================== -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="tablaOperaciones" class="table table-striped table-bordered nowrap align-middle w-100">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Empresa</th>
-                            <th>Grupo</th>
-                            <th>Servicio</th>
-                            <th>Fecha Reserva</th>
-                            <th>Salida</th>
-                            <th>Retorno</th>
-                            <th>Ingreso</th>
-                            <th>Modalidad</th>
-                            <th>Adicional</th>
-                            <th>Precio Adic.</th>        <!-- NUEVO -->
-                            <th>Moneda Adic.</th>        <!-- NUEVO -->
-                            <th>Encargado</th>
-                            <th>Método Pago</th>
-                            <th>Precio</th>
-                            <th>Pagado</th>
-                            <th>Saldo</th>
-                            <th>Estado</th>              <!-- NUEVO -->
-                            <th>Comprobante</th>             <!-- NUEVO -->
-                            <th>Observaciones</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                        if (mysqli_num_rows($resultado) > 0):
-                            $i = 1;
-                            while ($row = mysqli_fetch_assoc($resultado)): ?>
-                                <tr>
-                                    <td><?= $i++ ?></td>
-                                    <td><?= htmlspecialchars($row['cliente']) ?></td>
-                                    <td><?= htmlspecialchars($row['empresa'] ?? '—') ?></td>
-                                    <td class="fw-bold text-center"><?= htmlspecialchars($row['grupo'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['nombre_servicio'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['fecha_reserva'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['fecha_salida'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['fecha_retorno'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['incluye_ingreso'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['modalidad_retorno'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['servicio_adicional'] ?? '—') ?></td>
-                                    <td>
-                                        <?= isset($row['precio_servicio_adicional']) 
-                                            ? number_format($row['precio_servicio_adicional'], 2) 
-                                            : '—' ?>
-                                    </td>
-
-                                    <td><?= htmlspecialchars($row['tipo_moneda'] ?? '—') ?></td>
-                                                                        <td><?= htmlspecialchars($row['Encargado'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['metodo_pago'] ?? '—') ?></td>
-                                    <td><?= isset($row['precio_servicio']) ? number_format($row['precio_servicio'], 2) : '—' ?></td>
-                                    <td><?= isset($row['pagado_a_cuenta']) ? number_format($row['pagado_a_cuenta'], 2) : '—' ?></td>
-                                    <td><?= isset($row['saldo_pendiente']) ? number_format($row['saldo_pendiente'], 2) : '—' ?></td>
-                                    <td class="text-center">
-                                        <?php
-                                        $estado = $row['estado'] ?? 'pendiente';
-
-                                        $clase = match ($estado) {
-                                            'pagado'      => 'bg-success',
-                                            'reembolsado' => 'bg-danger',
-                                            'pendiente'   => 'bg-warning',
-                                            default       => 'bg-secondary'
-                                        };
-                                        ?>
-                                        <span class="badge <?= $clase ?>">
-                                            <?= strtoupper($estado) ?>
-                                        </span>
-                                        </td>
-                                        <td><?= htmlspecialchars($row['modalidad_recibo'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['observaciones'] ?? '') ?></td>
-                                    <td class="text-center">
-                                        <?php if (!empty($row['id_operaciones'])): ?>
-                                            <a href="ver.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-info btn-sm">👁 Ver</a>
-                                            <a href="editar.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-warning btn-sm">✏️ Editar</a>
-                                            <a href="eliminar.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta operación?')">🗑 Eliminar</a>
-                                        <?php else: ?>
-                                            <a href="agregar.php?id_cliente=<?= $row['id_cliente'] ?>" class="btn btn-success btn-sm">➕ Registrar</a>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endwhile;
-                        else: ?>
-                            <tr><td colspan="17" class="text-center text-muted">No hay registros de endosadores</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="titulo-seccion">📋 Operaciones - Endosadores</h2>
+            <div>
+                <a href="../clientes_endosador/endosadores.php" class="btn btn-success me-2">➕ Nuevo Endosador</a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalImportar">📥 Importar Excel</button>
             </div>
         </div>
-    </div>
 
+        <!-- ====================== 🔹 TABLA PRINCIPAL ====================== -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="tablaOperaciones" class="table table-striped table-bordered align-middle w-100">
+                        <thead>
+
+<tr>
+<th rowspan="2">id</th>
+<th rowspan="2">Cliente</th>
+<th rowspan="2">Cantidad</th>
+<th rowspan="2">Empresa</th>
+<th rowspan="2">Grupo</th>
+
+<th colspan="9" style="background:#d9edf7">OPERACIONES</th>
+
+<th colspan="6" style="background:#dff0d8">SERVICIO GENERAL</th>
+
+<th colspan="5" style="background:#fcf8e3">SERVICIO ADICIONAL</th>
+
+<th colspan="4" style="background:#f2dede">SALDO PAGADO </th>
+<th colspan="6" style="background:goldenrod">CONTABILIDAD COMPROBANTE</th>
+
+<th rowspan="1">Acciones</th>
+
+</tr>
+
+
+<tr>
+
+<!-- OPERACIONES -->
+
+<th>Servicio</th>
+<th>Reserva</th>
+<th>Salida</th>
+<th>Retorno</th>
+<th>Modalidad</th>
+<th>Ingreso</th>
+<th>Adicional</th>
+<th>Encargado</th>
+<th>observaciones</th>
+<!-- SERVICIO -->
+
+<th>Método</th>
+<th>Moneda</th>
+<th>Precio</th>
+<th>Pagado</th>
+<th>Saldo</th>
+<th>Comisión</th>
+<!-- ADICIONAL -->
+
+<th>Método</th>
+<th>Moneda</th>
+<th>Precio</th>
+<th>Pagado</th>
+<th>Saldo</th>
+
+<!-- SALDO PAGADO POR METODO -->
+
+
+<th>Método saldo</th>
+<th>Moneda saldo</th>
+<th>Monto saldo</th>
+<th>Fecha saldo</th>
+
+<th>Estado</th>
+<th>Comprobante</th>
+<th>Boleta Cuenta</th>
+<th>Boleta Total</th>
+<th>Comp. Adicional</th>
+<th>Detracción</th>
+
+
+</tr>
+
+</thead>
+<tbody>
+<?php if (mysqli_num_rows($resultado) > 0): ?>
+<?php $i = 1; ?>
+<?php while ($row = mysqli_fetch_assoc($resultado)): ?>
+<tr>
+
+<td><?= $i++ ?></td>
+
+<td><?= $row['primer_nombre'] ?></td>
+<td><?= $row['cantidad_grupo'] ?></td>
+<td><?= $row['empresa'] ?></td>
+
+<td>
+<a href="#" class="ver-clientes"
+data-id="<?= $row['id_grupo'] ?>">
+<?= $row['grupo'] ?>
+</a>
+</td>
+
+<td><?= $row['nombre_servicio'] ?></td>
+<td><?= $row['fecha_reserva'] ?></td>
+<td><?= $row['fecha_salida'] ?></td>
+<td><?= $row['fecha_retorno'] ?></td>
+<td><?= $row['modalidad_retorno'] ?></td>
+<td><?= $row['incluye_ingreso'] ?></td>
+
+<td><?= $row['servicio_adicional'] ?></td>
+
+<td><?= $row['Encargado'] ?></td>
+<td><?= $row['observaciones'] ?></td>
+
+<td><?= $row['metodo_pago'] ?></td>
+<td><?= $row['tipo_moneda'] ?></td>
+
+<td><?= number_format($row['precio_servicio'],2) ?></td>
+<td><?= number_format($row['pagado_a_cuenta'],2) ?></td>
+<td><?= number_format($row['saldo_pendiente'],2) ?></td>
+<td><?= $row['comision'] ?></td>
+
+<td><?= $row['metodo_pago_adicional'] ?></td>
+<td><?= $row['tipo_moneda_adicional'] ?></td>
+
+<td><?= number_format($row['precio_servicio_adicional'],2) ?></td>
+<td><?= number_format($row['pagado_adicional'],2) ?></td>
+<td><?= number_format($row['saldo_adicional'],2) ?></td>
+
+
+<td><?= $row['metodo_pago_saldo'] ?></td>
+<td><?= $row['tipo_moneda_saldo'] ?></td>
+<td><?= number_format($row['monto_pago_saldo'],2) ?></td>
+<td><?= $row['fecha_pago_saldo'] ?></td>
+
+<td>
+<?php
+$estado = $row['estado'] ?? 'pendiente';
+
+$clase = match ($estado) {
+'pagado' => 'bg-success',
+'reembolsado' => 'bg-danger',
+'pendiente' => 'bg-warning',
+default => 'bg-secondary'
+};
+?>
+<span class="badge <?= $clase ?>">
+<?= strtoupper($estado) ?>
+</span>
+</td>
+
+<td><?= $row['modalidad_recibo'] ?></td>
+<td><?= $row['nro_boleta_cuenta'] ?></td>
+<td><?= $row['nro_boleta_total'] ?></td>
+<td><?= $row['Nro_Comprobante_adicional'] ?></td>
+<td><?= $row['detraccion'] ?></td>
+
+<td>
+
+<?php if (!empty($row['id_operaciones'])): ?>
+
+<a href="ver.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-info btn-sm">👁</a>
+
+<a href="editar.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-warning btn-sm">✏️</a>
+
+<a href="eliminar.php?id=<?= $row['id_operaciones'] ?>"
+class="btn btn-danger btn-sm"
+onclick="return confirm('Eliminar?')">🗑</a>
+
+<?php else: ?>
+
+<a href="agregar.php?id_cliente=<?= $row['id_cliente'] ?>"
+class="btn btn-success btn-sm">➕</a>
+
+<?php endif; ?>
+
+</td>
+
+</tr>
+<?php endwhile; ?>
+
+<?php else: ?>
+
+<tr>
+<td colspan="40" class="text-center">
+No hay registros
+</td>
+</tr>
+
+<?php endif; ?>
+</tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
-</div>
+
 
 <!-- ====================== 🔹 MODAL IMPORTAR EXCEL ====================== -->
 <div class="modal fade" id="modalImportar" tabindex="-1" aria-hidden="true">
@@ -241,6 +367,36 @@ if (!$resultado) {
     </div>
   </div>
 </div>
+<div class="modal fade" id="modalGrupo" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="tituloGrupo">Clientes del Grupo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered table-striped" id="tablaGrupo">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Pasaporte</th>
+              <th>Empresa</th>
+              <th>Tour</th>
+            <th>Salida</th>
+                <th>Retorno</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ====================== 🔹 JS ====================== -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -255,32 +411,92 @@ if (!$resultado) {
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 
 <script>
-$(document).ready(function() {
-    
-    let table = new DataTable('#tablaOperaciones', {
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'excelHtml5',
-                text: '📊 Exportar a Excel',
-                className: 'btn btn-success mb-3',
-                title: 'Operaciones_KB',
-                exportOptions: { columns: ':visible:not(:last-child)' }
-            },
-            {
-                extend: 'pdfHtml5',
-                text: '📄 Exportar a PDF',
-                className: 'btn btn-danger mb-3',
-                title: 'Operaciones_Endosador',
-                exportOptions: { columns: ':visible:not(:last-child)' }
+$(document).on('click', '.ver-clientes', function(e){
+    e.preventDefault();
+
+    let id_grupo = parseInt($(this).data('id'));
+    let nombre   = $(this).data('nombre');
+
+    if(isNaN(id_grupo) || id_grupo <= 0){
+        alert("❌ ID de grupo inválido");
+        return;
+    }
+
+    $('#tituloGrupo').text('Clientes del Grupo: ' + nombre);
+
+    $.ajax({
+        url: 'ajax_grupo.php', // esto está bien solo si realmente existe en esa carpeta
+        method: 'GET',
+        data: {id_grupo: id_grupo},
+        dataType: 'json',
+        success: function(clientes){
+            let tbody = $('#tablaGrupo tbody');
+            tbody.empty();
+
+            if(clientes.length === 0){
+                tbody.append('<tr><td colspan="8" class="text-center text-muted">No hay clientes en este grupo</td></tr>');
+            } else {
+                clientes.forEach(c => {
+                   tbody.append(`
+<tr>
+    <td>${c.id_cliente}</td>
+    <td>${c.nombre}</td>
+    <td>${c.apellido}</td>
+    <td>${c.nro_pasaporte ?? '—'}</td>
+    <td>${c.empresa_endosadora ?? '—'}</td>
+
+    <td class="fw-bold text-success">
+        ${c.nombre_servicio ?? '—'}
+    </td>
+
+    <td>
+        ${c.fecha_salida ?? '—'}
+    </td>
+
+    <td>
+        ${c.fecha_retorno ?? '—'}
+    </td>
+</tr>
+`);
+                });
             }
-        ],
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json' },
-        pageLength: 10,
-        order: [[0, "desc"]]
+
+            // Destruir DataTable previo si existe
+            if($.fn.DataTable.isDataTable('#tablaGrupo')){
+                $('#tablaGrupo').DataTable().destroy();
+            }
+
+            // Inicializar DataTable
+            $('#tablaGrupo').DataTable({
+                language:{ url:'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json' },
+                paging: true,
+                searching: false,
+                info: false,
+                responsive: true
+            });
+
+            // Abrir modal
+            new bootstrap.Modal(document.getElementById('modalGrupo')).show();
+        },
+        error: function(xhr, status, error){
+            alert('❌ Error al cargar los clientes: ' + error);
+            console.error(xhr.responseText);
+        }
     });
 });
-</script>
 
+</script>
+<script>
+$(document).ready(function() {
+    $('#tablaOperaciones').DataTable({
+    responsive: false,
+    scrollX: false,
+    autoWidth: false,
+    language: { url:'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json' },
+    pageLength: 25,
+    order: [[4, 'asc']]
+   });
+});
+</script>
 </body>
 </html>

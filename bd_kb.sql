@@ -19,6 +19,7 @@ CREATE TABLE Datos_clientes (
 CREATE TABLE Clientes_KB (
     id_cliente INT PRIMARY KEY,
     edad INT,
+    fecha_nacimiento DATE NULL;
     foto_pasaporte VARCHAR(255),
     nro_whatsapp VARCHAR(20),
     es_pagador BOOLEAN DEFAULT FALSE,

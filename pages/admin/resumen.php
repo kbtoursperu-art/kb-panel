@@ -1,7 +1,6 @@
 <?php
 include('../../conexion.php');
 
-
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -10,13 +9,13 @@ if (!$conexion) {
     die("Error de conexión: " . mysqli_connect_error());
 }
 
-/* ==========================
+/* =========================
    MÉTRICAS PRINCIPALES
-========================== */
+========================= */
 $metrics = [
     'reservas_activas' => 0,
     'tours_programados' => 0,
-    'nuevos_clientes' => 0,
+    'nuevos_clientes' => 0, // No existe fecha_registro actualmente
     'ingresos_mes' => 0,
     'ingresos_dia' => 0,
     'saldo_pendiente_total' => 0,
@@ -25,97 +24,89 @@ $metrics = [
 ];
 
 /* 🔹 Reservas activas */
-$sql = "
-SELECT COUNT(*) total
-FROM Operaciones
-WHERE fecha_salida >= CURDATE()
-";
-$metrics['reservas_activas'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'];
+$sql = "SELECT COUNT(*) total FROM operaciones WHERE fecha_salida >= CURDATE()";
+$res = mysqli_query($conexion, $sql);
+if ($res) $metrics['reservas_activas'] = mysqli_fetch_assoc($res)['total'];
 
 /* 🔹 Tours programados */
-$sql = "SELECT COUNT(*) total FROM Operaciones";
-$metrics['tours_programados'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'];
+$sql = "SELECT COUNT(*) total FROM operaciones";
+$res = mysqli_query($conexion, $sql);
+if ($res) $metrics['tours_programados'] = mysqli_fetch_assoc($res)['total'];
 
 /* 🔹 Nuevos clientes (30 días) */
-$sql = "
-SELECT COUNT(*) total 
-FROM Datos_clientes 
-WHERE fecha_registro >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-";
-$metrics['nuevos_clientes'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'];
+/* 🔹 Nuevos clientes (30 días) */
+$sql = "SELECT COUNT(*) AS total FROM Datos_clientes WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+$res = mysqli_query($conexion, $sql);
+if ($res) $metrics['nuevos_clientes'] = mysqli_fetch_assoc($res)['total'];
+
 
 /* 🔹 Ingresos mes */
 $sql = "
-SELECT 
-SUM(
-    IFNULL(pagado_a_cuenta,0) + 
-    IF(estado='pagado', IFNULL(saldo_pendiente,0), 0)
-) total
-FROM Contabilidad
-WHERE MONTH(fecha_pago_saldo)=MONTH(CURDATE())
-AND YEAR(fecha_pago_saldo)=YEAR(CURDATE())
+SELECT SUM(
+    COALESCE(c.pagado_a_cuenta,0) +
+    COALESCE(c.pagado_adicional,0) +
+    COALESCE(c.monto_pago_saldo,0)
+) AS total
+FROM contabilidad c
+INNER JOIN operaciones o 
+    ON c.id_operaciones = o.id_operaciones
+WHERE MONTH(o.fecha_reserva) = MONTH(CURDATE())
+AND YEAR(o.fecha_reserva) = YEAR(CURDATE())
 ";
-$metrics['ingresos_mes'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
+
+$res = mysqli_query($conexion, $sql);
+if ($res) {
+    $metrics['ingresos_mes'] = mysqli_fetch_assoc($res)['total'] ?? 0;
+}
 
 /* 🔹 Ingresos día */
 $sql = "
-SELECT 
-SUM(
-    IFNULL(pagado_a_cuenta,0) + 
-    IF(estado='pagado', IFNULL(saldo_pendiente,0), 0)
-) total
-FROM Contabilidad
-WHERE fecha_pago_saldo = CURDATE()
+SELECT SUM(
+    COALESCE(c.pagado_a_cuenta,0) +
+    COALESCE(c.pagado_adicional,0) +
+    COALESCE(c.monto_pago_saldo,0)
+) AS total
+FROM contabilidad c
+INNER JOIN operaciones o 
+    ON c.id_operaciones = o.id_operaciones
+WHERE DATE(o.fecha_reserva) = CURDATE()
 ";
-$metrics['ingresos_dia'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
+
+$res = mysqli_query($conexion, $sql);
+if ($res) {
+    $metrics['ingresos_dia'] = mysqli_fetch_assoc($res)['total'] ?? 0;
+}
 
 /* 🔹 Saldos pendientes */
-$sql = "
-SELECT SUM(IFNULL(saldo_pendiente,0)) total
-FROM Contabilidad
-WHERE estado = 'pendiente'
-";
-$metrics['saldo_pendiente_total'] = mysqli_fetch_assoc(mysqli_query($conexion, $sql))['total'] ?? 0;
+$sql = "SELECT SUM(IFNULL(saldo_pendiente,0)) total FROM contabilidad WHERE estado='pendiente'";
+$res = mysqli_query($conexion, $sql);
+if ($res) $metrics['saldo_pendiente_total'] = mysqli_fetch_assoc($res)['total'] ?? 0;
 
 $metrics['gastos_mes'] = 0;
 $metrics['balance_mes'] = $metrics['ingresos_mes'] - $metrics['gastos_mes'];
 
-/* ==========================
+/* =========================
    Próximos Tours
-========================== */
-$sql = "
-SELECT nombre_servicio, fecha_salida
-FROM Operaciones
-WHERE fecha_salida >= CURDATE()
-ORDER BY fecha_salida ASC
-LIMIT 5
-";
+========================= */
+$sql = "SELECT nombre_servicio, fecha_salida FROM operaciones WHERE fecha_salida >= CURDATE() ORDER BY fecha_salida ASC LIMIT 5";
 $eventos = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
 
-/* ==========================
+/* =========================
    Notificaciones
-========================== */
-$sql = "
-SELECT observaciones mensaje, fecha_reserva
-FROM Operaciones
-WHERE observaciones <> ''
-ORDER BY fecha_reserva DESC
-LIMIT 5
-";
+========================= */
+$sql = "SELECT observaciones mensaje, fecha_reserva FROM operaciones WHERE observaciones <> '' ORDER BY fecha_reserva DESC LIMIT 5";
 $notificaciones = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
 
-/* ==========================
-   Estadísticas
-========================== */
 $sql = "
 SELECT 
-MONTH(o.fecha_salida) mes,
-o.nombre_servicio,
-COUNT(o.id_operaciones) cantidad,
-ROUND(AVG(IFNULL(c.precio_servicio,0)),2) precio_promedio
-FROM Operaciones o
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-WHERE o.fecha_salida IS NOT NULL
+    MONTH(o.fecha_salida) AS mes,
+    o.nombre_servicio,
+    COUNT(o.id_operaciones) AS cantidad,
+    ROUND(AVG(IFNULL(c.precio_servicio,0)),2) AS precio_promedio
+FROM operaciones o
+LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
+LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+WHERE d.fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 GROUP BY mes, o.nombre_servicio
 ORDER BY mes ASC
 ";

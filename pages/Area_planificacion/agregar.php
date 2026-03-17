@@ -1,47 +1,44 @@
 <?php
 include '../../conexion.php';
-
-
-// ✅ Verificar que venga el ID de la operación
-if (!isset($_GET['id_operaciones'])) {
-    echo "<div class='alert alert-danger'>No se especificó una operación válida.</div>";
-    exit;
+if (!isset($_GET['id_grupo'])) {
+    die("❌ Error: No se especificó el grupo.");
 }
 
-$id_operaciones = $_GET['id_operaciones'];
+$id_grupo = (int) $_GET['id_grupo'];
+/* Obtener datos del grupo */
+$query_grupo = "SELECT nombre_grupo FROM grupos WHERE id_grupo = $id_grupo";
+$result_grupo = mysqli_query($conexion, $query_grupo);
 
-// ✅ Obtener los datos de la operación
-$query_operacion = "SELECT * FROM Operaciones WHERE id_operaciones = '$id_operaciones'";
-$result_operacion = mysqli_query($conexion, $query_operacion);
-$operacion = mysqli_fetch_assoc($result_operacion);
-
-if (!$operacion) {
-    echo "<div class='alert alert-danger'>Operación no encontrada.</div>";
-    exit;
+if (!$result_grupo || mysqli_num_rows($result_grupo) == 0) {
+    die("❌ Grupo no encontrado.");
 }
 
-// ✅ Si se envía el formulario
+$grupo = mysqli_fetch_assoc($result_grupo);
+
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre_guia = mysqli_real_escape_string($conexion, $_POST['nombre_guia']);
     $nombre_cocinero = mysqli_real_escape_string($conexion, $_POST['nombre_cocinero']);
     $nombre_asistente = mysqli_real_escape_string($conexion, $_POST['nombre_asistente']);
+    
+    // Verificar si grupo_operativo se envía por formulario
+    $grupo_operativo = mysqli_real_escape_string($conexion, $_POST['grupo_operativo'] ?? ''); 
 
-    // Insertar en tabla Planificacion
     $insert = "
-        INSERT INTO Planificacion (
-    id_operaciones,
+INSERT INTO Planificacion (
+    id_grupo,
     grupo_operativo,
     nombre_guia,
     nombre_cocinero,
     nombre_asistente
 ) VALUES (
-    '$id_operaciones',
+    '$id_grupo',
     '$grupo_operativo',
     '$nombre_guia',
     '$nombre_cocinero',
     '$nombre_asistente'
-)
-    ";
+)";
 
     if (mysqli_query($conexion, $insert)) {
         echo "<script>
@@ -88,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="mb-3">
         <label class="form-label fw-bold">Servicio:</label>
-        <input type="text" class="form-control" value="<?= htmlspecialchars($operacion['nombre_servicio']) ?>" disabled>
+        <input type="text" class="form-control" value="<?= htmlspecialchars($grupo['nombre_grupo']) ?>" disabled>
     </div>
 
     <form method="POST">

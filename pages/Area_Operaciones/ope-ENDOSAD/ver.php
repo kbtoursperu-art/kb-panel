@@ -2,7 +2,7 @@
 include '../../../conexion.php';
 include '../../sidebar.php';
 
-// 🟢 Verificar si se pasó un ID de operación
+// 🟢 Verificar ID de operación
 if (!isset($_GET['id'])) {
     echo "<script>alert('⚠️ No se especificó la operación.'); window.location.href='index.php';</script>";
     exit;
@@ -10,7 +10,7 @@ if (!isset($_GET['id'])) {
 
 $id_operacion = intval($_GET['id']);
 
-// 🔍 Consulta detallada de la operación, cliente y contabilidad
+// 🔍 Consulta de operación, cliente y contabilidad
 $query = "
 SELECT 
     o.id_operaciones,
@@ -54,121 +54,88 @@ $datos = mysqli_fetch_assoc($resultado);
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ver Detalle de Operación Endosador</title>
+    <title>Detalle de Operación Endosador</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <?php include '../../sidebar.php'; ?>
 <div class="container mt-4 mb-5">
-    <div class="card shadow-lg border-0">
+    <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">📋 Detalle de Operación - Cliente Endosador</h4>
         </div>
         <div class="card-body">
-            <div class="row g-3">
-
-                <!-- Información del Cliente -->
-                <div class="col-md-12">
-                    <h5 class="text-secondary">👤 Información del Cliente</h5>
-                    <hr>
+            
+            <!-- Información del Cliente -->
+            <h5 class="text-secondary">👤 Información del Cliente</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Nombre:</strong> <?= htmlspecialchars($datos['cliente']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Pasaporte:</strong> <?= htmlspecialchars($datos['nro_pasaporte']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Género:</strong> <?= htmlspecialchars($datos['genero']) ?>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Nombre del Cliente:</label>
-                    <p><?= htmlspecialchars($datos['cliente']) ?></p>
+                    <strong>Empresa Endosadora:</strong> <?= htmlspecialchars($datos['empresa'] ?? '—') ?>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold">Pasaporte:</label>
-                    <p><?= htmlspecialchars($datos['nro_pasaporte']) ?></p>
+                    <strong>Tipo Cliente:</strong> <?= htmlspecialchars($datos['tipo_cliente']) ?>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold">Género:</label>
-                    <p><?= htmlspecialchars($datos['genero']) ?></p>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Empresa Endosadora:</label>
-                    <p><?= htmlspecialchars($datos['empresa'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Tipo Cliente:</label>
-                    <p><?= htmlspecialchars($datos['tipo_cliente']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Encargado:</label>
-                    <p><?= htmlspecialchars($datos['Encargado']) ?></p>
-                </div>
-
-                <!-- Información del Servicio -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">🧭 Detalles del Servicio</h5>
-                    <hr>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Nombre del Servicio:</label>
-                    <p><?= htmlspecialchars($datos['nombre_servicio']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Fecha de Reserva:</label>
-                    <p><?= htmlspecialchars($datos['fecha_reserva']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Salida:</label>
-                    <p><?= htmlspecialchars($datos['fecha_salida']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Retorno:</label>
-                    <p><?= htmlspecialchars($datos['fecha_retorno']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Incluye Ingreso:</label>
-                    <p><?= htmlspecialchars($datos['incluye_ingreso']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Modalidad de Retorno:</label>
-                    <p><?= htmlspecialchars($datos['modalidad_retorno']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Servicio Adicional:</label>
-                    <p><?= htmlspecialchars($datos['servicio_adicional']) ?></p>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="col-md-12">
-                    <label class="form-label fw-bold">Observaciones:</label>
-                    <p><?= nl2br(htmlspecialchars($datos['observaciones'] ?? '—')) ?></p>
-                </div>
-
-                <!-- Información Económica -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">💰 Información de Pago</h5>
-                    <hr>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Método de Pago:</label>
-                    
-                    <p><?= htmlspecialchars($datos['metodo_pago'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Moneda:</label>
-                    <p><?= htmlspecialchars($datos['tipo_moneda'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Precio Total:</label>
-                    <p><?= number_format($datos['precio_servicio'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Pagado:</label>
-                    <p><?= number_format($datos['pagado_a_cuenta'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Saldo:</label>
-                    <p><?= number_format($datos['saldo_pendiente'] ?? 0, 2) ?></p>
-                </div>
-
-                <div class="col-md-12 mt-4 text-center">
-                    <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
+                    <strong>Encargado:</strong> <?= htmlspecialchars($datos['Encargado']) ?>
                 </div>
             </div>
+
+            <!-- Información del Servicio -->
+            <h5 class="text-secondary mt-4">🧭 Detalles del Servicio</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Nombre del Servicio:</strong> <?= htmlspecialchars($datos['nombre_servicio']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Fecha Reserva:</strong> <?= htmlspecialchars($datos['fecha_reserva']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Salida:</strong> <?= htmlspecialchars($datos['fecha_salida']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Retorno:</strong> <?= htmlspecialchars($datos['fecha_retorno']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Incluye Ingreso:</strong> <?= htmlspecialchars($datos['incluye_ingreso']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Modalidad Retorno:</strong> <?= htmlspecialchars($datos['modalidad_retorno']) ?>
+                </div>
+                <div class="col-md-3">
+                    <strong>Servicio Adicional:</strong> <?= htmlspecialchars($datos['servicio_adicional']) ?>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <h5 class="text-secondary mt-4">📝 Observaciones</h5>
+            <hr>
+            <p><?= nl2br(htmlspecialchars($datos['observaciones'] ?? '—')) ?></p>
+
+            <!-- Información Económica -->
+            <h5 class="text-secondary mt-4">💰 Información de Pago</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-3"><strong>Método de Pago:</strong> <?= htmlspecialchars($datos['metodo_pago'] ?? '—') ?></div>
+                <div class="col-md-3"><strong>Moneda:</strong> <?= htmlspecialchars($datos['tipo_moneda'] ?? '—') ?></div>
+                <div class="col-md-2"><strong>Precio Total:</strong> <?= number_format($datos['precio_servicio'] ?? 0, 2) ?></div>
+                <div class="col-md-2"><strong>Pagado:</strong> <?= number_format($datos['pagado_a_cuenta'] ?? 0, 2) ?></div>
+                <div class="col-md-2"><strong>Saldo:</strong> <?= number_format($datos['saldo_pendiente'] ?? 0, 2) ?></div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
+            </div>
+
         </div>
     </div>
 </div>

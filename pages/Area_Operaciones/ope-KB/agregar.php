@@ -8,7 +8,15 @@ if (!isset($_GET['id_cliente'])) {
 }
 
 $id_cliente = (int) $_GET['id_cliente'];
+// 🔹 Obtener grupo del cliente
+$qGrupo = mysqli_query($conexion,"
+SELECT id_grupo 
+FROM clientes_kb 
+WHERE id_cliente = $id_cliente
+");
 
+$rowGrupo = mysqli_fetch_assoc($qGrupo);
+$id_grupo = $rowGrupo['id_grupo'] ?? 0;
 // Obtener nombre del cliente
 $query = "SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM Datos_clientes WHERE id_cliente = $id_cliente";
 $res = mysqli_query($conexion, $query);
@@ -16,72 +24,115 @@ $cliente = mysqli_fetch_assoc($res);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // Recorremos todas las operaciones enviadas
+    // 🔹 Recorremos todos los tours enviados
     foreach ($_POST['fecha_reserva'] as $i => $v) {
 
+        // Datos de operación
         $fecha_reserva = $_POST['fecha_reserva'][$i];
         $nombre_servicio = $_POST['nombre_servicio'][$i];
         $fecha_salida = $_POST['fecha_salida'][$i];
         $fecha_retorno = $_POST['fecha_retorno'][$i];
         $modalidad_retorno = $_POST['modalidad_retorno'][$i];
         $incluye_ingreso = isset($_POST['incluye_ingreso'][$i]) ? 'Con ingreso' : 'Sin ingreso';
-        $servicios = $_POST['servicio_adicional'] ?? [];
+
+        // 🔹 Cambiado para aceptar múltiples servicios
+$servicios = $_POST['servicio_adicional'][$i] ?? [];
 
 if (!is_array($servicios)) {
-    $servicios = [$servicios]; // convertir string en array
+    $servicios = [$servicios];
 }
 
 $servicio_adicional = implode(", ", $servicios);
 
         $observaciones = $_POST['observaciones'][$i];
         $encargado = $_POST['Encargado'][$i];
+
+        // Datos contables
         $metodo_pago = $_POST['metodo_pago'][$i];
         $tipo_moneda = $_POST['tipo_moneda'][$i];
         $precio_servicio = floatval($_POST['precio_servicio'][$i]);
         $pagado_a_cuenta = floatval($_POST['pagado_a_cuenta'][$i]);
         $saldo_pendiente = floatval($_POST['saldo_pendiente'][$i]);
         $fecha_pago_saldo = $_POST['fecha_pago_saldo'][$i];
-        $comision = $_POST['comision'][$i];
+        $comision = floatval($_POST['comision'][$i] ?? 0);
+
+        // 🔹 Ingreso / Servicio adicional
         $metodo_adicional = $_POST['metodo_pago_ingreso'][$i] ?? null;
         $moneda_adicional = $_POST['tipo_moneda_ingreso'][$i] ?? null;
         $precio_adicional = floatval($_POST['precio_servicio_adicional'][$i] ?? 0);
         $pagado_adicional = floatval($_POST['pagado_ingreso'][$i] ?? 0);
         $saldo_adicional  = floatval($_POST['saldo_ingreso'][$i] ?? 0);
 
-
-        // INSERTAR OPERACIÓN
+        // 🔹 INSERT OPERACIONES
         $queryOp = "INSERT INTO Operaciones (
-            id_cliente, fecha_reserva, nombre_servicio, fecha_salida, fecha_retorno, modalidad_retorno, incluye_ingreso, servicio_adicional,
+            id_cliente, id_grupo, fecha_reserva, nombre_servicio, fecha_salida, fecha_retorno, modalidad_retorno, incluye_ingreso, servicio_adicional,
             observaciones, Encargado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmtOp = mysqli_prepare($conexion, $queryOp);
         mysqli_stmt_bind_param(
             $stmtOp,
-            "isssssssss", $id_cliente, $fecha_reserva, $nombre_servicio, $fecha_salida, $fecha_retorno, $modalidad_retorno, $incluye_ingreso,
-            $servicio_adicional, $observaciones, $encargado
+            "iisssssssss",
+            $id_cliente,$id_grupo, $fecha_reserva, $nombre_servicio, $fecha_salida, $fecha_retorno,
+            $modalidad_retorno, $incluye_ingreso, $servicio_adicional, $observaciones, $encargado
         );
-
         mysqli_stmt_execute($stmtOp);
+
+
         $id_operaciones = mysqli_insert_id($conexion);
+        $metodo_pago = $_POST['metodo_pago'][$i];
+$tipo_moneda = $_POST['tipo_moneda'][$i];
+$precio_servicio = floatval($_POST['precio_servicio'][$i]);
+$pagado_a_cuenta = floatval($_POST['pagado_a_cuenta'][$i]);
+$saldo_pendiente = floatval($_POST['saldo_pendiente'][$i]);
 
-        // INSERTAR CONTABILIDAD
-        $queryCont = "INSERT INTO Contabilidad (
-            id_operaciones, metodo_pago, tipo_moneda, precio_servicio, pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, comision,
-            precio_servicio_adicional, metodo_pago_adicional, tipo_moneda_adicional, pagado_adicional, saldo_adicional
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$queryCont = "INSERT INTO Contabilidad (
+id_operaciones,
+id_grupo,
 
-        $stmtCont = mysqli_prepare($conexion, $queryCont);
-      mysqli_stmt_bind_param(
-    $stmtCont,
-    "issdddsddssdd", $id_operaciones,$metodo_pago, $tipo_moneda, $precio_servicio, $pagado_a_cuenta, $saldo_pendiente, $fecha_pago_saldo, 
-    $comision, $precio_adicional, $metodo_adicional, $moneda_adicional, $pagado_adicional, $saldo_adicional
-); 
+metodo_pago,
+tipo_moneda,
+precio_servicio,
+pagado_a_cuenta,
+saldo_pendiente,
 
+metodo_pago_adicional,
+tipo_moneda_adicional,
+precio_servicio_adicional,
+pagado_adicional,
+saldo_adicional,
 
-        mysqli_stmt_execute($stmtCont);
-    }
+comision,
+fecha_pago_saldo
 
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+$stmtCont = mysqli_prepare($conexion,$queryCont);
+
+mysqli_stmt_bind_param(
+$stmtCont,
+"iissdddssdddss",
+
+$id_operaciones,
+$id_grupo,
+
+$metodo_pago,
+$tipo_moneda,
+$precio_servicio,
+$pagado_a_cuenta,
+$saldo_pendiente,
+
+$metodo_adicional,
+$moneda_adicional,
+$precio_adicional,
+$pagado_adicional,
+$saldo_adicional,
+
+$comision,
+$fecha_pago_saldo
+);
+mysqli_stmt_execute($stmtCont);
+ }   
+ // 🔹 Redirección
     header("Location: index.php?mensaje=agregado");
     exit;
 }
@@ -101,18 +152,16 @@ $servicio_adicional = implode(", ", $servicios);
 
     <h3 class="text-primary mb-4">➕ Agregar Operación para: <?= htmlspecialchars($cliente['nombre_completo']) ?></h3>
 
-    <form method="POST" id="formTours">
+    <h3>Agregar Operación para: <?= htmlspecialchars($cliente['nombre_completo']) ?></h3>
 
-        <div id="contenedorTours">
+<form method="POST" id="formTours">
+    <div id="contenedorTours">
 
-            <!-- ================= TOUR ITEM ================= -->
-            <div class="tour-item card shadow p-4 mb-4">
-
-                <!-- DATOS DE OPERACIÓN -->
-                <h5 class="text-secondary mb-3">📋 Datos de Operación</h5>
-                <div class="row g-3">
-
-                    <div class="col-md-4">
+        <!-- 🔹 BLOQUE TOUR ITEM -->
+        <div class="tour-item card shadow p-4 mb-4">
+            <h5>Datos de Operación</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
                         <label>Fecha de Reserva</label>
                         <input type="date" name="fecha_reserva[]" class="form-control" required value="<?= date('Y-m-d') ?>">
                     </div>
@@ -189,7 +238,7 @@ $servicio_adicional = implode(", ", $servicios);
 
                     <div class="col-md-6">
                         <label>Servicio Adicional</label>
-                        <select name="servicio_adicional[]" class="form-select" multiple>
+                        <select name="servicio_adicional[][]" class="form-select" multiple>
                             <option value="Ninguna">Ninguna</option>
                             <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
@@ -211,17 +260,12 @@ $servicio_adicional = implode(", ", $servicios);
                         <label>Observaciones</label>
                         <textarea name="observaciones[]" class="form-control" rows="3"></textarea>
                     </div>
+                     <!-- ================= BLOQUE CONTABILIDAD GENERAL ================= -->
+<div id="contabilidadGrupo" class="card shadow p-4 mb-4 mt-4">
+    <h5 class="text-secondary mb-3">💰 Datos Contables del Grupo</h5>
 
-                </div>
-
-                <hr class="my-4">
-
-                <!-- DATOS CONTABLES -->
-                <h5 class="text-secondary mb-3">💰 Datos Contables</h5>
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
+    <div class="row g-3">
+        <div class="col-md-4">
                         <label>Método de Pago</label>
                         <select name="metodo_pago[]" class="form-select">
                             <option value="Efectivo">Efectivo</option>
@@ -266,12 +310,10 @@ $servicio_adicional = implode(", ", $servicios);
                         <label>Comisión</label>
                         <input type="number" step="0.01" name="comision[]" class="form-control">
                     </div>
-                    <hr>
-<h5 class="text-secondary">🎟 Ingreso / Servicio Adicional</h5>
 
-<div class="row g-3">
-
-  <div class="col-md-4">
+        <!-- Ingreso / Servicio Adicional -->
+        <h5 class="text-secondary mt-4">🎟 Ingreso / Servicio Adicional (Grupo)</h5>
+        <div class="col-md-4">
     <label>Método de Pago (Ingreso)</label>
     <select name="metodo_pago_ingreso[]" class="form-select">
       <option value="">-- No aplica --</option>
@@ -307,29 +349,23 @@ $servicio_adicional = implode(", ", $servicios);
     <label>Saldo Ingreso</label>
     <input type="number" step="0.01" name="saldo_ingreso[]" class="form-control saldo_adicional" readonly>
   </div>
-
-
-</div>
-<div class="mt-4 d-flex gap-2 flex-wrap">
-    <button type="button" class="btn btn-success" onclick="agregarTour()">+ Agregar otro tour</button>
-
-    <button type="button" class="btn btn-danger" onclick="eliminarTour(this)">
-        🗑 Eliminar este tour
-    </button>
-
-    <a href="index.php" class="btn btn-secondary">Cancelar</a>
-    <button type="submit" class="btn btn-primary">Guardar Operación</button>
-</div>
-
-                </div>
-
+  </div>
+  </div>
+                    <!-- 🔹 Botones -->
+            <div class="mt-4 d-flex gap-2">
+                <button type="button" class="btn btn-danger" onclick="eliminarTour(this)">🗑 Eliminar este tour</button>
             </div>
-            <!-- ================= FIN TOUR ITEM ================= -->
+            </div>
 
         </div>
 
-
-    </form>
+    </div>
+     <!-- 🔹 Botones -->
+            <div class="mt-4 d-flex gap-2">
+                <button type="button" class="btn btn-success" onclick="agregarTour()">+ Agregar otro tour</button>
+                <button type="submit" class="btn btn-primary">Guardar Operación</button>
+            </div>
+</form>
 
 </div>
 
@@ -338,42 +374,21 @@ $servicio_adicional = implode(", ", $servicios);
 <script>
 document.addEventListener("input", function(e) {
 
-    // 🔵 SALDO SERVICIO PRINCIPAL
-    if (
-        e.target.classList.contains("precio_servicio") ||
-        e.target.classList.contains("pagado_a_cuenta")
-    ) {
-        const bloque = e.target.closest(".tour-item");
+      const bloque = document.getElementById("contabilidadGrupo");
+    if(!bloque) return;
 
-        const precio = parseFloat(
-            bloque.querySelector(".precio_servicio").value
-        ) || 0;
-
-        const pagado = parseFloat(
-            bloque.querySelector(".pagado_a_cuenta").value
-        ) || 0;
-
-        bloque.querySelector(".saldo_pendiente").value =
-            (precio - pagado).toFixed(2);
+    // 🔵 SALDO PRINCIPAL
+    if(e.target.classList.contains("precio_servicio") || e.target.classList.contains("pagado_a_cuenta")){
+        const precio = parseFloat(bloque.querySelector(".precio_servicio").value) || 0;
+        const pagado = parseFloat(bloque.querySelector(".pagado_a_cuenta").value) || 0;
+        bloque.querySelector(".saldo_pendiente").value = (precio - pagado).toFixed(2);
     }
 
-    // 🟢 SALDO SERVICIO ADICIONAL
-    if (
-        e.target.classList.contains("precio_adicional") ||
-        e.target.classList.contains("pagado_adicional")
-    ) {
-        const bloque = e.target.closest(".tour-item");
-
-        const precio = parseFloat(
-            bloque.querySelector(".precio_adicional").value
-        ) || 0;
-
-        const pagado = parseFloat(
-            bloque.querySelector(".pagado_adicional").value
-        ) || 0;
-
-        bloque.querySelector(".saldo_adicional").value =
-            (precio - pagado).toFixed(2);
+    // 🟢 SALDO ADICIONAL / INGRESO
+    if(e.target.classList.contains("precio_adicional") || e.target.classList.contains("pagado_adicional")){
+        const precio = parseFloat(bloque.querySelector(".precio_adicional").value) || 0;
+        const pagado = parseFloat(bloque.querySelector(".pagado_adicional").value) || 0;
+        bloque.querySelector(".saldo_adicional").value = (precio - pagado).toFixed(2);
     }
 });
 
@@ -426,21 +441,51 @@ function eliminarTour(btn) {
     // Eliminar solo el bloque donde se presionó el botón
     btn.closest(".tour-item").remove();
 }
-document.addEventListener("input", function(e) {
+function agregarTour() {
 
-  if (e.target.name.includes("precio_ingreso") ||
-      e.target.name.includes("pagado_ingreso")) {
+    const contenedor = document.getElementById("contenedorTours");
+    const primer = contenedor.querySelector(".tour-item");
 
-    let bloque = e.target.closest(".tour-item");
+    let nuevo = primer.cloneNode(true);
 
-    let precio = parseFloat(bloque.querySelector("[name='precio_ingreso[]']").value) || 0;
-    let pagado = parseFloat(bloque.querySelector("[name='pagado_ingreso[]']").value) || 0;
+    // 🔵 LIMPIAR INPUTS
+    nuevo.querySelectorAll("input").forEach(i => {
 
-    bloque.querySelector("[name='saldo_ingreso[]']").value =
-        (precio - pagado).toFixed(2);
-  }
+        if (i.type === "checkbox") {
+            i.checked = false;
 
-});
+        } else if (i.type === "number") {
+            i.value = "0";   // ← FORZAR 0
+
+        } else if (i.type === "date") {
+            i.value = "";
+
+        } else {
+            i.value = "";
+        }
+    });
+
+    // 🔵 LIMPIAR SELECTS
+    nuevo.querySelectorAll("select").forEach(s => {
+
+        if (s.multiple) {
+            [...s.options].forEach(o => o.selected = false);
+        } else {
+            s.selectedIndex = 0;
+        }
+    });
+
+    // 🔵 LIMPIAR TEXTAREA
+    nuevo.querySelectorAll("textarea").forEach(t => t.value = "");
+
+    // 🔵 LIMPIAR SALDOS
+    nuevo.querySelectorAll(".saldo_pendiente, .saldo_adicional")
+         .forEach(s => s.value = "0.00");
+
+    contenedor.appendChild(nuevo);
+}
+
+
 const DURACION_TOURS = {
       "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
     "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,

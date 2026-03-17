@@ -1,25 +1,14 @@
 <?php
-include('../../conexion.php');
-
+// eliminar_kb.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    include('../../conexion.php');
+
     $id_cliente = intval($_POST['id_cliente']);
+    mysqli_query($conexion, "DELETE FROM Clientes_KB WHERE id_cliente = $id_cliente");
+    mysqli_query($conexion, "DELETE FROM Datos_clientes WHERE id_cliente = $id_cliente");
 
-    // Eliminar de Clientes_KB
-    $stmt_kb = mysqli_prepare($conexion, "DELETE FROM Clientes_KB WHERE id_cliente = ?");
-    mysqli_stmt_bind_param($stmt_kb, "i", $id_cliente);
-    mysqli_stmt_execute($stmt_kb);
-
-    // Eliminar de Datos_clientes
-    $stmt_datos = mysqli_prepare($conexion, "DELETE FROM Datos_clientes WHERE id_cliente = ?");
-    mysqli_stmt_bind_param($stmt_datos, "i", $id_cliente);
-    mysqli_stmt_execute($stmt_datos);
-
-    // Redirigir al index
-    echo "<script>alert('Cliente eliminado exitosamente'); window.location.href='index.php';</script>";
-    exit;
-}  else {
-    echo "Acceso no permitido. Método: " . $_SERVER['REQUEST_METHOD'];
-
-
+    header("Location: index.php?mensaje=eliminado");
+} else {
+    die("Acceso no permitido. Método: " . $_SERVER['REQUEST_METHOD']);
 }
 ?>

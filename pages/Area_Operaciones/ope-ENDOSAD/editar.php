@@ -5,10 +5,9 @@ include '../../sidebar.php';
 // =======================
 // 🔹 OBTENER DATOS EXISTENTES
 // =======================
-$id_operaciones = $_GET['id'] ?? null;
-
-if (!$id_operaciones) {
-    echo "<script>alert('ID de operación no proporcionado'); window.location='index.php';</script>";
+$id_operaciones = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id_operaciones <= 0) {
+    echo "<script>alert('ID de operación no válido'); window.location='index.php';</script>";
     exit;
 }
 
@@ -27,6 +26,7 @@ SELECT
     c.pagado_adicional,
     c.saldo_adicional,
     c.tipo_moneda_adicional,
+    c.metodo_pago_adicional,
 
     c.metodo_pago_saldo,
     c.tipo_moneda_saldo,
@@ -60,31 +60,55 @@ $tours_res = mysqli_query($conexion, $tours_sql);
 
 
 // Decodificar servicios adicionales múltiples
-$servicios_seleccionados = explode(', ', $operacion['servicio_adicional']);
+$servicios_seleccionados = [];
+
+if (!empty($operacion['servicio_adicional'])) {
+    $servicios_seleccionados = explode(', ', $operacion['servicio_adicional']);
+}
 
 // =======================
 // 🔹 GUARDAR CAMBIOS
 // =======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// ==========================
+// 1️⃣ DATOS PRINCIPALES
+// ==========================
+$nombre_servicio = mysqli_real_escape_string($conexion, $_POST['nombre_servicio'] ?? '');
+$fecha_reserva = $_POST['fecha_reserva'] ?? '';
+$fecha_salida = $_POST['fecha_salida'] ?? '';
+$fecha_retorno = $_POST['fecha_retorno'] ?? '';
+$incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Con ingreso' : 'Sin ingreso';
+$modalidad_retorno = mysqli_real_escape_string($conexion, $_POST['modalidad_retorno'] ?? '');
+$servicio_adicional = mysqli_real_escape_string($conexion, implode(', ', $_POST['servicio_adicional'] ?? []));
+$observaciones = mysqli_real_escape_string($conexion, $_POST['observaciones'] ?? '');
+$encargado = mysqli_real_escape_string($conexion, $_POST['encargado'] ?? '');
 
-    // ==========================
-    // 1️⃣ DATOS PRINCIPALES
-    // ==========================
-    $nombre_servicio = $_POST['nombre_servicio'];
-    $fecha_reserva = $_POST['fecha_reserva'];
-    $fecha_salida = $_POST['fecha_salida'];
-    $fecha_retorno = $_POST['fecha_retorno'];
-    $incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Con ingreso' : 'Sin ingreso';
-    $modalidad_retorno = $_POST['modalidad_retorno'];
-    $servicio_adicional = implode(', ', $_POST['servicio_adicional']);
-    $observaciones = $_POST['observaciones'];
-    $encargado = $_POST['encargado'];
+// ==========================
+// 2️⃣ DATOS DE CONTABILIDAD
+// ==========================
+$metodo_pago = mysqli_real_escape_string($conexion, $_POST['metodo_pago'] ?? '');
+$tipo_moneda = mysqli_real_escape_string($conexion, $_POST['tipo_moneda'] ?? '');
 
-    $metodo_pago = $_POST['metodo_pago'];
-    $tipo_moneda = $_POST['tipo_moneda'];
-    $precio_servicio = floatval($_POST['precio_servicio']);
-    $pagado_a_cuenta = floatval($_POST['pagado_a_cuenta']);
-    $saldo_pendiente = $precio_servicio - $pagado_a_cuenta;
+// Servicio Principal
+$precio_servicio = floatval($_POST['precio_servicio'] ?? 0);
+$pagado_a_cuenta = floatval($_POST['pagado_a_cuenta'] ?? 0);
+$saldo_pendiente = max(0, $precio_servicio - $pagado_a_cuenta);
+
+// Servicio Adicional
+$precio_adicional = floatval($_POST['precio_servicio_adicional'] ?? 0);
+$pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
+$saldo_adicional = max(0, $precio_adicional - $pagado_adicional);
+$tipo_moneda_adicional = mysqli_real_escape_string($conexion, $_POST['tipo_moneda_adicional'] ?? '');
+$metodo_pago_adicional =mysqli_real_escape_string($conexion,$_POST['metodo_pago_adicional'] ?? '');
+
+// Pago de saldo (si existe)
+$monto_pago_saldo = floatval($_POST['monto_pago_saldo'] ?? 0);
+$tipo_cambio_saldo = floatval($_POST['tipo_cambio_saldo'] ?? 1);
+$metodo_pago_saldo = mysqli_real_escape_string($conexion, $_POST['metodo_pago_saldo'] ?? '');
+$tipo_moneda_saldo = mysqli_real_escape_string($conexion, $_POST['tipo_moneda_saldo'] ?? '');
+$fecha_pago_saldo  = $_POST['fecha_pago_saldo'] ?? '';
+
+if ($saldo_adicional < 0) $saldo_adicional = 0;
 
     if ($saldo_pendiente < 0) $saldo_pendiente = 0;
 
@@ -119,40 +143,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             precio_servicio_adicional='$precio_adicional',
             pagado_adicional='$pagado_adicional',
             saldo_adicional='$saldo_adicional',
-            tipo_moneda_adicional='$tipo_moneda_adicional'
+            tipo_moneda_adicional='$tipo_moneda_adicional',
+            metodo_pago_adicional='$metodo_pago_adicional'
         WHERE id_operaciones=$id_operaciones
     ");
 
 
     // ==========================
-    // 4️⃣ PAGO DE SALDO (SI EXISTE)
-    // ==========================
-    if (!empty($_POST['monto_pago_saldo'])) {
+// 4️⃣ PAGO DE SALDO (CORRECTO)
+// ==========================
 
-        $monto_pago = floatval($_POST['monto_pago_saldo']);
-        $nuevo_saldo = $saldo_pendiente - $monto_pago;
+if (isset($_POST['monto_pago_saldo']) && $_POST['monto_pago_saldo'] != '') {
 
-        if ($nuevo_saldo < 0) $nuevo_saldo = 0;
+    $monto_pago = floatval($_POST['monto_pago_saldo']);
+    $tipo_cambio_saldo = floatval($_POST['tipo_cambio_saldo']);
 
-        $metodo_pago_saldo = $_POST['metodo_pago_saldo'];
-        $tipo_moneda_saldo = $_POST['tipo_moneda_saldo'];
-        $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
+    $metodo_pago_saldo = $_POST['metodo_pago_saldo'];
+    $tipo_moneda_saldo = $_POST['tipo_moneda_saldo'];
+    $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
 
-        $precio_adicional = floatval($_POST['precio_servicio_adicional'] ?? 0);
-        $pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
-        $saldo_adicional  = max(0, $precio_adicional - $pagado_adicional);
-        $tipo_moneda_adicional = $_POST['tipo_moneda_adicional'] ?? null;
+    $precio_total = floatval($precio_servicio);
+    $pagado_actual = floatval($pagado_a_cuenta);
 
-        mysqli_query($conexion, "
-            UPDATE Contabilidad SET
-                monto_pago_saldo = '$monto_pago',
-                metodo_pago_saldo = '$metodo_pago_saldo',
-                tipo_moneda_saldo = '$tipo_moneda_saldo',
-                fecha_pago_saldo = '$fecha_pago_saldo',
-                saldo_pendiente = '$nuevo_saldo'
-            WHERE id_operaciones = $id_operaciones
-        ");
+    $monto_convertido = $monto_pago;
+
+    // convertir si moneda distinta
+    if ($tipo_moneda != $tipo_moneda_saldo && $tipo_cambio_saldo > 0) {
+
+        if ($tipo_moneda == "Soles" && $tipo_moneda_saldo == "Dólares") {
+
+            $monto_convertido = $monto_pago * $tipo_cambio_saldo;
+
+        } elseif ($tipo_moneda == "Dólares" && $tipo_moneda_saldo == "Soles") {
+
+            $monto_convertido = $monto_pago / $tipo_cambio_saldo;
+
+        }
+
     }
+
+    // nuevo pagado
+    $pagado_total = $pagado_actual + $monto_convertido;
+
+    // nuevo saldo
+    $nuevo_saldo = $precio_total - $pagado_total;
+
+    // si se completa, ajustar exacto
+    if ($nuevo_saldo <= 0.01) {
+
+        $pagado_total = $precio_total;
+        $nuevo_saldo = 0;
+
+    }
+
+    mysqli_query($conexion, "
+        UPDATE Contabilidad SET
+            monto_pago_saldo = '$monto_pago',
+            metodo_pago_saldo = '$metodo_pago_saldo',
+            tipo_moneda_saldo = '$tipo_moneda_saldo',
+            tipo_cambio_saldo = '$tipo_cambio_saldo',
+            monto_convertido_saldo = '$monto_convertido',
+            pagado_a_cuenta = '$pagado_total',
+            saldo_pendiente = '$nuevo_saldo',
+            fecha_pago_saldo = '$fecha_pago_saldo'
+        WHERE id_operaciones = $id_operaciones
+    ");
+}
 
     echo "<script>alert('✅ Operación actualizada correctamente'); window.location='index.php';</script>";
     exit;
@@ -214,9 +270,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "MANU 4 DÍAS Y 3 NOCHES"
                     ];
                     foreach ($servicios as $s) {
-                        $selected = ($s == $operacion['nombre_servicio']) ? 'selected' : '';
-                        echo "<option value='$s' $selected>$s</option>";
-                    }
+    $nombre_operacion = trim($operacion['nombre_servicio']); // quitar espacios
+    $selected = (strcasecmp($s, $nombre_operacion) == 0) ? 'selected' : '';
+    echo "<option value='$s' $selected>$s</option>";
+}
                     ?>
                 </select>
             </div>
@@ -246,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-check">
                     <input type="checkbox" name="incluye_ingreso" value="Sí" 
                            class="form-check-input" id="incluye_ingreso"
-                           <?= ($operacion['incluye_ingreso'] === 'Con ingreso') ? 'checked' : '' ?>
+                           <?= ($operacion['incluye_ingreso'] === 'Con ingreso') ? 'checked' : '' ?>>
                     <label class="form-check-label" for="incluye_ingreso">Sí</label>
                 </div>
             </div>
@@ -307,6 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="PAYPAL" <?= $operacion['metodo_pago'] == 'PAYPAL' ? 'selected' : '' ?>>PAYPAL</option>
                     <option value="Bcp" <?= $operacion['metodo_pago'] == 'Bcp' ? 'selected' : '' ?>>BCP</option>
                     <option value="CULQI" <?= $operacion['metodo_pago'] == 'CULQI' ? 'selected' : '' ?>>CULQI</option>
+                    <option value="YAPE" <?= $operacion['metodo_pago'] == 'YAPE' ? 'selected' : '' ?>>YAPE</option>
                 </select>
             </div>
         </div>
@@ -315,8 +373,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-md-3">
                 <label>Tipo de Moneda</label>
                 <select name="tipo_moneda" class="form-control">
-                    <option value="PEN" <?= $operacion['tipo_moneda'] == 'PEN' ? 'selected' : '' ?>>Soles (PEN)</option>
-                    <option value="USD" <?= $operacion['tipo_moneda'] == 'USD' ? 'selected' : '' ?>>Dólares (USD)</option>
+                    <option value="Soles" <?= $operacion['tipo_moneda'] == 'Soles' ? 'selected' : '' ?>>Soles (PEN)</option>
+                    <option value="Dólares" <?= $operacion['tipo_moneda'] == 'Dólares' ? 'selected' : '' ?>>Dólares (USD)</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -357,7 +415,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        value="<?= $operacion['saldo_adicional'] ?>"
        readonly>
     </div>
+    <div class="col-md-4">
+    <label>Método Pago Adicional</label>
+    <select name="metodo_pago_adicional" class="form-control">
 
+    <option value="">-- Seleccione --</option>
+
+    <option value="Efectivo" <?= ($operacion['metodo_pago_adicional']=='Efectivo')?'selected':'' ?>>Efectivo</option>
+    <option value="We travel" <?= ($operacion['metodo_pago_adicional']=='We travel')?'selected':'' ?>>We travel</option>
+    <option value="Izipay" <?= ($operacion['metodo_pago_adicional']=='Izipay')?'selected':'' ?>>Izipay</option>
+    <option value="PAYPAL" <?= ($operacion['metodo_pago_adicional']=='PAYPAL')?'selected':'' ?>>PAYPAL</option>
+    <option value="Bcp" <?= ($operacion['metodo_pago_adicional']=='Bcp')?'selected':'' ?>>BCP</option>
+    <option value="CULQI" <?= ($operacion['metodo_pago_adicional']=='CULQI')?'selected':'' ?>>CULQI</option>
+    <option value="YAPE" <?= ($operacion['metodo_pago_adicional']=='YAPE')?'selected':'' ?>>YAPE</option>
+
+</select>
+</div>
       <div class="col-md-4">
     <label>Moneda (Ingreso)</label>
     <select name="tipo_moneda_adicional" class="form-select">
@@ -375,7 +448,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php if ($operacion['saldo_pendiente'] > 0): ?>
 <hr>
 <h5 class="text-danger">💳 Completar Pago de Saldo</h5>
-
+<div class="col-md-3">
+    <label>Tipo Cambio</label>
+    <input type="number" step="0.01"
+           name="tipo_cambio_saldo"
+           class="form-control"
+           value="3.80">
+</div>
 <div class="row mb-3">
     <div class="col-md-3">
         <label>Método de Pago</label>
@@ -457,14 +536,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-document.querySelector('[name="pagado_a_cuenta"]').addEventListener('input', calcularSaldo);
-document.querySelector('[name="precio_servicio"]').addEventListener('input', calcularSaldo);
 
-function calcularSaldo() {
-    const precio = parseFloat(document.querySelector('[name="precio_servicio"]').value) || 0;
-    const pagado = parseFloat(document.querySelector('[name="pagado_a_cuenta"]').value) || 0;
-    document.querySelector('[name="saldo_pendiente"]').value = (precio - pagado).toFixed(2);
+function calcularPrincipal() {
+
+    const precio = parseFloat(
+        document.querySelector('[name="precio_servicio"]').value
+    ) || 0;
+
+    const pagado = parseFloat(
+        document.querySelector('[name="pagado_a_cuenta"]').value
+    ) || 0;
+
+    document.querySelector('[name="saldo_pendiente"]').value =
+        (precio - pagado).toFixed(2);
 }
+
+function calcularAdicional() {
+
+    const precio = parseFloat(
+        document.querySelector('[name="precio_servicio_adicional"]').value
+    ) || 0;
+
+    const pagado = parseFloat(
+        document.querySelector('[name="pagado_adicional"]').value
+    ) || 0;
+
+    document.querySelector('[name="saldo_adicional"]').value =
+        (precio - pagado).toFixed(2);
+}
+
+
+// eventos principal
+
+document.querySelector('[name="precio_servicio"]')
+    .addEventListener("input", calcularPrincipal);
+
+document.querySelector('[name="pagado_a_cuenta"]')
+    .addEventListener("input", calcularPrincipal);
+
+
+// eventos adicional
+
+document.querySelector('[name="precio_servicio_adicional"]')
+    .addEventListener("input", calcularAdicional);
+
+document.querySelector('[name="pagado_adicional"]')
+    .addEventListener("input", calcularAdicional);
+
+
 </script>
 <script>
 // ================== DURACIÓN DE TOURS ==================

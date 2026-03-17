@@ -1,24 +1,41 @@
 <?php
 include '../../../conexion.php';
+include '../../sidebar.php';
 
-// 🟢 Verificar si se pasó un ID de operación
-if (!isset($_GET['id'])) {
-    echo "<script>alert('⚠️ No se especificó la operación.'); window.location.href='index.php';</script>";
+// 🟢 Verificar ID del grupo
+if (!isset($_GET['id_grupo'])) {
+    echo "<script>alert('⚠️ No se especificó el grupo.'); window.location.href='index.php';</script>";
     exit;
 }
 
-$id_operacion = intval($_GET['id']);
+$id_grupo = intval($_GET['id_grupo']);
 
-// 🔍 Consulta detallada de la operación, cliente y contabilidad
-$query = "
+// 🔹 Obtener info del grupo
+$query_grupo = "
 SELECT 
-    o.id_operaciones,
-    CONCAT(d.nombre, ' ', d.apellido) AS cliente,
+    g.id_grupo,
+    g.nombre_grupo,
+    COUNT(DISTINCT k.id_cliente) AS pasajeros
+FROM grupos g
+JOIN clientes_kb k ON k.id_grupo = g.id_grupo
+WHERE g.id_grupo = $id_grupo
+GROUP BY g.id_grupo
+";
+$res_grupo = mysqli_query($conexion, $query_grupo);
+if (!$res_grupo || mysqli_num_rows($res_grupo) == 0) {
+    echo "<script>alert('❌ Grupo no encontrado.'); window.location.href='index.php';</script>";
+    exit;
+}
+$grupo = mysqli_fetch_assoc($res_grupo);
+
+// 🔹 Obtener clientes del grupo
+$query_clientes = "
+SELECT 
+    k.id_cliente,
+    CONCAT(d.nombre,' ',d.apellido) AS cliente,
     d.nro_pasaporte,
-    d.genero,
     d.tipo_cliente,
-    k.grupo,
-    k.hotel,
+    d.genero,
     o.nombre_servicio,
     o.fecha_reserva,
     o.fecha_salida,
@@ -33,141 +50,76 @@ SELECT
     c.precio_servicio,
     c.pagado_a_cuenta,
     c.saldo_pendiente
-FROM Operaciones o
-INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN Clientes_KB k ON d.id_cliente = k.id_cliente
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-WHERE o.id_operaciones = $id_operacion
+FROM clientes_kb k
+JOIN Datos_clientes d ON d.id_cliente = k.id_cliente
+LEFT JOIN Operaciones o ON o.id_cliente = k.id_cliente
+LEFT JOIN Contabilidad c ON c.id_operaciones = o.id_operaciones
+WHERE k.id_grupo = $id_grupo
+ORDER BY d.nombre ASC
 ";
-
-$resultado = mysqli_query($conexion, $query);
-
-if (!$resultado || mysqli_num_rows($resultado) == 0) {
-    echo "<script>alert('❌ No se encontró la operación.'); window.location.href='index.php';</script>";
-    exit;
+$res_clientes = mysqli_query($conexion, $query_clientes);
+if (!$res_clientes) {
+    die("Error en la consulta: " . mysqli_error($conexion));
 }
-
-$datos = mysqli_fetch_assoc($resultado);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Ver Detalle de Operación KB</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Detalle Grupo KB</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <?php include '../../sidebar.php'; ?>
 <div class="container mt-4 mb-5">
-    <div class="card shadow-lg border-0">
+    <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">📋 Detalle de Operación - Cliente KB</h4>
+            <h4 class="mb-0">📋 Detalle Grupo: <?= htmlspecialchars($grupo['nombre_grupo']) ?> (<?= $grupo['pasajeros'] ?> pasajeros)</h4>
         </div>
         <div class="card-body">
-            <div class="row g-3">
 
-                <!-- Información del Cliente -->
-                <div class="col-md-12">
-                    <h5 class="text-secondary">👤 Información del Cliente</h5>
+            <?php while($cliente = mysqli_fetch_assoc($res_clientes)): ?>
+            <div class="card mb-3 border-info">
+                <div class="card-header bg-info text-white">
+                    <strong><?= htmlspecialchars($cliente['cliente']) ?></strong> - <?= htmlspecialchars($cliente['tipo_cliente']) ?>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4"><strong>Pasaporte:</strong> <?= htmlspecialchars($cliente['nro_pasaporte']) ?></div>
+                        <div class="col-md-4"><strong>Género:</strong> <?= htmlspecialchars($cliente['genero']) ?></div>
+                        <div class="col-md-4"><strong>Encargado:</strong> <?= htmlspecialchars($cliente['Encargado'] ?? '—') ?></div>
+                    </div>
                     <hr>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Nombre del Cliente:</label>
-                    <p><?= htmlspecialchars($datos['cliente']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Pasaporte:</label>
-                    <p><?= htmlspecialchars($datos['nro_pasaporte']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Género:</label>
-                    <p><?= htmlspecialchars($datos['genero']) ?></p>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Grupo:</label>
-                    <p><?= htmlspecialchars($datos['grupo'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Hotel:</label>
-                    <p><?= htmlspecialchars($datos['hotel'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Tipo Cliente:</label>
-                    <p><?= htmlspecialchars($datos['tipo_cliente']) ?></p>
-                </div>
-
-                <!-- Información del Servicio -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">🧭 Detalles del Servicio</h5>
+                    <h6>🧭 Servicio</h6>
+                    <div class="row">
+                        <div class="col-md-4"><strong>Servicio:</strong> <?= htmlspecialchars($cliente['nombre_servicio'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Salida:</strong> <?= htmlspecialchars($cliente['fecha_salida'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Retorno:</strong> <?= htmlspecialchars($cliente['fecha_retorno'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Reserva:</strong> <?= htmlspecialchars($cliente['fecha_reserva'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Modalidad:</strong> <?= htmlspecialchars($cliente['modalidad_retorno'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Incluye Ingreso:</strong> <?= htmlspecialchars($cliente['incluye_ingreso'] ?? '—') ?></div>
+                        <div class="col-md-4"><strong>Servicio Adicional:</strong> <?= htmlspecialchars($cliente['servicio_adicional'] ?? '—') ?></div>
+                    </div>
                     <hr>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Nombre del Servicio:</label>
-                    <p><?= htmlspecialchars($datos['nombre_servicio']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Fecha de Reserva:</label>
-                    <p><?= htmlspecialchars($datos['fecha_reserva']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Salida:</label>
-                    <p><?= htmlspecialchars($datos['fecha_salida']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Retorno:</label>
-                    <p><?= htmlspecialchars($datos['fecha_retorno']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Incluye Ingreso:</label>
-                    <p><?= htmlspecialchars($datos['incluye_ingreso']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Modalidad de Retorno:</label>
-                    <p><?= htmlspecialchars($datos['modalidad_retorno']) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Servicio Adicional:</label>
-                    <p><?= htmlspecialchars($datos['servicio_adicional']) ?></p>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="col-md-12">
-                    <label class="form-label fw-bold">Observaciones:</label>
-                    <p><?= nl2br(htmlspecialchars($datos['observaciones'] ?? '—')) ?></p>
-                </div>
-
-                <!-- Información Económica -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">💰 Información de Pago</h5>
+                    <h6>💰 Pago</h6>
+                    <div class="row">
+                        <div class="col-md-3"><strong>Método:</strong> <?= htmlspecialchars($cliente['metodo_pago'] ?? '—') ?></div>
+                        <div class="col-md-3"><strong>Moneda:</strong> <?= htmlspecialchars($cliente['tipo_moneda'] ?? '—') ?></div>
+                        <div class="col-md-2"><strong>Total:</strong> <?= number_format($cliente['precio_servicio'] ?? 0,2) ?></div>
+                        <div class="col-md-2"><strong>Pagado:</strong> <?= number_format($cliente['pagado_a_cuenta'] ?? 0,2) ?></div>
+                        <div class="col-md-2"><strong>Saldo:</strong> <?= number_format($cliente['saldo_pendiente'] ?? 0,2) ?></div>
+                    </div>
                     <hr>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Método de Pago:</label>
-                    <p><?= htmlspecialchars($datos['metodo_pago'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Moneda:</label>
-                    <p><?= htmlspecialchars($datos['tipo_moneda'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Precio Total:</label>
-                    <p><?= number_format($datos['precio_servicio'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Pagado:</label>
-                    <p><?= number_format($datos['pagado_a_cuenta'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Saldo:</label>
-                    <p><?= number_format($datos['saldo_pendiente'] ?? 0, 2) ?></p>
-                </div>
-
-                <div class="col-md-12 mt-4 text-center">
-                    <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
+                    <h6>📝 Observaciones</h6>
+                    <p><?= nl2br(htmlspecialchars($cliente['observaciones'] ?? '—')) ?></p>
                 </div>
             </div>
+            <?php endwhile; ?>
+
+            <div class="mt-4 text-center">
+                <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
+            </div>
+
         </div>
     </div>
 </div>

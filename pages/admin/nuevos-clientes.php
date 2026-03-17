@@ -23,6 +23,7 @@ WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 ORDER BY fecha_registro DESC
 ";
 
+
 $resultado = mysqli_query($conexion, $sql);
 ?>
 

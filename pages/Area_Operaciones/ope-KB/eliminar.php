@@ -1,58 +1,80 @@
 <?php
 include '../../../conexion.php';
 
-// Verificar si se pasó un ID por la URL
-if (isset($_GET['id'])) {
-    $id_operacion = intval($_GET['id']);
-
-    // 🧾 Primero verificar si existe la operación
-    $verificar = mysqli_query($conexion, "SELECT id_operaciones FROM Operaciones WHERE id_operaciones = $id_operacion");
-    if (mysqli_num_rows($verificar) > 0) {
-
-        // 🔹 Eliminar registros relacionados en Contabilidad si existen
-        $sqlContabilidad = "DELETE FROM Contabilidad WHERE id_operaciones = ?";
-        $stmt1 = mysqli_prepare($conexion, $sqlContabilidad);
-        mysqli_stmt_bind_param($stmt1, "i", $id_operacion);
-        mysqli_stmt_execute($stmt1);
-        mysqli_stmt_close($stmt1);
-
-        // 🔹 Eliminar la operación en sí
-        $sqlOperacion = "DELETE FROM Operaciones WHERE id_operaciones = ?";
-        $stmt2 = mysqli_prepare($conexion, $sqlOperacion);
-        mysqli_stmt_bind_param($stmt2, "i", $id_operacion);
-        $resultado = mysqli_stmt_execute($stmt2);
-        mysqli_stmt_close($stmt2);
-
-        // 🔹 Verificar resultado
-        if ($resultado) {
-            echo "
-                <script>
-                    alert('✅ La operación se eliminó correctamente.');
-                    window.location.href = 'index.php';
-                </script>
-            ";
-        } else {
-            echo "
-                <script>
-                    alert('❌ Error al eliminar la operación.');
-                    window.location.href = 'index.php';
-                </script>
-            ";
-        }
-    } else {
-        echo "
-            <script>
-                alert('⚠️ No se encontró la operación.');
-                window.location.href = 'index.php';
-            </script>
-        ";
-    }
-} else {
-    echo "
-        <script>
-            alert('⚠️ Parámetro inválido.');
-            window.location.href = 'index.php';
-        </script>
-    ";
+if (!isset($_GET['id'])) {
+    die("ID no recibido");
 }
-?>
+
+$id = (int)$_GET['id'];
+
+
+// 🔹 obtener cliente del tour
+$q = mysqli_query($conexion, "
+SELECT id_cliente
+FROM Operaciones
+WHERE id_operaciones = $id
+");
+
+if (!$q || mysqli_num_rows($q) == 0) {
+    die("Tour no encontrado");
+}
+
+$d = mysqli_fetch_assoc($q);
+$id_cliente = $d['id_cliente'];
+
+
+// 🔹 ver si este tour tiene contabilidad
+$qConta = mysqli_query($conexion, "
+SELECT *
+FROM Contabilidad
+WHERE id_operaciones = $id
+");
+
+$tieneConta = mysqli_num_rows($qConta);
+
+
+// 🔹 eliminar tour
+mysqli_query($conexion, "
+DELETE FROM Operaciones
+WHERE id_operaciones = $id
+");
+
+
+// 🔹 si tenía contabilidad → mover al siguiente tour
+if ($tieneConta) {
+
+    $qNext = mysqli_query($conexion, "
+    SELECT id_operaciones
+    FROM Operaciones
+    WHERE id_cliente = $id_cliente
+    ORDER BY id_operaciones ASC
+    LIMIT 1
+    ");
+
+    if (mysqli_num_rows($qNext) > 0) {
+
+        $n = mysqli_fetch_assoc($qNext);
+        $nuevo = $n['id_operaciones'];
+
+        mysqli_query($conexion, "
+        UPDATE Contabilidad
+        SET id_operaciones = $nuevo
+        WHERE id_operaciones = $id
+        ");
+
+    } else {
+
+        // si ya no hay tours → borrar contabilidad
+
+        mysqli_query($conexion, "
+        DELETE FROM Contabilidad
+        WHERE id_operaciones = $id
+        ");
+
+    }
+}
+
+
+// volver a editar cliente
+header("Location: index.php");
+exit;
