@@ -15,7 +15,7 @@ $cliente = null;
 if ($id_cliente) {
     $sqlCliente = "
     SELECT d.*, k.fecha_nacimiento, k.foto_pasaporte, k.nro_whatsapp, k.id_grupo
-    FROM Datos_clientes d
+    FROM datos_clientes d
     JOIN Clientes_KB k ON d.id_cliente = k.id_cliente
     WHERE d.id_cliente = ?
     ";
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
     }
 
     /* ---- UPDATE DATOS_CLIENTES ---- */
-    $sql1 = "UPDATE Datos_clientes 
+    $sql1 = "UPDATE datos_clientes 
              SET nombre=?, apellido=?, genero=?, nro_pasaporte=?, nacionalidad=?, Comida=?, hotel=? 
              WHERE id_cliente=?";
     $stmt1 = mysqli_prepare($conexion, $sql1);
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
     $fecha        = $_POST['fecha_nacimiento'];
 
     mysqli_query($conexion, "
-        INSERT INTO Datos_clientes 
+        INSERT INTO datos_clientes 
         (nombre, apellido, genero, nro_pasaporte, nacionalidad, Comida, hotel, tipo_cliente)
         VALUES 
         ('$nombre','$apellido','$genero','$pasaporte','$nacionalidad','$Comida','$hotel','KB')
@@ -198,7 +198,7 @@ SELECT
     d.nacionalidad,
     k.fecha_nacimiento,
     k.nro_whatsapp
-FROM Datos_clientes d
+FROM datos_clientes d
 JOIN Clientes_KB k ON d.id_cliente = k.id_cliente
 WHERE k.id_grupo = ?
 ORDER BY d.apellido, d.nombre

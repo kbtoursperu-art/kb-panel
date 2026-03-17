@@ -9,7 +9,7 @@ if (!isset($_GET['id_cliente'])) {
 $id_cliente = (int)$_GET['id_cliente'];
 
 $sqlCliente = "SELECT CONCAT(nombre,' ',apellido) AS nombre 
-FROM Datos_clientes 
+FROM datos_clientes 
 WHERE id_cliente=$id_cliente";
 
 $resCliente = mysqli_query($conexion, $sqlCliente);

@@ -34,7 +34,7 @@ SELECT
     c.fecha_pago_saldo
 
 FROM Operaciones o
-INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
 WHERE o.id_operaciones = $id_operaciones
 ";

@@ -18,7 +18,7 @@ WHERE id_cliente = $id_cliente
 $rowGrupo = mysqli_fetch_assoc($qGrupo);
 $id_grupo = $rowGrupo['id_grupo'] ?? 0;
 // Obtener nombre del cliente
-$query = "SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM Datos_clientes WHERE id_cliente = $id_cliente";
+$query = "SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM datos_clientes WHERE id_cliente = $id_cliente";
 $res = mysqli_query($conexion, $query);
 $cliente = mysqli_fetch_assoc($res);
 

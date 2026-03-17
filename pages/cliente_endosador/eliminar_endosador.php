@@ -21,7 +21,7 @@ $id_cliente = (int) $_POST['id_cliente'];
 mysqli_query($conexion, "DELETE FROM Clientes_Endosadores WHERE id_cliente = $id_cliente");
 
 // 2️⃣ Eliminar cliente
-$delete = mysqli_query($conexion, "DELETE FROM Datos_clientes WHERE id_cliente = $id_cliente");
+$delete = mysqli_query($conexion, "DELETE FROM datos_clientes WHERE id_cliente = $id_cliente");
 
 if ($delete) {
     echo "<script>

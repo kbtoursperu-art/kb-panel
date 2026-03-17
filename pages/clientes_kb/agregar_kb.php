@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // =====================================================
         // Datos_cliente
         $stmt = mysqli_prepare($conexion, "
-            INSERT INTO Datos_clientes
+            INSERT INTO datos_clientes
             (nombre, apellido, genero, nro_pasaporte, tipo_cliente, nacionalidad, Comida)
             VALUES (?, ?, ?, ?, 'KB', ?, ?)
         ");

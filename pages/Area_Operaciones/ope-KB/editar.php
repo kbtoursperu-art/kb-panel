@@ -27,7 +27,7 @@ SELECT
     o.Encargado,
     o.empresa
 FROM operaciones o
-INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 INNER JOIN Clientes_KB kb ON d.id_cliente = kb.id_cliente
 LEFT JOIN grupos g ON kb.id_grupo = g.id_grupo
 WHERE o.id_operaciones = $id

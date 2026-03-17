@@ -7,7 +7,7 @@ $pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $offset = ($pagina_actual - 1) * $registros_por_pagina;
 
 // Consulta total de registros con filtro
-$total_query = "SELECT COUNT(*) AS total FROM Datos_clientes d
+$total_query = "SELECT COUNT(*) AS total FROM datos_clientes d
                 LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
                 LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones";
                 
@@ -34,7 +34,7 @@ $query = "SELECT d.id_cliente, o.id_operaciones, c.id_contabilidad,
           c.fecha_pago_saldo, c.modalidad_recibo, c.nro_boleta_total, c.detraccion,
           c.igv, d.nombre AS cliente_nombre, d.nro_pasaporte, 
           o.nombre_servicio
-          FROM Datos_clientes d
+          FROM datos_clientes d
           LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
           LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones";
 

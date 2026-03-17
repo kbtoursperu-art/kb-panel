@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // =====================================================
         $check = mysqli_prepare($conexion, "
             SELECT id_cliente 
-            FROM Datos_clientes 
+            FROM datos_clientes 
             WHERE nro_pasaporte = ?
             LIMIT 1
         ");
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 🔹 INSERT DATOS_CLIENTES
         // =====================================================
         $stmtCliente = mysqli_prepare($conexion, "
-            INSERT INTO Datos_clientes
+            INSERT INTO datos_clientes
             (nombre, apellido, genero, nro_pasaporte, tipo_cliente)
             VALUES (?, ?, ?, ?, 'END')
         ");

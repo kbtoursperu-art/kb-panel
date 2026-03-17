@@ -10,7 +10,7 @@ $cliente = null;
 if ($id_cliente) {
     $sqlCliente = "
     SELECT d.*, e.empresa_endosadora, e.contacto, e.telefono_contacto, e.email_contacto, e.id_grupo
-    FROM Datos_clientes d
+    FROM datos_clientes d
     JOIN clientes_endosadores e ON d.id_cliente = e.id_cliente
     WHERE d.id_cliente = ?
     ";
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
     $id_grupo     = !empty($_POST['id_grupo']) ? intval($_POST['id_grupo']) : null;
 
     // Validar pasaporte duplicado
-    $v = $conexion->prepare("SELECT id_cliente FROM Datos_clientes WHERE nro_pasaporte=? AND id_cliente!=?");
+    $v = $conexion->prepare("SELECT id_cliente FROM datos_clientes WHERE nro_pasaporte=? AND id_cliente!=?");
     $v->bind_param("si", $pasaporte, $id_cliente);
     $v->execute();
     if ($v->get_result()->num_rows > 0) {
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
 
     // Actualizar Datos_clientes
     $u1 = $conexion->prepare("
-        UPDATE Datos_clientes
+        UPDATE datos_clientes
         SET nombre=?, apellido=?, genero=?, nro_pasaporte=?, nacionalidad=?
         WHERE id_cliente=?
     ");

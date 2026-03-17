@@ -64,10 +64,10 @@ SELECT
 
 FROM clientes_endosadores e
 
-JOIN Datos_clientes d 
+JOIN datos_clientes d 
     ON d.id_cliente = e.id_cliente
 
-LEFT JOIN Operaciones o
+LEFT JOIN operaciones o
     ON o.id_cliente = e.id_cliente
 
 WHERE e.id_grupo = $id_grupo

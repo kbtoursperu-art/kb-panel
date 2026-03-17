@@ -11,7 +11,7 @@ $id = (int)$_GET['id'];
 // 🔹 obtener cliente del tour
 $q = mysqli_query($conexion, "
 SELECT id_cliente
-FROM Operaciones
+FROM operaciones
 WHERE id_operaciones = $id
 ");
 
@@ -26,7 +26,7 @@ $id_cliente = $d['id_cliente'];
 // 🔹 ver si este tour tiene contabilidad
 $qConta = mysqli_query($conexion, "
 SELECT *
-FROM Contabilidad
+FROM contabilidad
 WHERE id_operaciones = $id
 ");
 
@@ -35,7 +35,7 @@ $tieneConta = mysqli_num_rows($qConta);
 
 // 🔹 eliminar tour
 mysqli_query($conexion, "
-DELETE FROM Operaciones
+DELETE FROM operaciones
 WHERE id_operaciones = $id
 ");
 
@@ -45,7 +45,7 @@ if ($tieneConta) {
 
     $qNext = mysqli_query($conexion, "
     SELECT id_operaciones
-    FROM Operaciones
+    FROM operaciones
     WHERE id_cliente = $id_cliente
     ORDER BY id_operaciones ASC
     LIMIT 1
@@ -57,7 +57,7 @@ if ($tieneConta) {
         $nuevo = $n['id_operaciones'];
 
         mysqli_query($conexion, "
-        UPDATE Contabilidad
+        UPDATE contabilidad
         SET id_operaciones = $nuevo
         WHERE id_operaciones = $id
         ");
@@ -67,7 +67,7 @@ if ($tieneConta) {
         // si ya no hay tours → borrar contabilidad
 
         mysqli_query($conexion, "
-        DELETE FROM Contabilidad
+        DELETE FROM contabilidad
         WHERE id_operaciones = $id
         ");
 

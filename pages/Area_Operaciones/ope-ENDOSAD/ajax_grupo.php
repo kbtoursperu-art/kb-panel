@@ -23,7 +23,7 @@ if($id_grupo > 0){
 
     FROM clientes_endosadores e
 
-    INNER JOIN Datos_clientes d 
+    INNER JOIN datos_clientes d 
         ON e.id_cliente = d.id_cliente
 
     LEFT JOIN operaciones o 
