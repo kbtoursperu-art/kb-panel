@@ -11,7 +11,7 @@ if ($_SERVER['HTTP_HOST'] === 'localhost') {
     $servidor = "localhost";
     $usuario = "u455910502_user_kb";
     $contrasena = "SystemKB2025"; // ❗ poner SOLO en Hostinger
-    $base_de_datos = "u455910502_bd_dgs";
+    $base_de_datos = "u455910502_kb_sistema";
 }
 
 // Conectar a la base de datos
