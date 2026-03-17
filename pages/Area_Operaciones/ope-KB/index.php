@@ -27,7 +27,7 @@ SELECT
 (
     SELECT CONCAT(dd.nombre,' ',dd.apellido)
     FROM clientes_kb kk
-    JOIN Datos_clientes dd ON dd.id_cliente = kk.id_cliente
+    JOIN datos_clientes dd ON dd.id_cliente = kk.id_cliente
     WHERE kk.id_grupo = g.id_grupo
     LIMIT 1
 ) AS primer_cliente,
@@ -74,10 +74,9 @@ MAX(c.detraccion) AS detraccion
 FROM grupos g
 
 JOIN clientes_kb k ON k.id_grupo = g.id_grupo
-JOIN Datos_clientes d ON d.id_cliente = k.id_cliente
-
-LEFT JOIN Operaciones o ON o.id_grupo = g.id_grupo
-LEFT JOIN Contabilidad c ON c.id_operaciones = o.id_operaciones
+JOIN datos_clientes d ON d.id_cliente = k.id_cliente
+LEFT JOIN operaciones o ON o.id_grupo = g.id_grupo
+LEFT JOIN contabilidad c ON c.id_operaciones = o.id_operaciones
 
 WHERE 1=1
 ";

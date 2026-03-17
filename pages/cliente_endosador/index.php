@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                 if ($nombre === '' || $pasaporte === '') continue;
 
                 // Validar pasaporte duplicado
-                $v = $conexion->prepare("SELECT id_cliente FROM Datos_clientes WHERE nro_pasaporte=?");
+                $v = $conexion->prepare("SELECT id_cliente FROM datos_clientes WHERE nro_pasaporte=?");
                 $v->bind_param("s", $pasaporte);
                 $v->execute();
                 $v->store_result();
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_excel'])) {
                 // INSERTAR CLIENTE
                 // ----------------------------
                 $c = $conexion->prepare("
-                    INSERT INTO Datos_clientes
+                    INSERT INTO datos_clientes
                     (nombre, apellido, genero, nro_pasaporte, tipo_cliente)
                     VALUES (?, ?, ?, ?, 'END')
                 ");
@@ -185,7 +185,7 @@ SELECT
     e.telefono_contacto,
     e.email_contacto,
     e.id_grupo
-FROM Datos_clientes d
+FROM datos_clientes d
 JOIN clientes_endosadores e ON d.id_cliente = e.id_cliente
 LEFT JOIN grupos g ON g.id_grupo = e.id_grupo
 WHERE d.tipo_cliente='END'
