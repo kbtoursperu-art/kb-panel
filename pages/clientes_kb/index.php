@@ -76,7 +76,7 @@ SELECT
     k.nro_whatsapp,
     k.id_grupo,
     g.nombre_grupo,
-    K.hotel,
+    k.hotel,
     COUNT(k.id_cliente) OVER (PARTITION BY k.id_grupo) AS pasajeros
 FROM clientes_kb k
 JOIN datos_clientes d ON d.id_cliente = k.id_cliente
