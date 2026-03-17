@@ -99,7 +99,7 @@ FROM grupos g
 INNER JOIN clientes_endosadores e
 ON g.id_grupo = e.id_grupo
 
-INNER JOIN Datos_clientes d
+INNER JOIN datos_clientes d
 ON e.id_cliente = d.id_cliente
 
 LEFT JOIN operaciones o
