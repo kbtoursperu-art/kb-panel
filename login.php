@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Buscar usuario en la base de datos
-    $sql = "SELECT ID, Usuario, Contraseña, Area, EsAdmin FROM Usuarios WHERE Usuario = ?";
+    $sql = "SELECT ID, Usuario, Contraseña, Area, EsAdmin FROM usuarios WHERE Usuario = ?";
     $stmt = $conexion->prepare($sql);
     $stmt->bind_param("s", $usuario_ingresado);
     $stmt->execute();
@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ) {
                 // Iniciar sesión
                 $_SESSION["ID"] = $id_usuario;
-                $_SESSION["Usuario"] = $nombre_usuario;
+                $_SESSION["usuarios"] = $nombre_usuario;
                 $_SESSION["Area"] = $area_usuario;
                 $_SESSION["EsAdmin"] = $es_admin;
 
