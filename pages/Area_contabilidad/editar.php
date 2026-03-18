@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observaciones = $_POST['observaciones'];
 
     $sql_update = "
-        UPDATE Contabilidad 
+        UPDATE contabilidad 
         SET 
             Nro_Comprobante_adicional = '$Nro_Comprobante_adicional',
             estado = '$estado',
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // También actualizamos observaciones en Operaciones
     $sql_obs = "
-        UPDATE Operaciones 
+        UPDATE operaciones 
         SET observaciones = '$observaciones'
         WHERE id_operaciones = (SELECT id_operaciones FROM Contabilidad WHERE id_contabilidad = $id)
     ";
@@ -87,9 +87,9 @@ d.nombre,
 d.apellido,
 g.nombre_grupo
 
-FROM Contabilidad c
+FROM contabilidad c
 
-INNER JOIN Operaciones o 
+INNER JOIN operaciones o 
     ON o.id_operaciones = c.id_operaciones
 
 LEFT JOIN datos_clientes d 

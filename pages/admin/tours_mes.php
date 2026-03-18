@@ -13,8 +13,8 @@ $tour = $_GET['tour'] ?? '';
 // Construcción dinámica de la consulta
 $query = "
 SELECT MONTH(o.fecha_reserva) as mes, COUNT(*) as total
-FROM Operaciones o
-JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+FROM operaciones o
+JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 WHERE YEAR(o.fecha_reserva) = ?";
 $params = [$year];
 $types = "i";

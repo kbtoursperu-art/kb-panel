@@ -13,9 +13,9 @@ SELECT
     c.pagado_a_cuenta,
     c.metodo_pago,
     CONCAT(d.nombre,' ',d.apellido) AS cliente
-FROM Contabilidad c
-LEFT JOIN Operaciones o ON o.id_operaciones = c.id_operaciones
-LEFT JOIN Datos_clientes d ON d.id_cliente = o.id_cliente
+FROM contabilidad c
+LEFT JOIN operaciones o ON o.id_operaciones = c.id_operaciones
+LEFT JOIN datos_clientes d ON d.id_cliente = o.id_cliente
 WHERE c.saldo_pendiente > 0
 ORDER BY c.fecha_pago_saldo ASC
 ";

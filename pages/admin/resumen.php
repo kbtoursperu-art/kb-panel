@@ -35,7 +35,7 @@ if ($res) $metrics['tours_programados'] = mysqli_fetch_assoc($res)['total'];
 
 /* 🔹 Nuevos clientes (30 días) */
 /* 🔹 Nuevos clientes (30 días) */
-$sql = "SELECT COUNT(*) AS total FROM Datos_clientes WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+$sql = "SELECT COUNT(*) AS total FROM datos_clientes WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
 $res = mysqli_query($conexion, $sql);
 if ($res) $metrics['nuevos_clientes'] = mysqli_fetch_assoc($res)['total'];
 
@@ -89,7 +89,8 @@ $metrics['balance_mes'] = $metrics['ingresos_mes'] - $metrics['gastos_mes'];
    Próximos Tours
 ========================= */
 $sql = "SELECT nombre_servicio, fecha_salida FROM operaciones WHERE fecha_salida >= CURDATE() ORDER BY fecha_salida ASC LIMIT 5";
-$eventos = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
+$res = mysqli_query($conexion, $sql);
+$eventos = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
 
 /* =========================
    Notificaciones
@@ -105,8 +106,8 @@ SELECT
     ROUND(AVG(IFNULL(c.precio_servicio,0)),2) AS precio_promedio
 FROM operaciones o
 LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
-LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-WHERE d.fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+LEFT JOIN datos_clientes d ON o.id_cliente = d.id_cliente
+WHERE o.fecha_salida >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
 GROUP BY mes, o.nombre_servicio
 ORDER BY mes ASC
 ";

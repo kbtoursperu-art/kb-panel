@@ -26,9 +26,9 @@ SELECT
     c.tipo_moneda_saldo,
     IFNULL(c.monto_pago_saldo,0) AS pagado_saldo
 
-FROM Contabilidad c
-LEFT JOIN Operaciones o ON o.id_operaciones = c.id_operaciones
-LEFT JOIN Datos_clientes d ON d.id_cliente = o.id_cliente
+FROM contabilidad c
+LEFT JOIN operaciones o ON o.id_operaciones = c.id_operaciones
+LEFT JOIN datos_clientes d ON d.id_cliente = o.id_cliente
 WHERE DATE(c.fecha_pago_saldo) = '$hoy'
 ORDER BY c.fecha_pago_saldo DESC
 ";

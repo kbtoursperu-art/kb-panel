@@ -18,7 +18,7 @@ $id_cliente = (int) $_POST['id_cliente'];
 */
 
 // 1️⃣ Eliminar relación endosador
-mysqli_query($conexion, "DELETE FROM Clientes_Endosadores WHERE id_cliente = $id_cliente");
+mysqli_query($conexion, "DELETE FROM clientes_endosadores WHERE id_cliente = $id_cliente");
 
 // 2️⃣ Eliminar cliente
 $delete = mysqli_query($conexion, "DELETE FROM datos_clientes WHERE id_cliente = $id_cliente");

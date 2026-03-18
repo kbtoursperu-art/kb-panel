@@ -8,8 +8,8 @@ $offset = ($pagina_actual - 1) * $registros_por_pagina;
 
 // Consulta total de registros con filtro
 $total_query = "SELECT COUNT(*) AS total FROM datos_clientes d
-                LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
-                LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones";
+                LEFT JOIN operaciones o ON d.id_cliente = o.id_cliente
+                LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones";
                 
 if ($search_term) {
     $total_query .= " WHERE LOWER(d.nombre) LIKE LOWER(?) 
@@ -35,8 +35,8 @@ $query = "SELECT d.id_cliente, o.id_operaciones, c.id_contabilidad,
           c.igv, d.nombre AS cliente_nombre, d.nro_pasaporte, 
           o.nombre_servicio
           FROM datos_clientes d
-          LEFT JOIN Operaciones o ON d.id_cliente = o.id_cliente
-          LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones";
+          LEFT JOIN operaciones o ON d.id_cliente = o.id_cliente
+          LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones";
 
 if ($search_term) {
     $query .= " WHERE LOWER(d.nombre) LIKE LOWER(?) 

@@ -21,8 +21,8 @@ SELECT
     o.fecha_retorno,
     o.empresa,
     o.Encargado
-FROM Operaciones o
-INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+FROM operaciones o
+INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 WHERE o.fecha_salida >= CURDATE()
 ORDER BY o.fecha_salida ASC
 ";

@@ -16,7 +16,7 @@ try {
         o.nombre_servicio,
         o.fecha_salida,
         o.fecha_retorno
-    FROM Operaciones o
+    FROM operaciones o
     INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
     WHERE o.fecha_salida IS NOT NULL
       AND o.fecha_salida >= CURDATE()

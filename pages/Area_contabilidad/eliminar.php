@@ -8,7 +8,7 @@ if (!$id_contabilidad) {
 }
 
 // Verificar si el registro existe antes de eliminarlo
-$query_check = "SELECT id_contabilidad FROM Contabilidad WHERE id_contabilidad = ?";
+$query_check = "SELECT id_contabilidad FROM contabilidad WHERE id_contabilidad = ?";
 $stmt = mysqli_prepare($conexion, $query_check);
 mysqli_stmt_bind_param($stmt, "i", $id_contabilidad);
 mysqli_stmt_execute($stmt);
@@ -22,7 +22,7 @@ if (mysqli_num_rows($resultado) == 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar']))
 {
 
-    $query_delete = "DELETE FROM Contabilidad WHERE id_contabilidad = ?";
+    $query_delete = "DELETE FROM contabilidad WHERE id_contabilidad = ?";
     $stmt = mysqli_prepare($conexion, $query_delete);
     mysqli_stmt_bind_param($stmt, "i", $id_contabilidad);
 

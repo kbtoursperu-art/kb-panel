@@ -18,7 +18,7 @@ SELECT
     nro_pasaporte,
     nacionalidad,
     fecha_registro
-FROM Datos_clientes
+FROM datos_clientes
 WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 ORDER BY fecha_registro DESC
 ";

@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $detraccion = $_POST['detraccion'];
     $igv = $_POST['igv'];
 
-    $insert_query = "INSERT INTO Contabilidad (id_operaciones, metodo_pago, modalidad_pago, comision, precio_servicio, pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, estado, modalidad_recibo, nro_boleta_cuenta, nro_boleta_total, detraccion, igv) 
+    $insert_query = "INSERT INTO contabilidad (id_operaciones, metodo_pago, modalidad_pago, comision, precio_servicio, pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, estado, modalidad_recibo, nro_boleta_cuenta, nro_boleta_total, detraccion, igv) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?)";
     $stmt_insert = mysqli_prepare($conexion, $insert_query);
     mysqli_stmt_bind_param($stmt_insert, "isssssissssiii", $id_operaciones, $metodo_pago, $modalidad_pago, $comision, $precio_servicio, $pagado_a_cuenta, $saldo_pendiente, $fecha_pago_saldo, $estado, $modalidad_recibo, $nro_boleta_cuenta, $nro_boleta_total, $detraccion, $igv);

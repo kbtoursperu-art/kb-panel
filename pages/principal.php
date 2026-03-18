@@ -7,34 +7,34 @@ include 'sidebar.php';
 // ========================
 
 // Total de clientes KB y Endosadores
-$totalKB = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM Datos_clientes WHERE tipo_cliente = 'KB'"))['total'];
-$totalEndos = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM Datos_clientes WHERE tipo_cliente = 'Endosador'"))['total'];
+$totalKB = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM datos_clientes WHERE tipo_cliente = 'KB'"))['total'];
+$totalEndos = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM datos_clientes WHERE tipo_cliente = 'Endosador'"))['total'];
 
 // Operaciones registradas
-$totalOperaciones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM Operaciones"))['total'];
+$totalOperaciones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS total FROM operaciones"))['total'];
 
 // Tours que salen hoy
 $hoy = date('Y-m-d');
 $toursHoy = mysqli_query($conexion, "
     SELECT o.nombre_servicio, d.nombre, d.apellido, o.observaciones, o.empresa, o.Encargado 
-    FROM Operaciones o
-    JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+    FROM operaciones o
+    JOIN datos_clientes d ON o.id_cliente = d.id_cliente
     WHERE o.fecha_salida = '$hoy'
 ");
 
 // Tours próximos (en 3 días)
 $toursProximos = mysqli_query($conexion, "
     SELECT o.nombre_servicio, o.fecha_salida, d.nombre, d.apellido, o.Encargado 
-    FROM Operaciones o
-    JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+    FROM operaciones o
+    JOIN datos_clientes d ON o.id_cliente = d.id_cliente
     WHERE o.fecha_salida BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
 ");
 
 // Observaciones recientes
 $observaciones = mysqli_query($conexion, "
     SELECT o.nombre_servicio, o.observaciones, o.fecha_reserva, o.Encargado, d.nombre, d.apellido
-    FROM Operaciones o
-    JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+    FROM operaciones o
+    JOIN datos_clientes d ON o.id_cliente = d.id_cliente
     WHERE o.observaciones IS NOT NULL AND o.observaciones <> ''
     ORDER BY o.fecha_reserva DESC
     LIMIT 5

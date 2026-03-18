@@ -38,9 +38,9 @@ SELECT
     c.Nro_Comprobante_adicional,
     c.detraccion,
     c.NotaCredito
-FROM Contabilidad c
-LEFT JOIN Operaciones o ON c.id_operaciones = o.id_operaciones
-LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+FROM contabilidad c
+LEFT JOIN operaciones o ON c.id_operaciones = o.id_operaciones
+LEFT JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 WHERE c.id_contabilidad = $id_conta
 ";
 

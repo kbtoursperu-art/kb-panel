@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
     mysqli_stmt_execute($stmt1);
 
     /* ---- UPDATE CLIENTES_KB ---- */
-    $sql2 = "UPDATE Clientes_KB 
+    $sql2 = "UPDATE clientes_kb
              SET fecha_nacimiento=?, nro_whatsapp=?, id_grupo=?, foto_pasaporte=? 
              WHERE id_cliente=?";
     $stmt2 = mysqli_prepare($conexion, $sql2);
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
 
     $ocup = mysqli_fetch_assoc(mysqli_query(
         $conexion,
-        "SELECT COUNT(*) total FROM Clientes_KB WHERE id_grupo=$id_grupo"
+        "SELECT COUNT(*) total FROM clientes_kb WHERE id_grupo=$id_grupo"
     ))['total'];
 
     if ($ocup >= $cap) {
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
     $id_cliente_nuevo = mysqli_insert_id($conexion);
 
     mysqli_query($conexion, "
-        INSERT INTO Clientes_KB 
+        INSERT INTO clientes_kb 
         (id_cliente, id_grupo, fecha_nacimiento, nro_whatsapp)
         VALUES 
         ($id_cliente_nuevo, $id_grupo, '$fecha', '$whatsapp')
@@ -199,7 +199,7 @@ SELECT
     k.fecha_nacimiento,
     k.nro_whatsapp
 FROM datos_clientes d
-JOIN Clientes_KB k ON d.id_cliente = k.id_cliente
+JOIN clientes_kb k ON d.id_cliente = k.id_cliente
 WHERE k.id_grupo = ?
 ORDER BY d.apellido, d.nombre
 ";

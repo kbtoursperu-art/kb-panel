@@ -28,9 +28,9 @@ SELECT
     c.estado,
     c.tipo_moneda,
     c.fecha_pago_saldo
-FROM Contabilidad c
-INNER JOIN Operaciones o ON c.id_operaciones = o.id_operaciones
-INNER JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
+FROM contabilidad c
+INNER JOIN operaciones o ON c.id_operaciones = o.id_operaciones
+INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
 WHERE MONTH(c.fecha_pago_saldo) = ?
   AND YEAR(c.fecha_pago_saldo) = ?
 ORDER BY c.fecha_pago_saldo DESC
