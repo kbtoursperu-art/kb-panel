@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Clientes_KB
         $stmtKB = mysqli_prepare($conexion, "
-            INSERT INTO Clientes_KB
+            INSERT INTO clientes_KB
             (id_cliente, fecha_nacimiento, foto_pasaporte, nro_whatsapp, id_grupo, hotel)
             VALUES (?, ?, ?, ?, ?, ?)
         ");
