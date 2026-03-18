@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ) {
                 // Iniciar sesión
                 $_SESSION["ID"] = $id_usuario;
-                $_SESSION["usuarios"] = $nombre_usuario;
+                $_SESSION["Usuario"] = $nombre_usuario;
                 $_SESSION["Area"] = $area_usuario;
                 $_SESSION["EsAdmin"] = $es_admin;
 
@@ -225,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function showErrorModal(message) {
             document.getElementById("errorMessage").innerText = message;
             document.getElementById("errorModal").style.display = "block";
-        }cxd
+        }
 
         document.querySelector(".error-close").onclick = function () {
             document.getElementById("errorModal").style.display = "none";
