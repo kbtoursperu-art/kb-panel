@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql_obs = "
         UPDATE operaciones 
         SET observaciones = '$observaciones'
-        WHERE id_operaciones = (SELECT id_operaciones FROM Contabilidad WHERE id_contabilidad = $id)
+        WHERE id_operaciones = (SELECT id_operaciones FROM contabilidad WHERE id_contabilidad = $id)
     ";
 
     mysqli_query($conexion, $sql_obs);

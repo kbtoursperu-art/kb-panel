@@ -83,7 +83,7 @@ if ($saldo_adicional < 0) {
         $encargado     = $_POST['encargado'][$i];
 
 
-        $sqlOp = "INSERT INTO Operaciones
+        $sqlOp = "INSERT INTO operaciones
         (
             id_cliente,
             nombre_servicio,
@@ -129,7 +129,7 @@ if (!isset($id_operaciones)) {
     // INSERTAR CONTABILIDAD (1 sola vez)
     // =========================
 
-    $sqlCont = "INSERT INTO Contabilidad
+    $sqlCont = "INSERT INTO contabilidad
 (
     id_operaciones,
     metodo_pago,

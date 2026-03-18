@@ -64,7 +64,7 @@ $servicio_adicional = implode(", ", $servicios);
         $saldo_adicional  = floatval($_POST['saldo_ingreso'][$i] ?? 0);
 
         // 🔹 INSERT OPERACIONES
-        $queryOp = "INSERT INTO Operaciones (
+        $queryOp = "INSERT INTO operaciones (
             id_cliente, id_grupo, fecha_reserva, nombre_servicio, fecha_salida, fecha_retorno, modalidad_retorno, incluye_ingreso, servicio_adicional,
             observaciones, Encargado
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -85,7 +85,7 @@ $precio_servicio = floatval($_POST['precio_servicio'][$i]);
 $pagado_a_cuenta = floatval($_POST['pagado_a_cuenta'][$i]);
 $saldo_pendiente = floatval($_POST['saldo_pendiente'][$i]);
 
-$queryCont = "INSERT INTO Contabilidad (
+$queryCont = "INSERT INTO contabilidad (
 id_operaciones,
 id_grupo,
 

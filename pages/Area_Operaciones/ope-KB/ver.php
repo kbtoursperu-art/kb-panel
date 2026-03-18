@@ -52,8 +52,8 @@ SELECT
     c.saldo_pendiente
 FROM clientes_kb k
 JOIN Datos_clientes d ON d.id_cliente = k.id_cliente
-LEFT JOIN Operaciones o ON o.id_cliente = k.id_cliente
-LEFT JOIN Contabilidad c ON c.id_operaciones = o.id_operaciones
+LEFT JOIN operaciones o ON o.id_cliente = k.id_cliente
+LEFT JOIN contabilidad c ON c.id_operaciones = o.id_operaciones
 WHERE k.id_grupo = $id_grupo
 ORDER BY d.nombre ASC
 ";

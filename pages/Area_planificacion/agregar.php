@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $grupo_operativo = mysqli_real_escape_string($conexion, $_POST['grupo_operativo'] ?? ''); 
 
     $insert = "
-INSERT INTO Planificacion (
+INSERT INTO planificacion (
     id_grupo,
     grupo_operativo,
     nombre_guia,

@@ -33,9 +33,9 @@ SELECT
     c.monto_pago_saldo,
     c.fecha_pago_saldo
 
-FROM Operaciones o
+FROM operaciones o
 INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
+LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
 WHERE o.id_operaciones = $id_operaciones
 ";
 
@@ -51,7 +51,7 @@ $id_cliente = $operacion['id_cliente'];
 // 🔹 OBTENER TOURS DEL CLIENTE
 $tours_sql = "
     SELECT id_operaciones, nombre_servicio, fecha_salida, fecha_retorno
-    FROM Operaciones
+    FROM operaciones
     WHERE id_cliente = $id_cliente
     ORDER BY fecha_salida DESC
 ";
@@ -116,7 +116,7 @@ if ($saldo_adicional < 0) $saldo_adicional = 0;
     // 2️⃣ ACTUALIZAR OPERACIONES
     // ==========================
     mysqli_query($conexion, "
-        UPDATE Operaciones SET
+        UPDATE operaciones SET
             nombre_servicio='$nombre_servicio',
             fecha_reserva='$fecha_reserva',
             fecha_salida='$fecha_salida',
@@ -133,7 +133,7 @@ if ($saldo_adicional < 0) $saldo_adicional = 0;
     // 3️⃣ ACTUALIZAR CONTABILIDAD
     // ==========================
     mysqli_query($conexion, "
-        UPDATE Contabilidad SET
+        UPDATE contabilidad SET
             metodo_pago='$metodo_pago',
             tipo_moneda='$tipo_moneda',
             precio_servicio='$precio_servicio',
@@ -197,7 +197,7 @@ if (isset($_POST['monto_pago_saldo']) && $_POST['monto_pago_saldo'] != '') {
     }
 
     mysqli_query($conexion, "
-        UPDATE Contabilidad SET
+        UPDATE contabilidad SET
             monto_pago_saldo = '$monto_pago',
             metodo_pago_saldo = '$metodo_pago_saldo',
             tipo_moneda_saldo = '$tipo_moneda_saldo',

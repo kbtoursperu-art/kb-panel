@@ -30,7 +30,7 @@ FROM clientes_kb k
 JOIN Datos_clientes d 
     ON d.id_cliente = k.id_cliente
 
-LEFT JOIN Operaciones o
+LEFT JOIN operaciones o
     ON o.id_cliente = k.id_cliente
 
 WHERE k.id_grupo = $id_grupo

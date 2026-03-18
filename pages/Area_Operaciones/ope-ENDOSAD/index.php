@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo_excel'])) {
                 $precio = trim($fila['F'] ?? 0);
 
                 if (!empty($cliente)) {
-                    $sql = "INSERT INTO Operaciones (nombre_servicio, fecha_reserva, Encargado) 
+                    $sql = "INSERT INTO operaciones (nombre_servicio, fecha_reserva, Encargado) 
                             VALUES ('$servicio', '$fecha', '$encargado')";
                     mysqli_query($conexion, $sql);
                     $total++;
