@@ -1,591 +1,974 @@
 <?php
+ob_start();
 include '../../../conexion.php';
-include '../../sidebar.php';
 
-// =======================
-// 🔹 OBTENER DATOS EXISTENTES
-// =======================
-$id_operaciones = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id_operaciones <= 0) {
-    echo "<script>alert('ID de operación no válido'); window.location='index.php';</script>";
-    exit;
+if (!isset($_GET['id'])) {
+    die("Falta ID");
 }
 
-$query = "
-SELECT 
-    o.*, 
-    CONCAT(d.nombre, ' ', d.apellido) AS cliente_nombre,
+$id_operacion = (int)$_GET['id'];
 
-    c.metodo_pago,
-    c.tipo_moneda,
-    c.precio_servicio,
-    c.pagado_a_cuenta,
-    c.saldo_pendiente,
 
-    c.precio_servicio_adicional,
-    c.pagado_adicional,
-    c.saldo_adicional,
-    c.tipo_moneda_adicional,
-    c.metodo_pago_adicional,
+// =========================
+// OBTENER OPERACION
+// =========================
 
-    c.metodo_pago_saldo,
-    c.tipo_moneda_saldo,
-    c.monto_pago_saldo,
-    c.fecha_pago_saldo
+$qOp = mysqli_query($conexion,"
+SELECT *
+FROM operaciones
+WHERE id_operaciones = $id_operacion
+");
 
-FROM operaciones o
-INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
-WHERE o.id_operaciones = $id_operaciones
-";
+$op = mysqli_fetch_assoc($qOp);
 
-$resultado = mysqli_query($conexion, $query);
-if (!$resultado || mysqli_num_rows($resultado) === 0) {
-    echo "<script>alert('Operación no encontrada'); window.location='index.php';</script>";
-    exit;
+
+// =========================
+// TOURS
+// =========================
+
+$qTours = mysqli_query($conexion,"
+SELECT *
+FROM operaciones_detalle
+WHERE id_operaciones = $id_operacion
+");
+
+
+// =========================
+// CONTABILIDAD
+// =========================
+
+$qCont = mysqli_query($conexion,"
+SELECT *
+FROM contabilidad
+WHERE id_operaciones = $id_operacion
+");
+
+$cont = mysqli_fetch_assoc($qCont);
+if(!$cont){
+
+$cont = [
+    'precio_servicio'=>0,
+    'pagado_a_cuenta'=>0,
+    'saldo_pendiente'=>0,
+    'metodo_pago'=>'',
+    'tipo_moneda'=>'',
+    'precio_servicio_adicional'=>0,
+    'pagado_adicional'=>0,
+    'saldo_adicional'=>0,
+    'comision'=>0,
+    'fecha_pago_saldo'=>null
+];
+
 }
-$operacion = mysqli_fetch_assoc($resultado);
-// 🔹 ID DEL CLIENTE
-$id_cliente = $operacion['id_cliente'];
+// =========================
+// ADICIONAL
+// =========================
 
-// 🔹 OBTENER TOURS DEL CLIENTE
-$tours_sql = "
-    SELECT id_operaciones, nombre_servicio, fecha_salida, fecha_retorno
-    FROM operaciones
-    WHERE id_cliente = $id_cliente
-    ORDER BY fecha_salida DESC
-";
-$tours_res = mysqli_query($conexion, $tours_sql);
+$qPagos = mysqli_query($conexion,"
+SELECT *
+FROM pagos_operacion
+WHERE id_operaciones = $id_operacion
+ORDER BY id_pago ASC
+");
 
 
+// =================================================
+// GUARDAR EDITAR
+// =================================================
 
-// Decodificar servicios adicionales múltiples
-$servicios_seleccionados = [];
+if($_SERVER["REQUEST_METHOD"]=="POST"){
 
-if (!empty($operacion['servicio_adicional'])) {
-    $servicios_seleccionados = explode(', ', $operacion['servicio_adicional']);
+$id = $_POST['id_operacion'];
+
+$fecha_reserva = $_POST['fecha_reserva'][0];
+$obs = $_POST['observaciones'][0];
+$encargado = $_POST['Encargado'][0];
+
+$total = $_POST['total_operacion'][0];
+
+$pagado = $cont['pagado_a_cuenta'] ?? 0;
+$saldo  = $cont['saldo_pendiente'] ?? 0;
+
+// =========================
+// UPDATE OPERACIONES
+// =========================
+
+mysqli_query($conexion,"
+UPDATE operaciones SET
+
+fecha_reserva='$fecha_reserva',
+observaciones='$obs',
+Encargado='$encargado',
+total_operacion='$total'
+
+WHERE id_operaciones=$id
+");
+
+
+// =========================
+// BORRAR DETALLE
+// =========================
+
+mysqli_query($conexion,"
+DELETE FROM operaciones_detalle
+WHERE id_operaciones=$id
+");
+// =========================
+// BORRAR TODOS LOS PAGOS
+// =========================
+
+mysqli_query($conexion,"
+DELETE FROM pagos_operacion
+WHERE id_operaciones=$id
+");
+
+// =========================
+// GUARDAR TOURS
+// =========================
+
+if (isset($_POST['nombre_servicio'])) {
+
+foreach ($_POST['nombre_servicio'] as $i => $servicio) {
+
+if ($servicio == '') continue;
+
+$precio = $_POST['precio_tour'][$i] ?? 0;
+$salida = $_POST['fecha_salida'][$i] ?? null;
+$retorno = $_POST['fecha_retorno'][$i] ?? null;
+$modalidad = $_POST['modalidad_retorno'][$i] ?? '';
+
+$ingreso =
+isset($_POST['incluye_ingreso'][$i])
+? "Con ingreso"
+: "Sin ingreso";
+
+
+$adicional = "";
+
+if (isset($_POST['servicio_adicional'][$i])) {
+
+$adicional =
+implode(", ", $_POST['servicio_adicional'][$i]);
+
 }
 
-// =======================
-// 🔹 GUARDAR CAMBIOS
-// =======================
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-// ==========================
-// 1️⃣ DATOS PRINCIPALES
-// ==========================
-$nombre_servicio = mysqli_real_escape_string($conexion, $_POST['nombre_servicio'] ?? '');
-$fecha_reserva = $_POST['fecha_reserva'] ?? '';
-$fecha_salida = $_POST['fecha_salida'] ?? '';
-$fecha_retorno = $_POST['fecha_retorno'] ?? '';
-$incluye_ingreso = isset($_POST['incluye_ingreso']) ? 'Con ingreso' : 'Sin ingreso';
-$modalidad_retorno = mysqli_real_escape_string($conexion, $_POST['modalidad_retorno'] ?? '');
-$servicio_adicional = mysqli_real_escape_string($conexion, implode(', ', $_POST['servicio_adicional'] ?? []));
-$observaciones = mysqli_real_escape_string($conexion, $_POST['observaciones'] ?? '');
-$encargado = mysqli_real_escape_string($conexion, $_POST['encargado'] ?? '');
 
-// ==========================
-// 2️⃣ DATOS DE CONTABILIDAD
-// ==========================
-$metodo_pago = mysqli_real_escape_string($conexion, $_POST['metodo_pago'] ?? '');
-$tipo_moneda = mysqli_real_escape_string($conexion, $_POST['tipo_moneda'] ?? '');
+mysqli_query($conexion,"
+INSERT INTO operaciones_detalle
+(
+id_operaciones,
+nombre_servicio,
+precio,
+fecha_salida,
+fecha_retorno,
+modalidad_retorno,
+incluye_ingreso,
+servicio_adicional
+)
+VALUES
+(
+$id,
+'$servicio',
+'$precio',
+'$salida',
+'$retorno',
+'$modalidad',
+'$ingreso',
+'$adicional'
+)
+");
 
-// Servicio Principal
-$precio_servicio = floatval($_POST['precio_servicio'] ?? 0);
-$pagado_a_cuenta = floatval($_POST['pagado_a_cuenta'] ?? 0);
-$saldo_pendiente = max(0, $precio_servicio - $pagado_a_cuenta);
+}
 
-// Servicio Adicional
-$precio_adicional = floatval($_POST['precio_servicio_adicional'] ?? 0);
-$pagado_adicional = floatval($_POST['pagado_adicional'] ?? 0);
-$saldo_adicional = max(0, $precio_adicional - $pagado_adicional);
-$tipo_moneda_adicional = mysqli_real_escape_string($conexion, $_POST['tipo_moneda_adicional'] ?? '');
-$metodo_pago_adicional =mysqli_real_escape_string($conexion,$_POST['metodo_pago_adicional'] ?? '');
+}
+// =========================
+// GUARDAR PAGOS MULTIPLES
+// =========================
 
-// Pago de saldo (si existe)
-$monto_pago_saldo = floatval($_POST['monto_pago_saldo'] ?? 0);
-$tipo_cambio_saldo = floatval($_POST['tipo_cambio_saldo'] ?? 1);
-$metodo_pago_saldo = mysqli_real_escape_string($conexion, $_POST['metodo_pago_saldo'] ?? '');
-$tipo_moneda_saldo = mysqli_real_escape_string($conexion, $_POST['tipo_moneda_saldo'] ?? '');
-$fecha_pago_saldo  = $_POST['fecha_pago_saldo'] ?? '';
+if (isset($_POST['monto_multi']) && is_array($_POST['monto_multi'])) {
 
-if ($saldo_adicional < 0) $saldo_adicional = 0;
+    foreach ($_POST['monto_multi'] as $i => $monto) {
 
-    if ($saldo_pendiente < 0) $saldo_pendiente = 0;
+        if (trim($monto) == '') continue;
 
-    // ==========================
-    // 2️⃣ ACTUALIZAR OPERACIONES
-    // ==========================
-    mysqli_query($conexion, "
-        UPDATE operaciones SET
-            nombre_servicio='$nombre_servicio',
-            fecha_reserva='$fecha_reserva',
-            fecha_salida='$fecha_salida',
-            fecha_retorno='$fecha_retorno',
-            incluye_ingreso='$incluye_ingreso',
-            modalidad_retorno='$modalidad_retorno',
-            servicio_adicional='$servicio_adicional',
-            observaciones='$observaciones',
-            Encargado='$encargado'
-        WHERE id_operaciones=$id_operaciones
-    ");
+       $tipo = $_POST['tipo_pago'][$i] ?? 'cuenta';
+        $metodo = $_POST['metodo_pago_multi'][$i] ?? '';
+        $moneda = $_POST['moneda_multi'][$i] ?? '';
+        $fecha  = $_POST['fecha_multi'][$i] ?? null;
 
-    // ==========================
-    // 3️⃣ ACTUALIZAR CONTABILIDAD
-    // ==========================
-    mysqli_query($conexion, "
-        UPDATE contabilidad SET
-            metodo_pago='$metodo_pago',
-            tipo_moneda='$tipo_moneda',
-            precio_servicio='$precio_servicio',
-            pagado_a_cuenta='$pagado_a_cuenta',
-            saldo_pendiente='$saldo_pendiente',
-
-            precio_servicio_adicional='$precio_adicional',
-            pagado_adicional='$pagado_adicional',
-            saldo_adicional='$saldo_adicional',
-            tipo_moneda_adicional='$tipo_moneda_adicional',
-            metodo_pago_adicional='$metodo_pago_adicional'
-        WHERE id_operaciones=$id_operaciones
-    ");
-
-
-    // ==========================
-// 4️⃣ PAGO DE SALDO (CORRECTO)
-// ==========================
-
-if (isset($_POST['monto_pago_saldo']) && $_POST['monto_pago_saldo'] != '') {
-
-    $monto_pago = floatval($_POST['monto_pago_saldo']);
-    $tipo_cambio_saldo = floatval($_POST['tipo_cambio_saldo']);
-
-    $metodo_pago_saldo = $_POST['metodo_pago_saldo'];
-    $tipo_moneda_saldo = $_POST['tipo_moneda_saldo'];
-    $fecha_pago_saldo  = $_POST['fecha_pago_saldo'];
-
-    $precio_total = floatval($precio_servicio);
-    $pagado_actual = floatval($pagado_a_cuenta);
-
-    $monto_convertido = $monto_pago;
-
-    // convertir si moneda distinta
-    if ($tipo_moneda != $tipo_moneda_saldo && $tipo_cambio_saldo > 0) {
-
-        if ($tipo_moneda == "Soles" && $tipo_moneda_saldo == "Dólares") {
-
-            $monto_convertido = $monto_pago * $tipo_cambio_saldo;
-
-        } elseif ($tipo_moneda == "Dólares" && $tipo_moneda_saldo == "Soles") {
-
-            $monto_convertido = $monto_pago / $tipo_cambio_saldo;
-
-        }
+        mysqli_query($conexion,"
+        INSERT INTO pagos_operacion
+        (
+        id_operaciones,
+        tipo_pago,
+        metodo_pago,
+        tipo_moneda,
+        monto,
+        fecha_pago
+        )
+        VALUES
+        (
+        $id,
+        '$tipo',
+        '$metodo',
+        '$moneda',
+        '$monto',
+        '$fecha'
+        )
+        ");
 
     }
 
-    // nuevo pagado
-    $pagado_total = $pagado_actual + $monto_convertido;
-
-    // nuevo saldo
-    $nuevo_saldo = $precio_total - $pagado_total;
-
-    // si se completa, ajustar exacto
-    if ($nuevo_saldo <= 0.01) {
-
-        $pagado_total = $precio_total;
-        $nuevo_saldo = 0;
-
-    }
-
-    mysqli_query($conexion, "
-        UPDATE contabilidad SET
-            monto_pago_saldo = '$monto_pago',
-            metodo_pago_saldo = '$metodo_pago_saldo',
-            tipo_moneda_saldo = '$tipo_moneda_saldo',
-            tipo_cambio_saldo = '$tipo_cambio_saldo',
-            monto_convertido_saldo = '$monto_convertido',
-            pagado_a_cuenta = '$pagado_total',
-            saldo_pendiente = '$nuevo_saldo',
-            fecha_pago_saldo = '$fecha_pago_saldo'
-        WHERE id_operaciones = $id_operaciones
-    ");
 }
+// =========================
+// SUMAR ADICIONAL
+// =========================
 
-    echo "<script>alert('✅ Operación actualizada correctamente'); window.location='index.php';</script>";
-    exit;
+$qAd = mysqli_query($conexion,"
+SELECT SUM(monto) as total_adicional
+FROM pagos_operacion
+WHERE id_operaciones = $id
+AND tipo_pago = 'adicional'
+");
+
+$rowAd = mysqli_fetch_assoc($qAd);
+
+$pagadoAd = $rowAd['total_adicional'] ?? 0;
+// =========================
+// PAGAR SALDO (SOLO CONTABILIDAD)
+// =========================
+
+if (isset($_POST['pagar_saldo']) && $_POST['pagar_saldo']!='') {
+
+$montoSaldo = floatval($_POST['pagar_saldo']);
+
+$saldo -= $montoSaldo;
+$pagado += $montoSaldo;
+
+$metodoSaldo = $_POST['metodo_saldo'] ?? '';
+$monedaSaldo = $_POST['moneda_saldo'] ?? '';
+$fechaSaldo  = $_POST['fecha_pago_saldo'] ?? null;
+
+
+// ✅ guardar en pagos_operacion
+
+mysqli_query($conexion,"
+INSERT INTO pagos_operacion
+(
+id_operaciones,
+tipo_pago,
+metodo_pago,
+tipo_moneda,
+monto,
+fecha_pago
+)
+VALUES
+(
+$id,
+'saldo',
+'$metodoSaldo',
+'$monedaSaldo',
+'$montoSaldo',
+'$fechaSaldo'
+)
+");
+
+}
+// =========================
+// UPDATE / INSERT CONTABILIDAD
+// =========================
+
+$metodo = $_POST['metodo_pago'] ?? '';
+$moneda = $_POST['tipo_moneda'] ?? '';
+
+$fechaSaldo = $_POST['fecha_pago_saldo'] ?? null;
+$comision = $_POST['comision'] ?? 0;
+
+$metodoAd = $_POST['metodo_pago_adicional'] ?? '';
+$monedaAd = $_POST['tipo_moneda_adicional'] ?? '';
+
+$precioAd = $cont['precio_servicio_adicional'] ?? 0;
+$saldoAd  = $cont['saldo_adicional'] ?? 0;
+
+
+// 🔹 verificar si existe contabilidad
+$qExiste = mysqli_query($conexion,"
+SELECT id_contabilidad
+FROM contabilidad
+WHERE id_operaciones=$id
+");
+
+if(mysqli_num_rows($qExiste)==0){
+
+// 🔹 INSERT
+
+mysqli_query($conexion,"
+INSERT INTO contabilidad
+(
+id_operaciones,
+metodo_pago,
+tipo_moneda,
+precio_servicio,
+pagado_a_cuenta,
+saldo_pendiente,
+metodo_pago_adicional,
+tipo_moneda_adicional,
+precio_servicio_adicional,
+pagado_adicional,
+saldo_adicional,
+comision,
+fecha_pago_saldo
+)
+VALUES
+(
+$id,
+'$metodo',
+'$moneda',
+'$total',
+'$pagado',
+'$saldo',
+'$metodoAd',
+'$monedaAd',
+'$precioAd',
+'$pagadoAd',
+'$saldoAd',
+'$comision',
+'$fechaSaldo'
+)
+");
+
+}else{
+
+// 🔹 UPDATE
+
+mysqli_query($conexion,"
+UPDATE contabilidad SET
+
+metodo_pago='$metodo',
+tipo_moneda='$moneda',
+
+precio_servicio='$total',
+pagado_a_cuenta='$pagado',
+saldo_pendiente='$saldo',
+
+metodo_pago_adicional='$metodoAd',
+tipo_moneda_adicional='$monedaAd',
+precio_servicio_adicional='$precioAd',
+pagado_adicional='$pagadoAd',
+saldo_adicional='$saldoAd',
+
+comision='$comision',
+fecha_pago_saldo='$fechaSaldo'
+
+WHERE id_operaciones=$id
+");
+
+}
+header("Location:index.php?editado=1");
+exit;
+
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Editar operación</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<?php include '../../sidebar.php'; ?>
+
+<div class="container mt-4">
+
+<h3>Editar operación</h3>
+
+<form method="POST">
+
+<input type="hidden"
+name="id_operacion"
+value="<?= $id_operacion ?>">
+
+
+
+
+<h5>Datos generales</h5>
+
+<div class="row">
+
+<div class="col-md-4">
+<label>Fecha reserva</label>
+<input type="date"
+name="fecha_reserva[]"
+class="form-control"
+value="<?= $op['fecha_reserva'] ?>">
+</div>
+
+<div class="col-md-4">
+<label>Encargado</label>
+<input type="text"
+name="Encargado[]"
+class="form-control"
+value="<?= $op['Encargado'] ?>">
+</div>
+
+<div class="col-md-12">
+<label>Observaciones</label>
+<textarea
+name="observaciones[]"
+class="form-control"><?= $op['observaciones'] ?></textarea>
+</div>
+
+</div>
+
+
+
+<hr>
+
+<h5>Tours</h5>
+
+<table class="table table-bordered">
+
+<thead>
+<tr>
+
+<th>Servicio</th>
+<th>Precio</th>
+<th>Salida</th>
+<th>Retorno</th>
+<th>Modalidad</th>
+<th>Ingreso</th>
+<th>Adicional</th>
+<th></th>
+
+</tr>
+</thead>
+
+<tbody id="bodyTours">
+
+<?php while($t=mysqli_fetch_assoc($qTours)): ?>
+
+<tr>
+
+<td>
+ <select name="nombre_servicio[]" class="form-control" required>
+
+<option value="">-- Seleccione una opción --</option>
+
+<?php
+
+$servicios = [
+"SALKANTAY A MACHU PICCHU 5 DÍAS",
+"SALKANTAY A MACHU PICCHU 4 DÍAS",
+"SALKANTAY A MACHU PICCHU 3 DÍAS",
+"SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS",
+"SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)",
+"SALKANTAY TREK 5D/4N WITH LUXURY DOMES (PRIVADO)",
+"SALKANTAY TREK 4D / 3N WITH LUXURY DOMES (PRIVADO)",
+"SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES (PRIVADO)",
+"CAMINO INCA 4 DÍAS",
+"CAMINO INCA 4 DÍAS (PRIVADO)",
+"CAMINO INCA 2 DÍAS",
+"MACHU PICCHU DE UN DÍA",
+"MACHU PICCHU EN TREN 2 DÍAS",
+"VALLE SAGRADO A MACHU PICCHU 2 DÍAS",
+"CHOQUEQUIRAO 5 DÍAS (PRIVADO)",
+"CHOQUEQUIRAO 4 DÍAS",
+"CHOQUEQUIRAO 4 DÍAS (PRIVADO)",
+"LARES A MACHU PICCHU 4 DÍAS (PRIVADO)",
+"AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS",
+"HUCHUY QOSQO 3 DÍAS (PRIVADO)",
+"INCA JUNGLE TRAIL 4 DAYS",
+"LAGUNA HUMANTAY DE UN DÍA",
+"MONTAÑA DE COLORES DE UN DÍA",
+"PALCOYO DE UN DÍA",
+"VALLE SAGRADO VIP DE UN DÍA",
+"VALLE TRADICIONAL",
+"7 LAGUNAS DE AUSANGATE DE UN DÍA",
+"MARAS MORAY DE UN DÍA",
+"Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA",
+"WAQRAPUKARA DE UN DÍA",
+"CITY TOUR CUSCO MEDIO DÍA",
+"CUATRIMOTOS",
+"ICA – PARACAS DE UN DÍA",
+"PUNO DE UN DÍA",
+"MANU 4 DÍAS Y 3 NOCHES"
+];
+
+foreach ($servicios as $s) {
+
+$selected = ($s == $t['nombre_servicio']) ? 'selected' : '';
+
+echo "<option value='$s' $selected>$s</option>";
+
 }
 
 ?>
-<br>
-<br>
-<br>
-<div class="container mt-4">
-    <h3 class="text-primary mb-3">✏️ Editar Operación - Endosador</h3>
-    <form method="POST">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label>Cliente Endosador</label>
-                <input type="text" class="form-control" 
-                       value="<?= htmlspecialchars($operacion['cliente_nombre']) ?>" readonly>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Nombre Servicio:</label>
-                <select name="nombre_servicio" class="form-control" required>
-                    <option value="">-- Seleccione una opción --</option>
-                    <?php
-                    $servicios = [
-                        "SALKANTAY A MACHU PICCHU 5 DÍAS",
-                        "SALKANTAY A MACHU PICCHU 4 DÍAS",
-                        "SALKANTAY A MACHU PICCHU 3 DÍAS",
-                        "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS",
-                        "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)",
-                        'SALKANTAY TREK 5D/4N WITH LUXURY DOMES (PRIVADO)',
-                        'SALKANTAY TREK 4D / 3N WITH LUXURY DOMES (PRIVADO)',
-                        'SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES (PRIVADO)',
-                        "CAMINO INCA 4 DÍAS",
-                        "CAMINO INCA 4 DÍAS (PRIVADO)",
-                        "CAMINO INCA 2 DÍAS",
-                        "MACHU PICCHU DE UN DÍA",
-                        "MACHU PICCHU EN TREN 2 DÍAS",
-                        "VALLE SAGRADO A MACHU PICCHU 2 DÍAS",
-                        "CHOQUEQUIRAO 5 DÍAS (PRIVADO)",
-                        "CHOQUEQUIRAO 4 DÍAS",
-                        "CHOQUEQUIRAO 4 DÍAS (PRIVADO)",
-                        "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)",
-                        "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS",
-                        "HUCHUY QOSQO 3 DÍAS (PRIVADO)",
-                        "INCA JUNGLE TRAIL 4 DAYS",
-                        "LAGUNA HUMANTAY DE UN DÍA",
-                        "MONTAÑA DE COLORES DE UN DÍA",
-                        "PALCOYO DE UN DÍA",
-                        "VALLE SAGRADO VIP DE UN DÍA",
-                        "VALLE TRADICIONAL",
-                        "7 LAGUNAS DE AUSANGATE DE UN DÍA",
-                        "MARAS MORAY DE UN DÍA",
-                        "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA",
-                        "WAQRAPUKARA DE UN DÍA",
-                        "CITY TOUR CUSCO MEDIO DÍA",
-                        "CUATRIMOTOS",
-                        "ICA – PARACAS DE UN DÍA",
-                        "PUNO DE UN DÍA",
-                        "MANU 4 DÍAS Y 3 NOCHES"
-                    ];
-                    foreach ($servicios as $s) {
-    $nombre_operacion = trim($operacion['nombre_servicio']); // quitar espacios
-    $selected = (strcasecmp($s, $nombre_operacion) == 0) ? 'selected' : '';
-    echo "<option value='$s' $selected>$s</option>";
+
+</select>
+
+</td>
+
+
+<td>
+
+<input
+name="precio_tour[]"
+class="form-control precio_tour"
+value="<?= $t['precio'] ?>">
+
+</td>
+
+
+<td>
+
+<input
+type="date"
+name="fecha_salida[]"
+class="form-control"
+value="<?= $t['fecha_salida'] ?>">
+
+</td>
+
+
+<td>
+
+<input
+type="date"
+name="fecha_retorno[]"
+class="form-control"
+value="<?= $t['fecha_retorno'] ?>">
+
+</td>
+
+
+
+<td>
+
+<select
+name="modalidad_retorno[]"
+class="form-select">
+
+<option value="">--</option>
+
+<option value="Tren"
+<?= $t['modalidad_retorno']=="Tren"?'selected':'' ?>>
+Tren
+</option>
+
+<option value="Carro"
+<?= $t['modalidad_retorno']=="Carro"?'selected':'' ?>>
+Carro
+</option>
+
+<option value="Sin retorno"
+<?= $t['modalidad_retorno']=="Sin retorno"?'selected':'' ?>>
+Sin retorno
+</option>
+
+</select>
+
+</td>
+
+
+
+<td>
+
+<input
+type="checkbox"
+name="incluye_ingreso[]"
+<?= $t['incluye_ingreso']=="Con ingreso"?'checked':'' ?>>
+
+</td>
+
+
+
+<td>
+
+<select name="servicio_adicional[][]" class="form-control" multiple>
+
+<?php
+
+$servicios_seleccionados =
+!empty($t['servicio_adicional'])
+? explode(', ', $t['servicio_adicional'])
+: [];
+
+$opciones = [
+"Ninguna",
+"Ingreso a Mollepata",
+"Desayuno en Mollepata",
+"Bolsa de Dormir",
+"Bastones",
+"Hotel",
+"Montaña Huayna Picchu",
+"Montaña Machu Picchu",
+"Trans. Playa-Idro Pax",
+"Trans. Mochilas Playa-Idro",
+"Trans. Mochilas Hidro-Aguas"
+];
+
+foreach ($opciones as $op) {
+
+$selected =
+in_array($op,$servicios_seleccionados)
+? 'selected'
+: '';
+
+echo "<option value='$op' $selected>$op</option>";
+
 }
-                    ?>
-                </select>
-            </div>
-        </div>
 
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <label>Fecha Reserva</label>
-                <input type="date" name="fecha_reserva" class="form-control" 
-                       value="<?= $operacion['fecha_reserva'] ?>" required>
-            </div>
-            <div class="col-md-4">
-                <label>Fecha Salida</label>
-                <input type="date" name="fecha_salida" class="form-control" 
-                       value="<?= $operacion['fecha_salida'] ?>" required>
-            </div>
-            <div class="col-md-4">
-                <label>Fecha Retorno</label>
-                <input type="date" name="fecha_retorno" class="form-control" 
-                       value="<?= $operacion['fecha_retorno'] ?>">
-            </div>
-        </div>
+?>
 
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <label>Incluye Ingreso</label>
-                <div class="form-check">
-                    <input type="checkbox" name="incluye_ingreso" value="Sí" 
-                           class="form-check-input" id="incluye_ingreso"
-                           <?= ($operacion['incluye_ingreso'] === 'Con ingreso') ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="incluye_ingreso">Sí</label>
-                </div>
-            </div>
+</select>
 
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Modalidad Retorno:</label>
-                <select name="modalidad_retorno" class="form-control" required>
-                    <option value="">-- Seleccione una opción --</option>
-                    <option value="Tren" <?= $operacion['modalidad_retorno'] == 'Tren' ? 'selected' : '' ?>>Con Tren</option>
-                    <option value="Carro" <?= $operacion['modalidad_retorno'] == 'Carro' ? 'selected' : '' ?>>Con Carro</option>
-                    <option value="Sin retorno" <?= $operacion['modalidad_retorno'] == 'Sin retorno' ? 'selected' : '' ?>>Sin Retorno</option>
-                </select>
-            </div>
+</td>
 
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Servicio Adicional</label>
-                <select name="servicio_adicional[]" class="form-control" multiple required>
-                    <?php
-                    $opciones = [
-                         "Ninguna",
-                            "Ingreso a Mollepata",
-                            "Desayuno en Mollepata",
-                            "Bolsa de Dormir",
-                            "Bastones",
-                            "Hotel",
-                            "Montaña Huayna Picchu",
-                            "Montaña Machu Picchu",
-                            "Trans. Playa-Idro Pax",
-                            "Trans. Mochilas Playa-Idro",
-                            "Trans. Mochilas Hidro-Aguas"   
-                    ];
-                    foreach ($opciones as $op) {
-                        $selected = in_array($op, $servicios_seleccionados) ? 'selected' : '';
-                        echo "<option value='$op' $selected>$op</option>";
-                    }
-                    ?>
-                </select>
-                <small class="text-muted">Usa CTRL o CMD para seleccionar varios</small>
-            </div>
-        </div>
 
-        <div class="mb-3">
-            <label>Observaciones</label>
-            <textarea name="observaciones" class="form-control"><?= htmlspecialchars($operacion['observaciones']) ?></textarea>
-        </div>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label>Encargado</label>
-                <input type="text" name="encargado" class="form-control" value="<?= htmlspecialchars($operacion['Encargado']) ?>">
-            </div>
-            <div class="col-md-6">
-                <label>Método de Pago</label>
-                <select name="metodo_pago" class="form-control">
-                    <option value="Efectivo" <?= $operacion['metodo_pago'] == 'Efectivo' ? 'selected' : '' ?>>Efectivo</option>
-                    <option value="We travel" <?= $operacion['metodo_pago'] == 'We travel' ? 'selected' : '' ?>>We travel</option>
-                    <option value="Izipay" <?= $operacion['metodo_pago'] == 'Izipay' ? 'selected' : '' ?>>Izipay</option>
-                    <option value="PAYPAL" <?= $operacion['metodo_pago'] == 'PAYPAL' ? 'selected' : '' ?>>PAYPAL</option>
-                    <option value="Bcp" <?= $operacion['metodo_pago'] == 'Bcp' ? 'selected' : '' ?>>BCP</option>
-                    <option value="CULQI" <?= $operacion['metodo_pago'] == 'CULQI' ? 'selected' : '' ?>>CULQI</option>
-                    <option value="YAPE" <?= $operacion['metodo_pago'] == 'YAPE' ? 'selected' : '' ?>>YAPE</option>
-                </select>
-            </div>
-        </div>
+<td>
 
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <label>Tipo de Moneda</label>
-                <select name="tipo_moneda" class="form-control">
-                    <option value="Soles" <?= $operacion['tipo_moneda'] == 'Soles' ? 'selected' : '' ?>>Soles (PEN)</option>
-                    <option value="Dólares" <?= $operacion['tipo_moneda'] == 'Dólares' ? 'selected' : '' ?>>Dólares (USD)</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>Precio Servicio</label>
-                <input type="number" step="0.01" name="precio_servicio" class="form-control" value="<?= $operacion['precio_servicio'] ?>" required>
-            </div>
-            <div class="col-md-3">
-                <label>Pagado a Cuenta</label>
-                <input type="number" step="0.01" name="pagado_a_cuenta" class="form-control" value="<?= $operacion['pagado_a_cuenta'] ?>">
-            </div>
-            <div class="col-md-3">
-                <label>Saldo Pendiente</label>
-                <input type="number" step="0.01" name="saldo_pendiente" class="form-control" value="<?= $operacion['saldo_pendiente'] ?>" readonly>
-            </div>
-        </div>
-        <hr>
-<h5 class="text-secondary">💰 Servicio Adicional</h5>
+<button
+type="button"
+class="btn btn-danger"
+onclick="eliminarFila(this)">
 
-<div class="row mb-3">
-    <div class="col-md-3">
-        <label>Precio Adicional</label>
-        <input type="number" step="0.01" class="form-control"
-       name="precio_servicio_adicional"
-       value="<?= $operacion['precio_servicio_adicional'] ?>">
-    </div>
+X
 
-    <div class="col-md-3">
-        <label>Pagado Adicional</label>
-        <input type="number" step="0.01" class="form-control"
-       name="pagado_adicional"
-       value="<?= $operacion['pagado_adicional'] ?>">
-    </div>
+</button>
 
-    <div class="col-md-3">
-        <label>Saldo Adicional</label>
-        <input type="number" step="0.01" class="form-control"
-       name="saldo_adicional"
-       value="<?= $operacion['saldo_adicional'] ?>"
-       readonly>
-    </div>
-    <div class="col-md-4">
-    <label>Método Pago Adicional</label>
-    <select name="metodo_pago_adicional" class="form-control">
+</td>
 
-    <option value="">-- Seleccione --</option>
+</tr>
 
-    <option value="Efectivo" <?= ($operacion['metodo_pago_adicional']=='Efectivo')?'selected':'' ?>>Efectivo</option>
-    <option value="We travel" <?= ($operacion['metodo_pago_adicional']=='We travel')?'selected':'' ?>>We travel</option>
-    <option value="Izipay" <?= ($operacion['metodo_pago_adicional']=='Izipay')?'selected':'' ?>>Izipay</option>
-    <option value="PAYPAL" <?= ($operacion['metodo_pago_adicional']=='PAYPAL')?'selected':'' ?>>PAYPAL</option>
-    <option value="Bcp" <?= ($operacion['metodo_pago_adicional']=='Bcp')?'selected':'' ?>>BCP</option>
-    <option value="CULQI" <?= ($operacion['metodo_pago_adicional']=='CULQI')?'selected':'' ?>>CULQI</option>
-    <option value="YAPE" <?= ($operacion['metodo_pago_adicional']=='YAPE')?'selected':'' ?>>YAPE</option>
+<?php endwhile; ?>
+
+</tbody>
+
+</table>
+
+
+<button
+type="button"
+class="btn btn-success"
+onclick="agregarFila()">
+
++ Agregar tour
+
+</button>
+
+
+
+<hr>
+
+<h5>Contabilidad</h5>
+
+<div class="row">
+
+<div class="col-md-3">
+<label>Total</label>
+<input name="total_operacion[]"
+class="form-control"
+value="<?= $cont['precio_servicio'] ?>">
+</div>
+
+<div class="col-md-3">
+<label>Método</label>
+<select name="metodo_pago" class="form-select">
+
+<?php
+
+$metodos=[
+'Efectivo',
+'We travel',
+'Izipay',
+'PAYPAL',
+'Bcp',
+'CULQI',
+'YAPE'
+];
+
+foreach($metodos as $m){
+
+$sel =
+($cont['metodo_pago']==$m)
+? 'selected'
+: '';
+
+echo "<option value='$m' $sel>$m</option>";
+
+}
+
+?>
 
 </select>
 </div>
-      <div class="col-md-4">
-    <label>Moneda (Ingreso)</label>
-    <select name="tipo_moneda_adicional" class="form-select">
-      <option value="">-- No aplica --</option>
-      <option value="Soles" <?= ($operacion['tipo_moneda_adicional']=='Soles')?'selected':'' ?>>Soles</option>
-      <option value="Dólares" <?= ($operacion['tipo_moneda_adicional']=='Dólares')?'selected':'' ?>>Dólares</option>
-    </select>
-  </div>
-</div>
 
-
-        <button type="submit" class="btn btn-success">💾 Actualizar</button>
-        <a href="index.php" class="btn btn-secondary">↩ Volver</a>
-        <hr class="my-5">
-<?php if ($operacion['saldo_pendiente'] > 0): ?>
-<hr>
-<h5 class="text-danger">💳 Completar Pago de Saldo</h5>
 <div class="col-md-3">
-    <label>Tipo Cambio</label>
-    <input type="number" step="0.01"
-           name="tipo_cambio_saldo"
-           class="form-control"
-           value="3.80">
+<label>Moneda</label>
+<input name="tipo_moneda"
+class="form-control"
+value="<?= $cont['tipo_moneda'] ?>">
 </div>
-<div class="row mb-3">
-    <div class="col-md-3">
-        <label>Método de Pago</label>
-        <select name="metodo_pago_saldo" class="form-control">
-            <option value="">-- Seleccione --</option>
-            <option value="Efectivo">Efectivo</option>
-            <option value="We travel">We travel</option>
-            <option value="Izipay">Izipay</option>
-            <option value="PAYPAL">PAYPAL</option>
-            <option value="Bcp">BCP</option>
-            <option value="CULQI">CULQI</option>
-            <option value="YAPE">YAPE</option>
-        </select>
-    </div>
 
-    <div class="col-md-3">
-        <label>Moneda</label>
-        <select name="tipo_moneda_saldo" class="form-control">
-            <option value="Soles">Soles</option>
-            <option value="Dólares">Dólares</option>
-        </select>
-    </div>
+<div class="col-md-3">
+<label>Pagado</label>
+<input name="pagado_a_cuenta"
+class="form-control pagado_a_cuenta"
+value="<?= $cont['pagado_a_cuenta'] ?>">
+</div>
 
-    <div class="col-md-3">
-        <label>Monto Pagado</label>
-        <input type="number" step="0.01"
-               name="monto_pago_saldo"
-               class="form-control">
-    </div>
+<div class="col-md-3">
+<label>Saldo</label>
+<input name="saldo_pendiente"
+class="form-control saldo_pendiente"
+value="<?= $cont['saldo_pendiente'] ?>">
+</div>
+<?php if ($cont['saldo_pendiente'] > 0): ?>
 
-    <div class="col-md-3">
-        <label>Fecha de Pago</label>
-        <input type="date"
-               name="fecha_pago_saldo"
-               class="form-control"
-               value="<?= date('Y-m-d') ?>">
-    </div>
+<div class="col-md-3">
+<label>Pagar saldo</label>
+<input
+name="pagar_saldo"
+class="form-control"
+placeholder="Monto a pagar">
+</div>
+
+<div class="col-md-3">
+<label>Método saldo</label>
+<select name="metodo_saldo" class="form-select">
+
+<option>Efectivo</option>
+<option>YAPE</option>
+<option>Bcp</option>
+<option>PAYPAL</option>
+<option>CULQI</option>
+<option>Izipay</option>
+<option>WeTravel</option>
+
+</select>
+</div>
+
+<div class="col-md-3">
+<label>Moneda saldo</label>
+<select name="moneda_saldo" class="form-select">
+
+<option>Soles</option>
+<option>Dólares</option>
+
+</select>
+</div>
+<div class="col-md-3">
+<label>Fecha saldo</label>
+<input type="date"
+name="fecha_pago_saldo"
+class="form-control"
+value="<?= $cont['fecha_pago_saldo'] ?>">
 </div>
 <?php endif; ?>
 
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h4 class="text-primary">🧭 Tours del Cliente</h4>
-<a href="agregar.php?id_cliente=<?= $id_cliente ?>" class="btn btn-success">➕ Agregar Tour</a>
+<div class="col-md-3">
+<label>Comisión</label>
+<input name="comision"
+class="form-control"
+value="<?= $cont['comision'] ?>">
 </div>
 
+</div>
 
-<?php if (mysqli_num_rows($tours_res) > 0): ?>
-<table class="table table-bordered table-striped">
-<thead class="table-dark">
+<hr>
+
+<hr>
+
+<h5>💳 Pagos realizados</h5>
+
+<table class="table table-bordered">
+
+<thead>
 <tr>
-<th>ID</th>
-<th>Servicio</th>
-<th>Salida</th>
-<th>Retorno</th>
-<th>Acciones</th>
+<th>Tipo</th>
+<th>Método</th>
+<th>Moneda</th>
+<th>Monto</th>
+<th>Fecha</th>
+<th></th>
 </tr>
 </thead>
-<tbody>
-<?php while($t = mysqli_fetch_assoc($tours_res)): ?>
+
+<tbody id="bodyPagos">
+
+<?php while($p=mysqli_fetch_assoc($qPagos)): ?>
+
 <tr>
-<td><?= $t['id_operaciones'] ?></td>
-<td><?= htmlspecialchars($t['nombre_servicio']) ?></td>
-<td><?= $t['fecha_salida'] ?></td>
-<td><?= $t['fecha_retorno'] ?></td>
+
 <td>
-<a href="editar.php?id=<?= $t['id_operaciones'] ?>" class="btn btn-sm btn-warning">✏️ Editar</a>
-<a href="eliminar.php?id=<?= $t['id_operaciones'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este tour?')">🗑 Eliminar</a>
+<select name="tipo_pago[]" class="form-select">
+
+<option value="adicional" selected>
+Adicional
+</option>
+
+</select>
 </td>
+
+<td>
+<select name="metodo_pago_multi[]" class="form-select">
+
+<?php
+$metodos=[
+'Efectivo','YAPE','Bcp','PAYPAL','Izipay','CULQI','We travel'
+];
+
+foreach($metodos as $m){
+
+$sel=$p['metodo_pago']==$m?'selected':'';
+
+echo "<option $sel>$m</option>";
+
+}
+?>
+
+</select>
+</td>
+
+<td>
+<select name="moneda_multi[]" class="form-select">
+
+<option <?= $p['tipo_moneda']=="Soles"?'selected':'' ?>>
+Soles
+</option>
+
+<option <?= $p['tipo_moneda']=="Dólares"?'selected':'' ?>>
+Dólares
+</option>
+
+</select>
+</td>
+
+<td>
+<input
+name="monto_multi[]"
+class="form-control"
+value="<?= $p['monto'] ?>">
+</td>
+
+<td>
+<input
+type="date"
+name="fecha_multi[]"
+class="form-control"
+value="<?= $p['fecha_pago'] ?>">
+</td>
+
+<td>
+<button type="button"
+class="btn btn-danger"
+onclick="eliminarPago(this)">
+X
+</button>
+</td>
+
 </tr>
+
 <?php endwhile; ?>
+
 </tbody>
 </table>
-<?php else: ?>
-<div class="alert alert-info">Este cliente aún no tiene tours registrados.</div>
-<?php endif; ?>
-    </form>
-    
+
+<button type="button"
+class="btn btn-success"
+onclick="agregarPago()">
++ Agregar pago
+</button>
+<br>
+
+<button
+class="btn btn-primary">
+
+Guardar cambios
+
+</button>
+
+</form>
+
 </div>
-
 <script>
 
-function calcularPrincipal() {
+function agregarFila(){
 
-    const precio = parseFloat(
-        document.querySelector('[name="precio_servicio"]').value
-    ) || 0;
+let fila = document.querySelector("#bodyTours tr")
 
-    const pagado = parseFloat(
-        document.querySelector('[name="pagado_a_cuenta"]').value
-    ) || 0;
+let nueva = fila.cloneNode(true)
 
-    document.querySelector('[name="saldo_pendiente"]').value =
-        (precio - pagado).toFixed(2);
-}
+nueva.querySelectorAll("input").forEach(i=>i.value="")
 
-function calcularAdicional() {
+nueva.querySelectorAll("select").forEach(s=>s.selectedIndex=0)
 
-    const precio = parseFloat(
-        document.querySelector('[name="precio_servicio_adicional"]').value
-    ) || 0;
+document.getElementById("bodyTours").appendChild(nueva)
 
-    const pagado = parseFloat(
-        document.querySelector('[name="pagado_adicional"]').value
-    ) || 0;
-
-    document.querySelector('[name="saldo_adicional"]').value =
-        (precio - pagado).toFixed(2);
 }
 
 
-// eventos principal
+function eliminarPago(btn){
 
-document.querySelector('[name="precio_servicio"]')
-    .addEventListener("input", calcularPrincipal);
+let fila = btn.closest("tr")
 
-document.querySelector('[name="pagado_a_cuenta"]')
-    .addEventListener("input", calcularPrincipal);
+let tbody = document.getElementById("bodyPagos")
 
 
-// eventos adicional
+fila.remove()
 
-document.querySelector('[name="precio_servicio_adicional"]')
-    .addEventListener("input", calcularAdicional);
-
-document.querySelector('[name="pagado_adicional"]')
-    .addEventListener("input", calcularAdicional);
+}
 
 
-</script>
-<script>
+
+document.addEventListener("input",function(){
+
+let total=0
+
+document.querySelectorAll(".precio_tour")
+.forEach(i=>{
+
+total+=parseFloat(i.value)||0
+
+})
+
+document.querySelector(
+"[name='total_operacion[]']"
+).value = total.toFixed(2)
+
+})
+
+
+
+document.addEventListener("input",function(){
+
+let precio =
+parseFloat(
+document.querySelector(
+"[name='total_operacion[]']"
+).value
+)||0
+
+let pagado =
+parseFloat(
+document.querySelector(
+".pagado_a_cuenta"
+).value
+)||0
+
+document.querySelector(
+".saldo_pendiente"
+).value =
+(precio-pagado).toFixed(2)
+
+})
 // ================== DURACIÓN DE TOURS ==================
 const DURACION_TOURS = {
     "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
@@ -593,7 +976,7 @@ const DURACION_TOURS = {
     "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
     "SALKANTAY TREK 5D/4N WITH LUXURY DOMES": 5,
     "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
-    "SALKANTAY TREK 2D / 1N WITH LUXURY DOMES": 2,
+    "SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES": 2,
     "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
     "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
     "CAMINO INCA 4 DÍAS": 4,
@@ -624,34 +1007,79 @@ const DURACION_TOURS = {
     "PUNO DE UN DÍA": 1,
     "MANU 4 DÍAS Y 3 NOCHES": 4
 };
+// ================== PAGOS ==================
 
-// ================== CALCULAR FECHA RETORNO ==================
-function normalizarServicio(nombre) {
-    return nombre
-        .replace(/\(PRIVADO\)/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+function agregarPago(){
+
+let tbody = document.getElementById("bodyPagos")
+
+let fila = tbody.querySelector("tr")
+
+if(!fila){
+
+tbody.innerHTML += `
+<tr>
+
+<td>
+<select name="tipo_pago[]" class="form-select">
+<option value="adicional" selected>Adicional</option>
+</select>
+</td>
+
+<td>
+<select name="metodo_pago_multi[]" class="form-select">
+<option>Efectivo</option>
+<option>YAPE</option>
+<option>Bcp</option>
+<option>PAYPAL</option>
+<option>Izipay</option>
+<option>CULQI</option>
+<option>We travel</option>
+</select>
+</td>
+
+<td>
+<select name="moneda_multi[]" class="form-select">
+<option>Soles</option>
+<option>Dólares</option>
+</select>
+</td>
+
+<td>
+<input name="monto_multi[]" class="form-control">
+</td>
+
+<td>
+<input type="date" name="fecha_multi[]" class="form-control">
+</td>
+
+<td>
+<button type="button"
+class="btn btn-danger"
+onclick="eliminarPago(this)">
+X
+</button>
+</td>
+
+</tr>
+`
+
+return
 }
 
-function calcularFechaRetorno() {
-    const servicioRaw = document.querySelector('[name="nombre_servicio"]').value;
-    const salida = document.querySelector('[name="fecha_salida"]').value;
-    const retorno = document.querySelector('[name="fecha_retorno"]');
+let nueva = fila.cloneNode(true)
 
-    if (!servicioRaw || !salida) return;
+nueva.querySelectorAll("input").forEach(i=>i.value="")
+nueva.querySelectorAll("select").forEach(s=>s.selectedIndex=0)
 
-    const servicio = normalizarServicio(servicioRaw);
+tbody.appendChild(nueva)
 
-    if (!DURACION_TOURS[servicio]) return;
-
-    const dias = DURACION_TOURS[servicio];
-    const fecha = new Date(salida);
-    fecha.setDate(fecha.getDate() + (dias - 1));
-
-    retorno.value = fecha.toISOString().split('T')[0];
 }
+function eliminarPago(btn){
 
-document.querySelector('[name="nombre_servicio"]').addEventListener('change', calcularFechaRetorno);
-document.querySelector('[name="fecha_salida"]').addEventListener('change', calcularFechaRetorno);
+btn.closest("tr").remove()
+
+}
 </script>
-
+</body>
+</html>

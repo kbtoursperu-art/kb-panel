@@ -17,6 +17,7 @@ CONCAT(d.nombre,' ',d.apellido) AS cliente_nombre,
 d.nro_pasaporte,
 
 o.id_operaciones,
+o.id_grupo,
 o.nombre_servicio,
 
 g.nombre_grupo,
@@ -26,19 +27,21 @@ c.tipo_moneda
 
 FROM datos_clientes d
 
-LEFT JOIN operaciones o 
-    ON d.id_cliente = o.id_cliente
-
 LEFT JOIN clientes_kb kb 
     ON d.id_cliente = kb.id_cliente
 
 LEFT JOIN grupos g 
     ON kb.id_grupo = g.id_grupo
 
+LEFT JOIN operaciones o 
+    ON kb.id_grupo = o.id_grupo
+
 LEFT JOIN contabilidad c 
-    ON o.id_operaciones = c.id_operaciones
+    ON c.id_grupo = o.id_grupo
 
 WHERE d.id_cliente = ?
+
+ORDER BY o.id_operaciones DESC
 
 LIMIT 1
 
@@ -70,10 +73,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $detraccion = $_POST['detraccion'];
     $igv = $_POST['igv'];
 
-    $insert_query = "INSERT INTO contabilidad (id_operaciones, metodo_pago, modalidad_pago, comision, precio_servicio, pagado_a_cuenta, saldo_pendiente, fecha_pago_saldo, estado, modalidad_recibo, nro_boleta_cuenta, nro_boleta_total, detraccion, igv) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?)";
-    $stmt_insert = mysqli_prepare($conexion, $insert_query);
-    mysqli_stmt_bind_param($stmt_insert, "isssssissssiii", $id_operaciones, $metodo_pago, $modalidad_pago, $comision, $precio_servicio, $pagado_a_cuenta, $saldo_pendiente, $fecha_pago_saldo, $estado, $modalidad_recibo, $nro_boleta_cuenta, $nro_boleta_total, $detraccion, $igv);
+$id_operaciones = $_POST['id_operaciones'];
+$id_grupo = $_POST['id_grupo'];
+
+$insert_query = "
+
+INSERT INTO contabilidad (
+
+id_operaciones,
+id_grupo,
+metodo_pago,
+modalidad_pago,
+comision,
+precio_servicio,
+pagado_a_cuenta,
+saldo_pendiente,
+fecha_pago_saldo,
+estado,
+modalidad_recibo,
+nro_boleta_cuenta,
+nro_boleta_total,
+detraccion,
+igv
+
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+";
+
+$stmt_insert = mysqli_prepare($conexion, $insert_query);
+
+mysqli_stmt_bind_param(
+$stmt_insert,
+"iissssssssssssi",
+
+$id_operaciones,
+$id_grupo,
+$metodo_pago,
+$modalidad_pago,
+$comision,
+$precio_servicio,
+$pagado_a_cuenta,
+$saldo_pendiente,
+$fecha_pago_saldo,
+$estado,
+$modalidad_recibo,
+$nro_boleta_cuenta,
+$nro_boleta_total,
+$detraccion,
+$igv
+
+);
     
     if (mysqli_stmt_execute($stmt_insert)) {
         header("Location: index.php?success=1");
@@ -104,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h2>Agregar Contabilidad</h2>
         <form method="POST">
             <input type="hidden" name="id_operaciones" value="<?= htmlspecialchars($cliente['id_operaciones']) ?>">
-
+            <input type="hidden" name="id_grupo" value="<?= htmlspecialchars($cliente['id_grupo']) ?>">
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Cliente:</label>

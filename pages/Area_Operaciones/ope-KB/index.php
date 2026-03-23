@@ -33,14 +33,14 @@ SELECT
 ) AS primer_cliente,
 
     MAX(o.id_operaciones) AS id_operaciones,
-    MAX(o.nombre_servicio) AS nombre_servicio,
-    MAX(o.servicio_adicional) AS servicio_adicional,
+    GROUP_CONCAT(DISTINCT od.nombre_servicio SEPARATOR '<br>') AS nombre_servicio,
+    GROUP_CONCAT(DISTINCT od.servicio_adicional SEPARATOR '<br>') AS servicio_adicional,
     MAX(o.empresa) AS empresa,
     MAX(o.fecha_reserva) AS fecha_reserva,
-    MAX(o.fecha_salida) AS fecha_salida,
-    MAX(o.fecha_retorno) AS fecha_retorno,
-    MAX(o.incluye_ingreso) AS incluye_ingreso,
-    MAX(o.modalidad_retorno) AS modalidad_retorno,
+   GROUP_CONCAT(DISTINCT od.fecha_salida SEPARATOR '<br>') AS fecha_salida,
+GROUP_CONCAT(DISTINCT od.fecha_retorno SEPARATOR '<br>') AS fecha_retorno,
+GROUP_CONCAT(DISTINCT od.incluye_ingreso SEPARATOR '<br>') AS incluye_ingreso,
+GROUP_CONCAT(DISTINCT od.modalidad_retorno SEPARATOR '<br>') AS modalidad_retorno,
     MAX(o.observaciones) AS observaciones,
     MAX(o.Encargado) AS Encargado,
 
@@ -76,6 +76,7 @@ FROM grupos g
 JOIN clientes_kb k ON k.id_grupo = g.id_grupo
 JOIN datos_clientes d ON d.id_cliente = k.id_cliente
 LEFT JOIN operaciones o ON o.id_grupo = g.id_grupo
+LEFT JOIN operaciones_detalle od ON od.id_operaciones = o.id_operaciones
 LEFT JOIN contabilidad c ON c.id_operaciones = o.id_operaciones
 
 WHERE 1=1
@@ -86,7 +87,7 @@ if (!empty($search_from) && !empty($search_to)) {
 }
 
 $query .= "
-GROUP BY g.id_grupo, o.id_operaciones
+GROUP BY g.id_grupo
 ORDER BY g.id_grupo ASC
 ";
 
@@ -152,66 +153,21 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="card-body">
             <div class="table-responsive">
                 <table id="tablaOperaciones" class="table table-striped table-bordered nowrap align-middle" style="width:100%">
-                    <thead>
+                    <thead class="table-dark text-center">
 
-<tr class="text-center">
-
-<th rowspan="2">#</th>
-<th rowspan="2">Grupo</th>
-<th rowspan="2">Pasajeros</th>
-<th rowspan="2">Cliente</th>
-
-<th colspan="8" style="background:#d9edf7">OPERACIONES</th>
-
-<th colspan="6" style="background:#dff0d8">SERVICIO PRINCIPAL</th>
-
-<th colspan="6" style="background:#fcf8e3">SERVICIO ADICIONAL</th>
-
-<th colspan="4" style="background:#f2dede">SALDO PAGADO</th>
-
-<th colspan="6" style="background:goldenrod">CONTABILIDAD</th>
-<th rowspan="2">Acciones</th>
-
-</tr>
-
-
-<tr class="table-dark text-center">
-<th >Reserva</th>
-<th>Servicio</th>
+<tr>
+<th>#</th>
+<th>Grupo</th>
+<th>Pax</th>
+<th>Cliente</th>
+<th>Tours</th>
 <th>Salida</th>
-<th>Retorno</th>
-<th>Ingreso</th>
-<th>Mod.Retorno</th>
-<th>Encargado</th>
-<th>observaciones</th>
-
-<th>Método</th>
-<th>Moneda</th>
-<th>Prec_total</th>
+<th>Observaciones</th>
+<th>Total</th>
 <th>Pagado</th>
 <th>Saldo</th>
-<th>Comisión</th>
-
-<th>Servicio.Adicional</th>
-<th>Monto</th>
-<th>Pagado</th>
-<th>Saldo</th>
-<th>Metodo.Pago</th>
-<th>Moneda</th>
-
-
-<th>Método saldo</th>
-<th>Moneda saldo</th>
-<th>Monto saldo</th>
-<th>Fecha saldo</th>
-
 <th>Estado</th>
-<th>Comprobante</th>
-<th>Boleta Cuenta</th>
-<th>Boleta Total</th>
-<th>Comp. Adicional</th>
-<th>Detracción</th>
-
+<th>Acciones</th>
 </tr>
 
 </thead>
@@ -229,64 +185,135 @@ while ($row = mysqli_fetch_assoc($resultado)):
     };
 ?>
 <tr>
-    <td class="text-center"><?= $i++ ?></td>
 
-    <!-- Grupo con modal -->
-    <td class="fw-bold text-center">
-        <a href="#" class="link-primary ver-clientes" 
-           data-id="<?= $row['id_grupo'] ?>" 
-           data-bs-toggle="modal" data-bs-target="#modalClientes">
-           <?= htmlspecialchars($row['nombre_grupo']) ?> 
-           <span class="text-success">(<?= (int)$row['pasajeros'] ?>)</span>
-        </a>
-    </td>
+<td><?= $i++ ?></td>
 
-    <td class="text-center"><?= (int)$row['pasajeros'] ?></td>
-    <td><?= htmlspecialchars($row['primer_cliente'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['fecha_reserva'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['nombre_servicio'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['fecha_salida'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['fecha_retorno'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['incluye_ingreso'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['modalidad_retorno'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['Encargado'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['observaciones'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['metodo_pago'] ?? '—') ?></td>
-    <td><?= htmlspecialchars($row['tipo_moneda'] ?? '—') ?></td>
-    <td class="text-end"><?= number_format($row['precio_servicio'] ?? 0, 2) ?></td>
-    <td class="text-end"><?= number_format($row['pagado_a_cuenta'] ?? 0, 2) ?></td>
-    <td class="text-end"><?= number_format($row['saldo_pendiente'] ?? 0, 2) ?></td>
-    <td class="text-end"><?= number_format($row['comision'] ?? 0, 2) ?></td>
+<td class="fw-bold text-primary">
+<?= $row['nombre_grupo'] ?>
+</td>
 
-    <td><?= htmlspecialchars($row['servicio_adicional'] ?? '—') ?></td>
-    <td class="text-end"><?= number_format($row['precio_servicio_adicional'] ?? 0, 2) ?></td>
-    <td class="text-end"><?= number_format($row['pagado_adicional'] ?? 0, 2) ?></td>
-    <td class="text-end"><?= number_format($row['saldo_adicional'] ?? 0, 2) ?></td>
-     <td><?= htmlspecialchars($row['metodo_pago_adicional'] ?? '—') ?></td>
-     <td><?= htmlspecialchars($row['tipo_moneda_adicional'] ?? '—') ?></td>
-    <td><?= $row['metodo_pago_saldo'] ?></td>
-    <td><?= $row['tipo_moneda_saldo'] ?></td>
-    <td><?= number_format($row['monto_pago_saldo'],2) ?></td>
-    <td><?= $row['fecha_pago_saldo'] ?></td>
-     <!-- Estado con badge -->
-    <td class="text-center">
-        <span class="badge <?= $badge ?>"><?= strtoupper($estado) ?></span>
-    </td>
-      <td><?= $row['modalidad_recibo'] ?></td>
-<td><?= $row['nro_boleta_cuenta'] ?></td>
-<td><?= $row['nro_boleta_total'] ?></td>
-<td><?= $row['Nro_Comprobante_adicional'] ?></td>
-<td><?= $row['detraccion'] ?></td>
-    <!-- Acciones -->
-    <td class="text-center">
-        <?php if (!empty($row['id_operaciones'])): ?>
-            <a href="ver.php?id_grupo=<?= $row['id_grupo'] ?>" class="btn btn-info btn-sm">👁</a>
-            <a href="editar.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-warning btn-sm">✏️ Editar</a>
-            <a href="eliminar.php?id=<?= $row['id_operaciones'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta operación?')">🗑 Eliminar</a>
-        <?php else: ?>
-            <a href="agregar.php?id_cliente=<?= $row['primer_cliente_id'] ?>" class="btn btn-success btn-sm">➕ Agregar</a>
-        <?php endif; ?>
-    </td>
+<td class="text-center">
+<?= $row['pasajeros'] ?>
+</td>
+
+<td>
+<?= $row['primer_cliente'] ?>
+</td>
+
+<td>
+
+<?php
+
+$colores = [
+    "primary",
+    "success",
+    "danger",
+    "warning",
+    "info",
+    "secondary",
+    "dark"
+];
+
+$servicios = explode("<br>", $row['nombre_servicio'] ?? '');
+$fechas = explode("<br>", $row['fecha_salida'] ?? '');
+
+for ($x=0; $x<count($servicios); $x++) {
+
+    $color = $colores[$x % count($colores)];
+
+    $serv = $servicios[$x] ?? '';
+    $fecha = $fechas[$x] ?? '';
+
+    echo '<div class="mb-1">';
+    echo '<span class="badge bg-'.$color.'">';
+    echo $serv.' '.$fecha;
+    echo '</span>';
+    echo '</div>';
+}
+
+?>
+
+</td>
+
+<td>
+<?= $row['fecha_salida'] ?>
+</td>
+
+<td style="max-width:200px;">
+
+<div style="
+max-height:60px;
+overflow:auto;
+white-space:normal;
+">
+
+<?= $row['observaciones'] ?: '-' ?>
+
+</div>
+
+</td>
+
+<td class="text-end">
+<?= number_format($row['precio_servicio'],2) ?>
+</td>
+
+<td class="text-end text-success">
+<?= number_format($row['pagado_a_cuenta'],2) ?>
+</td>
+
+<td class="text-end text-danger">
+<?= number_format($row['saldo_pendiente'],2) ?>
+</td>
+
+<td class="text-center">
+
+<?php
+$estado = $row['estado'];
+
+if ($estado == 'pagado') {
+    echo '<span class="badge bg-success">PAGADO</span>';
+}
+elseif ($estado == 'pendiente') {
+    echo '<span class="badge bg-warning text-dark">PENDIENTE</span>';
+}
+elseif ($estado == 'reembolsado') {
+    echo '<span class="badge bg-danger">REEMBOLSADO</span>';
+}
+?>
+
+</td>
+
+<td class="text-center">
+
+<?php if (!empty($row['id_operaciones'])): ?>
+
+    <a href="ver.php?id_grupo=<?= $row['id_grupo'] ?>"
+    class="btn btn-info btn-sm">
+    👁
+    </a>
+
+    <a href="editar.php?id=<?= $row['id_operaciones'] ?>"
+    class="btn btn-warning btn-sm">
+    ✏
+    </a>
+
+    <a href="eliminar.php?id=<?= $row['id_operaciones'] ?>"
+    class="btn btn-danger btn-sm"
+    onclick="return confirm('¿Eliminar esta operación?')">
+    🗑
+    </a>
+
+<?php else: ?>
+
+    <a href="agregar.php?id_cliente=<?= $row['primer_cliente_id'] ?>"
+    class="btn btn-success btn-sm">
+    ➕ Agregar
+    </a>
+
+<?php endif; ?>
+
+</td>
+
 </tr>
 <?php endwhile; ?>
                     </tbody>

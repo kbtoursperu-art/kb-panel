@@ -1,143 +1,435 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include '../../../conexion.php';
-include '../../sidebar.php';
 
-// 🟢 Verificar ID de operación
-if (!isset($_GET['id'])) {
-    echo "<script>alert('⚠️ No se especificó la operación.'); window.location.href='index.php';</script>";
-    exit;
+if (!isset($_GET['id_grupo'])) {
+    die("Falta id_grupo");
 }
 
-$id_operacion = intval($_GET['id']);
+$id_grupo = intval($_GET['id_grupo']);
 
-// 🔍 Consulta de operación, cliente y contabilidad
-$query = "
+
+/* ================= GRUPO ================= */
+
+$qGrupo = mysqli_query($conexion,"
+SELECT *
+FROM grupos
+WHERE id_grupo = $id_grupo
+");
+
+$grupo = mysqli_fetch_assoc($qGrupo);
+
+
+
+/* ================= CLIENTES ================= */
+
+$qClientes = mysqli_query($conexion,"
 SELECT 
-    o.id_operaciones,
-    CONCAT(d.nombre, ' ', d.apellido) AS cliente,
-    d.nro_pasaporte,
-    d.genero,
-    d.tipo_cliente,
-    e.empresa_endosadora AS empresa,
-    o.nombre_servicio,
-    o.fecha_reserva,
-    o.fecha_salida,
-    o.fecha_retorno,
-    o.incluye_ingreso,
-    o.modalidad_retorno,
-    o.servicio_adicional,
-    o.observaciones,
-    o.Encargado,
-    c.metodo_pago,
-    c.tipo_moneda,
-    c.precio_servicio,
-    c.pagado_a_cuenta,  
-    c.saldo_pendiente
-FROM operaciones o
-INNER JOIN datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN clientes_endosadores e ON d.id_cliente = e.id_cliente
-LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
-WHERE o.id_operaciones = $id_operacion
-";
+d.nombre,
+d.apellido,
+t.es_pagador
 
-$resultado = mysqli_query($conexion, $query);
+FROM (
 
-if (!$resultado || mysqli_num_rows($resultado) == 0) {
-    echo "<script>alert('❌ No se encontró la operación.'); window.location.href='index.php';</script>";
-    exit;
+    SELECT id_cliente, id_grupo, es_pagador
+    FROM clientes_kb
+
+    UNION ALL
+
+    SELECT id_cliente, id_grupo, es_pagador
+    FROM clientes_endosadores
+
+) t
+
+JOIN datos_clientes d 
+ON d.id_cliente = t.id_cliente
+
+WHERE t.id_grupo = $id_grupo
+");
+/* ================= OPERACION ================= */
+
+$qOperacion = mysqli_query($conexion,"
+SELECT *
+FROM operaciones
+WHERE id_grupo = $id_grupo
+ORDER BY id_operaciones DESC
+LIMIT 1
+");
+
+$op = mysqli_fetch_assoc($qOperacion);
+
+$id_operacion = 0;
+
+if ($op && isset($op['id_operaciones'])) {
+    $id_operacion = $op['id_operaciones'];
 }
 
-$datos = mysqli_fetch_assoc($resultado);
-?>
 
+/* ================= CONTABILIDAD ================= */
+
+$conta = [];
+
+if ($id_operacion > 0) {
+
+    $qConta = mysqli_query($conexion,"
+    SELECT *
+   FROM contabilidad
+WHERE id_grupo = $id_grupo
+ORDER BY id_contabilidad DESC
+LIMIT 1
+    ");
+
+    $conta = mysqli_fetch_assoc($qConta);
+
+    if ($conta) {
+        $op = array_merge($op, $conta);
+    }
+}
+/* ================= DETALLE ================= */
+
+$qDetalle = mysqli_query($conexion,"
+SELECT *
+FROM operaciones_detalle
+WHERE id_operaciones = $id_operacion
+");
+/* ================= PAGOS OPERACION ================= */
+
+$qPagos = mysqli_query($conexion,"
+SELECT *
+FROM pagos_operacion
+WHERE id_operaciones = $id_operacion
+ORDER BY id_pago ASC
+");
+/* ================= PAGOS SALDO ================= */
+
+$qSaldo = mysqli_query($conexion,"
+SELECT *
+FROM pagos_operacion
+WHERE id_operaciones = $id_operacion
+AND tipo_pago = 'saldo'
+ORDER BY id_pago ASC
+");
+
+if (!$qSaldo) {
+    die("Error en saldo: " . mysqli_error($conexion));
+}
+?>
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Detalle de Operación Endosador</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+.card{
+border-radius:12px;
+}
+
+.badge{
+font-size:13px;
+}
+
+</style>
+
 </head>
 <body>
-<div class="container mt-4 mb-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">📋 Detalle de Operación - Cliente Endosador</h4>
-        </div>
-        <div class="card-body">
-            
-            <!-- Información del Cliente -->
-            <h5 class="text-secondary">👤 Información del Cliente</h5>
-            <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <strong>Nombre:</strong> <?= htmlspecialchars($datos['cliente']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Pasaporte:</strong> <?= htmlspecialchars($datos['nro_pasaporte']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Género:</strong> <?= htmlspecialchars($datos['genero']) ?>
-                </div>
-                <div class="col-md-6">
-                    <strong>Empresa Endosadora:</strong> <?= htmlspecialchars($datos['empresa'] ?? '—') ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Tipo Cliente:</strong> <?= htmlspecialchars($datos['tipo_cliente']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Encargado:</strong> <?= htmlspecialchars($datos['Encargado']) ?>
-                </div>
-            </div>
+<?php include '../../sidebar.php'; ?>
+<div class="container mt-4">
 
-            <!-- Información del Servicio -->
-            <h5 class="text-secondary mt-4">🧭 Detalles del Servicio</h5>
-            <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <strong>Nombre del Servicio:</strong> <?= htmlspecialchars($datos['nombre_servicio']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Fecha Reserva:</strong> <?= htmlspecialchars($datos['fecha_reserva']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Salida:</strong> <?= htmlspecialchars($datos['fecha_salida']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Retorno:</strong> <?= htmlspecialchars($datos['fecha_retorno']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Incluye Ingreso:</strong> <?= htmlspecialchars($datos['incluye_ingreso']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Modalidad Retorno:</strong> <?= htmlspecialchars($datos['modalidad_retorno']) ?>
-                </div>
-                <div class="col-md-3">
-                    <strong>Servicio Adicional:</strong> <?= htmlspecialchars($datos['servicio_adicional']) ?>
-                </div>
-            </div>
+<h3 class="text-primary mb-3">
+Grupo: <?= $grupo['nombre_grupo'] ?? '-' ?>
+</h3>
 
-            <!-- Observaciones -->
-            <h5 class="text-secondary mt-4">📝 Observaciones</h5>
-            <hr>
-            <p><?= nl2br(htmlspecialchars($datos['observaciones'] ?? '—')) ?></p>
 
-            <!-- Información Económica -->
-            <h5 class="text-secondary mt-4">💰 Información de Pago</h5>
-            <hr>
-            <div class="row">
-                <div class="col-md-3"><strong>Método de Pago:</strong> <?= htmlspecialchars($datos['metodo_pago'] ?? '—') ?></div>
-                <div class="col-md-3"><strong>Moneda:</strong> <?= htmlspecialchars($datos['tipo_moneda'] ?? '—') ?></div>
-                <div class="col-md-2"><strong>Precio Total:</strong> <?= number_format($datos['precio_servicio'] ?? 0, 2) ?></div>
-                <div class="col-md-2"><strong>Pagado:</strong> <?= number_format($datos['pagado_a_cuenta'] ?? 0, 2) ?></div>
-                <div class="col-md-2"><strong>Saldo:</strong> <?= number_format($datos['saldo_pendiente'] ?? 0, 2) ?></div>
-            </div>
 
-            <div class="mt-4 text-center">
-                <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
-            </div>
+<!-- ================= CLIENTES ================= -->
 
-        </div>
-    </div>
+<div class="card mb-3">
+
+<div class="card-header bg-primary text-white">
+Clientes
 </div>
+
+<div class="card-body">
+
+<table class="table table-sm">
+
+<tr>
+<th>#</th>
+<th>Nombre</th>
+<th>Pagador</th>
+</tr>
+
+<?php $i=1; while($c=mysqli_fetch_assoc($qClientes)): ?>
+
+<tr>
+
+<td><?= $i++ ?></td>
+
+<td>
+<?= $c['nombre']." ".$c['apellido'] ?>
+</td>
+
+<td>
+
+<?php
+echo $c['es_pagador']
+? '<span class="badge bg-success">SI</span>'
+: '<span class="badge bg-secondary">NO</span>';
+?>
+
+</td>
+
+</tr>
+
+<?php endwhile; ?>
+
+</table>
+
+</div>
+</div>
+
+
+
+<!-- ================= TOURS ================= -->
+
+<div class="card mb-3">
+
+<div class="card-header bg-info text-white">
+Tours
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<tr>
+<th>Servicio</th>
+<th>Salida</th>
+<th>Retorno</th>
+<th>Ingreso</th>
+<th>Modalidad</th>
+<th>Adicional</th>
+</tr>
+
+<?php while($d=mysqli_fetch_assoc($qDetalle)): ?>
+
+<tr>
+
+<td>
+<span class="badge bg-primary">
+<?= $d['nombre_servicio'] ?>
+</span>
+</td>
+
+<td><?= $d['fecha_salida'] ?></td>
+
+<td><?= $d['fecha_retorno'] ?></td>
+
+<td><?= $d['incluye_ingreso'] ?></td>
+
+<td><?= $d['modalidad_retorno'] ?></td>
+
+<td>
+
+<?php
+if (!empty($d['servicio_adicional'])) {
+echo '<span class="badge bg-warning text-dark">'
+.$d['servicio_adicional'].
+'</span>';
+}
+?>
+
+</td>
+
+</tr>
+
+<?php endwhile; ?>
+
+</table>
+
+</div>
+</div>
+
+
+
+<!-- ================= PAGOS ================= -->
+
+<div class="card mb-3">
+
+<div class="card-header bg-success text-white">
+Pagos
+</div>
+
+<div class="card-body">
+
+<table class="table">
+
+<tr>
+<th>Total</th>
+<th>Pagado</th>
+<th>Saldo</th>
+<th>Metodo</th>
+<th>Moneda</th>
+</tr>
+
+<tr>
+
+<td><?= $op['precio_servicio'] ?? 0 ?></td>
+
+<td><?= $op['pagado_a_cuenta'] ?? 0 ?></td>
+
+<td><?= $op['saldo_pendiente'] ?? 0 ?></td>
+
+<td><?= $op['metodo_pago'] ?? '-' ?></td>
+
+<td><?= $op['tipo_moneda'] ?? '-' ?></td>
+
+</tr>
+
+</table>
+
+</div>
+</div>
+
+
+
+<!-- ================= SALDO ================= -->
+
+<div class="card mb-3">
+
+<div class="card-header bg-warning">
+Pago saldo
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<tr>
+<th>Método</th>
+<th>Moneda</th>
+<th>Monto</th>
+<th>Fecha</th>
+</tr>
+
+<?php while($s=mysqli_fetch_assoc($qSaldo)): ?>
+
+<tr>
+
+<td><?= $s['metodo_pago'] ?></td>
+
+<td><?= $s['tipo_moneda'] ?></td>
+
+<td>
+<span class="badge bg-success">
+<?= $s['monto'] ?>
+</span>
+</td>
+
+<td><?= $s['fecha_pago'] ?></td>
+
+</tr>
+
+<?php endwhile; ?>
+
+</table>
+
+</div>
+</div>
+
+<!-- ================= PAGOS REALIZADOS ================= -->
+
+<div class="card mb-3">
+
+<div class="card-header bg-secondary text-white">
+Pagos realizados
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<tr>
+<th>Tipo</th>
+<th>Método</th>
+<th>Moneda</th>
+<th>Monto</th>
+<th>Fecha</th>
+</tr>
+
+<?php while($p=mysqli_fetch_assoc($qPagos)): ?>
+
+<tr>
+
+<td><?= $p['tipo_pago'] ?></td>
+
+<td><?= $p['metodo_pago'] ?></td>
+
+<td><?= $p['tipo_moneda'] ?></td>
+
+<td>
+<span class="badge bg-success">
+<?= $p['monto'] ?>
+</span>
+</td>
+
+<td><?= $p['fecha_pago'] ?></td>
+
+</tr>
+
+<?php endwhile; ?>
+
+</table>
+
+</div>
+</div>
+
+<!-- ================= CONTABILIDAD ================= -->
+
+<div class="card mb-3">
+
+<div class="card-header bg-dark text-white">
+Contabilidad
+</div>
+
+<div class="card-body">
+
+<table class="table">
+
+<tr>
+<th>Estado</th>
+<th>Boleta cuenta</th>
+<th>Boleta total</th>
+<th>Comp adicional</th>
+<th>Detraccion</th>
+</tr>
+
+<tr>
+
+<td><?= $op['estado'] ?? '-' ?></td>
+
+<td><?= $op['nro_boleta_cuenta'] ?? '-' ?></td>
+
+<td><?= $op['nro_boleta_total'] ?? '-' ?></td>
+
+<td><?= $op['Nro_Comprobante_adicional'] ?? '-' ?></td>
+
+<td><?= $op['detraccion'] ?? '-' ?></td>
+
+</tr>
+
+</table>
+
+</div>
+</div>
+
+
+
+</div>
+
 </body>
 </html>

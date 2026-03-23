@@ -1,24 +1,30 @@
 <?php
 include '../../conexion.php';
-ob_start();   // <-- ACTIVA EL OUTPUT BUFFERING
+ob_start();   // Activa output buffering
 include '../sidebar.php';
 
+// Mostrar errores para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // ======================================================
-// 1. SI SE ENVÍA EL FORMULARIO → HACER UPDATE DIRECTO
+// 1. GUARDAR CAMBIOS (POST)
 // ======================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id = intval($_POST['id_contabilidad']);
 
-    $Nro_Comprobante_adicional = $_POST['Nro_Comprobante_adicional'];
-    $estado = $_POST['estado'];
-    $modalidad_recibo = $_POST['modalidad_recibo'];
-    $nro_boleta_cuenta = $_POST['nro_boleta_cuenta'];
-    $nro_boleta_total = $_POST['nro_boleta_total'];
-    $detraccion = $_POST['detraccion'];
-    $NotaCredito = $_POST['NotaCredito'];
-    $observaciones = $_POST['observaciones'];
+    $Nro_Comprobante_adicional = $_POST['Nro_Comprobante_adicional'] ?? '';
+    $estado = $_POST['estado'] ?? '';
+    $modalidad_recibo = $_POST['modalidad_recibo'] ?? '';
+    $nro_boleta_cuenta = $_POST['nro_boleta_cuenta'] ?? '';
+    $nro_boleta_total = $_POST['nro_boleta_total'] ?? '';
+    $detraccion = $_POST['detraccion'] ?? 0;
+    $NotaCredito = $_POST['NotaCredito'] ?? 0;
+    $observaciones = $_POST['observaciones'] ?? '';
 
+    // Actualizamos contabilidad
     $sql_update = "
         UPDATE contabilidad 
         SET 
@@ -31,201 +37,132 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             NotaCredito = '$NotaCredito'
         WHERE id_contabilidad = $id
     ";
-
     mysqli_query($conexion, $sql_update);
 
-    // También actualizamos observaciones en Operaciones
+    // Actualizamos observaciones en operaciones
     $sql_obs = "
         UPDATE operaciones 
         SET observaciones = '$observaciones'
         WHERE id_operaciones = (SELECT id_operaciones FROM contabilidad WHERE id_contabilidad = $id)
     ";
-
     mysqli_query($conexion, $sql_obs);
 
-    // Redirige sin recargar formulario
     header("Location: index.php?update=1");
     exit;
 }
 
-
 // ======================================================
-// 2. MOSTRAR DATOS (MÉTODO GET)
+// 2. MOSTRAR DATOS (GET)
 // ======================================================
 if (!isset($_GET['id'])) {
     die("❌ Error: Falta el ID de contabilidad.");
 }
-
 $id = intval($_GET['id']);
 
+// Traemos datos de contabilidad + operaciones
 $sql = "
-
 SELECT 
-
-c.id_contabilidad,
-c.id_operaciones,
-
-c.metodo_pago,
-c.tipo_moneda,
-c.comision,
-c.precio_servicio,
-c.pagado_a_cuenta,
-c.saldo_pendiente,
-c.fecha_pago_saldo,
-
-c.Nro_Comprobante_adicional,
-c.estado,
-c.modalidad_recibo,
-c.nro_boleta_cuenta,
-c.nro_boleta_total,
-c.detraccion,
-c.NotaCredito,
-
-o.observaciones,
-
-d.nombre,
-d.apellido,
-g.nombre_grupo
-
+    c.*,
+    o.observaciones,
+    o.id_grupo
 FROM contabilidad c
-
-INNER JOIN operaciones o 
-    ON o.id_operaciones = c.id_operaciones
-
-LEFT JOIN datos_clientes d 
-    ON d.id_cliente = o.id_cliente
-
-LEFT JOIN clientes_kb kb 
-    ON kb.id_cliente = d.id_cliente
-
-LEFT JOIN grupos g 
-    ON g.id_grupo = kb.id_grupo
-
+LEFT JOIN operaciones o ON o.id_operaciones = c.id_operaciones
 WHERE c.id_contabilidad = $id
-
+LIMIT 1
 ";
-
 $res = mysqli_query($conexion, $sql);
-
-if (!$res) {
-    die("❌ Error SQL: " . mysqli_error($conexion));
-}
-
+if (!$res) die("❌ Error SQL: " . mysqli_error($conexion));
 $row = mysqli_fetch_assoc($res);
+if (!$row) die("❌ Error: No existe este registro.");
 
-if (!$row) {
-    die("❌ Error: No existe este registro.");
-}
+// Traemos cliente y grupo
+$grupo_id = $row['id_grupo'];
+$cliente_sql = "
+SELECT 
+    d.nombre,
+    d.apellido,
+    g.nombre_grupo
+FROM grupos g
+LEFT JOIN clientes_kb kb ON kb.id_grupo = g.id_grupo
+LEFT JOIN datos_clientes d ON d.id_cliente = kb.id_cliente
+WHERE g.id_grupo = $grupo_id
+LIMIT 1
+";
+$cliente_res = mysqli_query($conexion, $cliente_sql);
+$cliente_row = mysqli_fetch_assoc($cliente_res);
+
+$row['nombre'] = $cliente_row['nombre'] ?? '';
+$row['apellido'] = $cliente_row['apellido'] ?? '';
+$row['nombre_grupo'] = $cliente_row['nombre_grupo'] ?? '';
 ?>
 
 <div class="content p-4">
     <div class="container">
         <h3 class="mb-4">✏️ Editar Registro Contable</h3>
 
-        <!-- IMPORTANTE: action vacío = guardar en este mismo archivo -->
         <form method="POST">
-
             <input type="hidden" name="id_contabilidad" value="<?= $row['id_contabilidad'] ?>">
 
             <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Cliente</label>
-                        <input type="text" class="form-control"
-                        value="<?= $row['nombre'].' '.$row['apellido'] ?>"
-                        disabled>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Grupo</label>
-                        <input type="text" class="form-control"
-                        value="<?= $row['nombre_grupo'] ?>"
-                        disabled>
-                    </div>
-                <!-- MÉTODO PAGO -->
+                <!-- Cliente y Grupo -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Cliente</label>
+                    <input type="text" class="form-control" value="<?= $row['nombre'].' '.$row['apellido'] ?>" disabled>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Grupo</label>
+                    <input type="text" class="form-control" value="<?= $row['nombre_grupo'] ?>" disabled>
+                </div>
+
+                <!-- Método de Pago -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Método de Pago</label>
-                    <select class="form-control" name="metodo_pago" disabled>
-
-                        <option <?= ($row['metodo_pago'] == 'Efectivo') ? 'selected' : '' ?>>Efectivo</option>
-
-                        <option <?= ($row['metodo_pago'] == 'We travel') ? 'selected' : '' ?>>We travel</option>
-
-                        <option <?= ($row['metodo_pago'] == 'Izipay') ? 'selected' : '' ?>>
-                        Izipay
-                        </option>
-
-1                        <option <?= ($row['metodo_pago'] == 'PAYPAL') ? 'selected' : '' ?>>
-                        PAYPAL
-                        </option>
-
-                        <option <?= ($row['metodo_pago'] == 'Bcp') ? 'selected' : '' ?>>
-                        Bcp
-                        </option>
-
-                        <option <?= ($row['metodo_pago'] == 'CULQI') ? 'selected' : '' ?>>
-                        CULQI
-                        </option>
-
-                        <option <?= ($row['metodo_pago'] == 'YAPE') ? 'selected' : '' ?>>
-                        YAPE
-                        </option>
-
-</select>
-                    </select>
+                    <input type="text" class="form-control" value="<?= $row['metodo_pago'] ?>" disabled>
                 </div>
 
-                <!-- MONEDA -->
+                <!-- Moneda -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Moneda</label>
-                    <select class="form-control" name="tipo_moneda" disabled>
-
-                        <option <?= ($row['tipo_moneda'] == 'Soles') ? 'selected' : '' ?>>
-                            Soles (PEN)
-                        </option>
-
-                        <option <?= ($row['tipo_moneda'] == 'Dólares') ? 'selected' : '' ?>>
-                            Dólares (USD)
-                        </option>
-
-                    </select>
+                    <input type="text" class="form-control" value="<?= $row['tipo_moneda'] ?>" disabled>
                 </div>
 
-                <!-- COMISIÓN -->
+                <!-- Comisión -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Comisión</label>
                     <input type="number" class="form-control" step="0.01" value="<?= $row['comision'] ?>" disabled>
                 </div>
 
-                <!-- PRECIO SERVICIO -->
+                <!-- Precio del Servicio -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Precio del Servicio</label>
                     <input type="number" class="form-control" step="0.01" value="<?= $row['precio_servicio'] ?>" disabled>
                 </div>
 
-                <!-- PAGADO A CUENTA -->
+                <!-- Pagado a Cuenta -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Pagado a Cuenta</label>
                     <input type="number" class="form-control" step="0.01" value="<?= $row['pagado_a_cuenta'] ?>" disabled>
                 </div>
 
-                <!-- SALDO PENDIENTE -->
+                <!-- Saldo Pendiente -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Saldo Pendiente</label>
                     <input type="number" class="form-control" step="0.01" value="<?= $row['saldo_pendiente'] ?>" disabled>
                 </div>
 
-                <!-- FECHA SALDO -->
+                <!-- Fecha Pago Saldo -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Fecha Pago Saldo</label>
                     <input type="date" class="form-control" value="<?= $row['fecha_pago_saldo'] ?>" disabled>
                 </div>
 
-                <!-- N° COMPROBANTE ADICIONAL -->
+                <!-- Nro Comprobante Adicional -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">N° Comprobante Adicional</label>
                     <input type="text" class="form-control" name="Nro_Comprobante_adicional" value="<?= $row['Nro_Comprobante_adicional'] ?>">
                 </div>
 
-                <!-- ESTADO -->
+                <!-- Estado -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Estado</label>
                     <select class="form-control" name="estado">
@@ -235,36 +172,34 @@ if (!$row) {
                     </select>
                 </div>
 
-                <!-- TIPO COMPROBANTE -->
-              <div class="col-md-4 mb-3">
-    <label class="form-label">Tipo de Comprobante</label>
-    <select class="form-control" name="modalidad_recibo" required>
-        <option value="FACTURA" <?= ($row['modalidad_recibo'] == 'FACTURA') ? 'selected' : '' ?>>FACTURA</option>
-        <option value="FAC_EXPORTACION" <?= ($row['modalidad_recibo'] == 'FAC_EXPORTACION') ? 'selected' : '' ?>>FAC-EXPORTACIÓN</option>
-        <option value="BV_INTANGIBLE" <?= ($row['modalidad_recibo'] == 'BV_INTANGIBLE') ? 'selected' : '' ?>>B/V INTANGIBLE</option>
-        <option value="BV_IGV" <?= ($row['modalidad_recibo'] == 'BV_IGV') ? 'selected' : '' ?>>B/V IGV</option>
-    </select>
-</div>
+                <!-- Modalidad Recibo -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Tipo de Comprobante</label>
+                    <select class="form-control" name="modalidad_recibo" required>
+                        <option value="FACTURA" <?= ($row['modalidad_recibo'] == 'FACTURA') ? 'selected' : '' ?>>FACTURA</option>
+                        <option value="FAC_EXPORTACION" <?= ($row['modalidad_recibo'] == 'FAC_EXPORTACION') ? 'selected' : '' ?>>FAC-EXPORTACIÓN</option>
+                        <option value="BV_INTANGIBLE" <?= ($row['modalidad_recibo'] == 'BV_INTANGIBLE') ? 'selected' : '' ?>>B/V INTANGIBLE</option>
+                        <option value="BV_IGV" <?= ($row['modalidad_recibo'] == 'BV_IGV') ? 'selected' : '' ?>>B/V IGV</option>
+                    </select>
+                </div>
 
-                <!-- Nro boleta cuenta -->
+                <!-- Nro Boletas -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">N° Comprobante Cuenta</label>
                     <input type="text" class="form-control" name="nro_boleta_cuenta" value="<?= $row['nro_boleta_cuenta'] ?>">
                 </div>
-
-                <!-- Nro boleta total -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">N° Comprobante Total</label>
                     <input type="text" class="form-control" name="nro_boleta_total" value="<?= $row['nro_boleta_total'] ?>">
                 </div>
 
-                <!-- DETRACCION -->
+                <!-- Detracción -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Detracción</label>
                     <input type="number" class="form-control" step="0.01" name="detraccion" value="<?= $row['detraccion'] ?>">
                 </div>
 
-                <!-- NOTA CREDITO -->
+                <!-- Nota Crédito -->
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Nota Crédito</label>
                     <select class="form-control" name="NotaCredito">
@@ -273,7 +208,7 @@ if (!$row) {
                     </select>
                 </div>
 
-                <!-- OBSERVACIONES -->
+                <!-- Observaciones -->
                 <div class="col-md-12 mb-3">
                     <label class="form-label">Observaciones</label>
                     <textarea class="form-control" name="observaciones" rows="3"><?= htmlspecialchars($row['observaciones'] ?? '') ?></textarea>

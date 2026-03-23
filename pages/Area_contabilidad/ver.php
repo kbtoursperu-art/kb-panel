@@ -1,202 +1,199 @@
 <?php
 include '../../conexion.php';
-include '../sidebar.php';
 
-// 🟢 Verificar si se pasó un ID de contabilidad
+// Charset seguro
+if (function_exists('mysqli_set_charset')) {
+    mysqli_set_charset($conexion, 'utf8mb4');
+}
+
+// ✅ Validar ID de contabilidad
 if (!isset($_GET['id'])) {
-    echo "<script>alert('⚠️ No se especificó el registro contable.'); window.location.href='index.php';</script>";
-    exit;
+    die("❌ Falta el ID de contabilidad");
 }
 
-$id_conta = intval($_GET['id']);
+$id_contabilidad = (int)$_GET['id'];
 
-// 🔍 Consulta detallada de contabilidad, operación y cliente
+// ====================== CONSULTA PRINCIPAL ======================
 $query = "
+
 SELECT 
-    c.id_contabilidad,
-    o.id_operaciones,
-    CONCAT(d.nombre, ' ', d.apellido) AS cliente,
-    d.nro_pasaporte,
-    d.tipo_cliente,
-    o.nombre_servicio,
-    o.fecha_reserva,
-    o.fecha_salida,
-    o.fecha_retorno,
-    o.servicio_adicional,
-    o.observaciones,
-    c.metodo_pago,
-    c.tipo_moneda,
-    c.precio_servicio,
-    c.comision,
-    c.pagado_a_cuenta,
-    c.saldo_pendiente,
-    c.fecha_pago_saldo,
-    c.estado,
-    c.modalidad_recibo AS tipo_comprobante_pago,
-    c.nro_boleta_cuenta,
-    c.nro_boleta_total,
-    c.Nro_Comprobante_adicional,
-    c.detraccion,
-    c.NotaCredito
+
+c.id_contabilidad,
+
+o.id_operaciones,
+o.id_grupo,
+o.Encargado,
+o.observaciones,
+
+g.nombre_grupo,
+
+CONCAT(d.nombre,' ',d.apellido) AS cliente,
+d.nro_pasaporte,
+
+od.nombre_servicio,
+od.fecha_salida,
+od.fecha_retorno,
+od.modalidad_retorno,
+od.incluye_ingreso,
+od.servicio_adicional,
+
+c.precio_servicio,
+c.precio_servicio_adicional,
+c.pagado_a_cuenta,
+c.pagado_adicional,
+c.saldo_adicional,
+c.saldo_pendiente,
+c.estado,
+c.nro_boleta_total,
+c.metodo_pago,
+c.metodo_pago_adicional,
+c.tipo_moneda,
+c.tipo_moneda_adicional,
+c.fecha_pago_saldo,
+c.monto_pago_saldo
+
 FROM contabilidad c
-LEFT JOIN operaciones o ON c.id_operaciones = o.id_operaciones
-LEFT JOIN datos_clientes d ON o.id_cliente = d.id_cliente
-WHERE c.id_contabilidad = $id_conta
+
+LEFT JOIN operaciones o 
+    ON o.id_operaciones = c.id_operaciones
+
+LEFT JOIN operaciones_detalle od
+    ON od.id_operaciones = o.id_operaciones
+
+LEFT JOIN grupos g
+    ON g.id_grupo = o.id_grupo
+
+LEFT JOIN datos_clientes d
+    ON d.id_cliente = o.id_cliente
+
+WHERE c.id_contabilidad = $id_contabilidad
+
+ORDER BY od.fecha_salida ASC
+LIMIT 1
 ";
-
 $resultado = mysqli_query($conexion, $query);
+if (!$resultado) die("Error en la consulta: " . mysqli_error($conexion));
 
-if (!$resultado || mysqli_num_rows($resultado) == 0) {
-    echo "<script>alert('❌ No se encontró el registro contable.'); window.location.href='index.php';</script>";
-    exit;
+$row = mysqli_fetch_assoc($resultado);
+$id_grupo = $row['id_grupo'] ?? 0;
+
+$clientes = [];
+
+if ($id_grupo > 0) {
+
+$qClientes = mysqli_query($conexion, "
+
+SELECT 
+d.nombre,
+d.apellido,
+d.nro_pasaporte
+
+FROM clientes_kb kb
+
+LEFT JOIN datos_clientes d
+ON d.id_cliente = kb.id_cliente
+
+WHERE kb.id_grupo = $id_grupo
+
+ORDER BY d.nombre ASC
+
+");
+
+while ($c = mysqli_fetch_assoc($qClientes)) {
+    $clientes[] = $c;
 }
 
-$datos = mysqli_fetch_assoc($resultado);
+}
+if (!$row) die("❌ No se encontró la operación");
+
+// Calcular totales
+$total_servicio = ($row['precio_servicio'] ?? 0) + ($row['precio_servicio_adicional'] ?? 0);
+$total_pagado = ($row['pagado_a_cuenta'] ?? 0) + ($row['pagado_adicional'] ?? 0) + ($row['saldo_adicional'] ?? 0);
+$saldo = $total_servicio - $total_pagado;
+
+// Estado
+$badge = match ($row['estado']) {
+    'pagado' => 'bg-success',
+    'pendiente' => 'bg-warning text-dark',
+    'reembolsado' => 'bg-danger',
+    default => 'bg-secondary'
+};
 ?>
 
-<!-- 🔹 CONTENIDO PRINCIPAL -->
-<div class="container mt-4 mb-5">
-    <div class="card shadow-lg border-0">
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0">💰 Detalle de Registro Contable</h4>
-        </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ver Operación - KB Adventures</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.label-box { max-height: 60px; overflow: auto; white-space: normal; }
+</style>
+</head>
+<body>
+<div class="container py-4">
+    <h3 class="mb-4">👁 Ver Operación</h3>
+    
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white">Datos del Cliente</div>
         <div class="card-body">
-            <div class="row g-3">
+            <p><strong>Clientes del grupo:</strong></p>
 
-                <!-- Información del Cliente -->
-                <div class="col-md-12">
-                    <h5 class="text-secondary">👤 Información del Cliente</h5>
-                    <hr>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label fw-bold">Cliente:</label>
-                    <p><?= htmlspecialchars($datos['cliente']) ?></p>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Pasaporte:</label>
-                    <p><?= htmlspecialchars($datos['nro_pasaporte'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Tipo Cliente:</label>
-                    <p><?= htmlspecialchars($datos['tipo_cliente'] ?? '—') ?></p>
-                </div>
+<?php if (!empty($clientes)) { ?>
 
-                <!-- Información del Servicio -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">🧭 Detalles del Servicio</h5>
-                    <hr>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Servicio:</label>
-                    <p><?= htmlspecialchars($datos['nombre_servicio'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Reserva:</label>
-                    <p><?= htmlspecialchars($datos['fecha_reserva'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Salida:</label>
-                    <p><?= htmlspecialchars($datos['fecha_salida'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Retorno:</label>
-                    <p><?= htmlspecialchars($datos['fecha_retorno'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Servicio Adicional:</label>
-                    <p><?= htmlspecialchars($datos['servicio_adicional'] ?? '—') ?></p>
-                </div>
+<ul class="mb-2">
 
-                <!-- Información Económica -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">💵 Información de Pago</h5>
-                    <hr>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Método de Pago:</label>
-                    <p><?= htmlspecialchars($datos['metodo_pago'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Moneda:</label>
-                    <p><?= htmlspecialchars($datos['tipo_moneda'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Precio Total:</label>
-                    <p><?= number_format($datos['precio_servicio'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Comisión:</label>
-                    <p><?= number_format($datos['comision'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Detracción:</label>
-                    <p><?= number_format($datos['detraccion'] ?? 0, 2) ?></p>
-                </div>
+<?php foreach ($clientes as $c) { ?>
 
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Pagado a Cuenta:</label>
-                    <p><?= number_format($datos['pagado_a_cuenta'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Saldo Pendiente:</label>
-                    <p><?= number_format($datos['saldo_pendiente'] ?? 0, 2) ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Fecha Pago Saldo:</label>
-                    <p><?= htmlspecialchars($datos['fecha_pago_saldo'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Estado:</label>
-                    <?php
-                    $estado = htmlspecialchars($datos['estado'] ?? '—');
-                    if ($estado === 'pagado') echo "<p><span class='badge bg-success'>Pagado</span></p>";
-                    elseif ($estado === 'pendiente') echo "<p><span class='badge bg-warning text-dark'>Pendiente</span></p>";
-                    elseif ($estado === 'reembolsado') echo "<p><span class='badge bg-secondary'>Reembolsado</span></p>";
-                    else echo "<p>{$estado}</p>";
-                    ?>
-                </div>
+<li>
+<?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>
+- <?= htmlspecialchars($c['nro_pasaporte'] ?? '-') ?>
+</li>
 
-                <!-- Información del Comprobante -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">📄 Detalles del Comprobante</h5>
-                    <hr>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Tipo de Comprobante:</label>
-                    <p><?= htmlspecialchars($datos['tipo_comprobante_pago'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">N° Comprobante Cuenta:</label>
-                    <p><?= htmlspecialchars($datos['nro_boleta_cuenta'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">N° Comprobante Total:</label>
-                    <p><?= htmlspecialchars($datos['nro_boleta_total'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">N° Comprobante Adicional:</label>
-                    <p><?= htmlspecialchars($datos['Nro_Comprobante_adicional'] ?? '—') ?></p>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Nota de Crédito:</label>
-                    <p><?= ($datos['NotaCredito'] == 1) ? 'Sí' : 'No' ?></p>
-                </div>
+<?php } ?>
 
-                <!-- Observaciones -->
-                <div class="col-md-12 mt-3">
-                    <h5 class="text-secondary">📝 Observaciones</h5>
-                    <hr>
-                    <p><?= nl2br(htmlspecialchars($datos['observaciones'] ?? '—')) ?></p>
-                </div>
+</ul>
 
-                <!-- Botón Volver -->
-                <div class="col-md-12 mt-4 text-center">
-                    <a href="index.php" class="btn btn-secondary">⬅️ Volver</a>
-                </div>
+<?php } else { ?>
 
-            </div>
+-
+
+<?php } ?>
+
+            <p><strong>Grupo:</strong> <?= htmlspecialchars($row['nombre_grupo'] ?? '-') ?></p>
         </div>
     </div>
-</div>
 
-<?php include '../footer.php'; ?>
+    <div class="card mb-3">
+        <div class="card-header bg-info text-white">Detalles de la Operación</div>
+        <div class="card-body">
+            <p><strong>Servicio Principal:</strong> <?= htmlspecialchars($row['nombre_servicio'] ?? '-') ?></p>
+            <p><strong>Servicio Adicional:</strong> <?= htmlspecialchars($row['servicio_adicional'] ?? '-') ?></p>
+            <p><strong>Salida:</strong> <?= $row['fecha_salida'] ?? '-' ?></p>
+            <p><strong>Retorno:</strong> <?= $row['fecha_retorno'] ?? '-' ?> (<?= $row['modalidad_retorno'] ?? '-' ?>)</p>
+            <p><strong>Incluye Ingreso:</strong> <?= $row['incluye_ingreso'] ?? '-' ?></p>
+            <p><strong>Encargado:</strong> <?= $row['Encargado'] ?? '-' ?></p>
+            <p><strong>Observaciones:</strong> <div class="label-box"><?= htmlspecialchars($row['observaciones'] ?? '-') ?></div></p>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header bg-success text-white">Contabilidad</div>
+        <div class="card-body">
+            <p><strong>Total Servicio:</strong> <?= number_format($total_servicio,2) ?></p>
+            <p><strong>Total Pagado:</strong> <?= number_format($total_pagado,2) ?></p>
+            <p><strong>Saldo:</strong> <?= number_format($saldo,2) ?></p>
+            <p><strong>Estado:</strong> <span class="badge <?= $badge ?>"><?= strtoupper($row['estado']) ?></span></p>
+            <p><strong>Comprobante:</strong> <?= htmlspecialchars($row['nro_boleta_total'] ?? '-') ?></p>
+            <p><strong>Método de Pago:</strong> <?= htmlspecialchars($row['metodo_pago'] ?? '-') ?> / <?= htmlspecialchars($row['metodo_pago_adicional'] ?? '-') ?></p>
+            <p><strong>Tipo de Moneda:</strong> <?= htmlspecialchars($row['tipo_moneda'] ?? '-') ?> / <?= htmlspecialchars($row['tipo_moneda_adicional'] ?? '-') ?></p>
+            <p><strong>Fecha de Pago de Saldo:</strong> <?= $row['fecha_pago_saldo'] ?? '-' ?></p>
+            <p><strong>Monto Pagado de Saldo:</strong> <?= number_format($row['monto_pago_saldo'] ?? 0,2) ?></p>
+        </div>
+    </div>
+
+    <a href="index.php" class="btn btn-secondary">⬅ Volver</a>
+</div>
+</body>
+</html>
