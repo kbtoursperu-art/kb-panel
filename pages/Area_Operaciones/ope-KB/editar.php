@@ -436,8 +436,8 @@ class="form-control"><?= $op['observaciones'] ?></textarea>
 <hr>
 
 <h5>Tours</h5>
-
-<table class="table table-bordered">
+<div class="table-responsive"></div>
+<table class="table table-bordered table-sm align-middle">
 
 <thead>
 <tr>
@@ -900,7 +900,7 @@ class="btn btn-primary">
 Guardar cambios
 
 </button>
-
+</div>
 </form>
 
 </div>
