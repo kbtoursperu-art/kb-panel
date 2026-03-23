@@ -310,7 +310,7 @@ if (!empty($_POST['monto_multi'])) {
 <hr>
     <h5 class="mt-4">Tours del grupo</h5>
 
-<table class="table table-bordered" id="tablaTours">
+<table class="table table-bordered table-sm align-middle" id="tablaTours">
     <thead>
         <tr>
             <th>Servicio</th>
