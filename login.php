@@ -208,9 +208,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
         </form>
-        <div class="forgot mt-3">
-            <a href="registration.php">Registrarse</a>
-        </div>
     </div>
 
     <!-- Error Modal -->
