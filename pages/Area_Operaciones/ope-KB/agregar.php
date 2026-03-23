@@ -400,17 +400,16 @@ if (!empty($_POST['monto_multi'])) {
                     </div>
             </td>
             <td>
-                <div class="col-md-4 mt-4">
+                
                         <div class="form-check">
                             <input type="checkbox" name="incluye_ingreso[]" class="form-check-input">
                             <label class="form-check-label">¿Incluye Ingreso?</label>
                         </div>
-                    </div>
+                    
             </td>
                     
             <td>
-               <div class="col-md-6">
-                        <label>Servicio Adicional</label>
+               
                         <select name="servicio_adicional[]" class="form-select" multiple>
                             <option value="Ninguna">Ninguna</option>
                             <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
@@ -422,7 +421,7 @@ if (!empty($_POST['monto_multi'])) {
                             <option value="Trans. Mochilas Playa-Idro">Trans. Mochilas Playa-Idro</option>
                             <option value="Trans. Mochilas Hidro-Aguas">Trans. Mochilas Hidro-Aguas</option>
                         </select>
-                    </div> 
+                 
             </td>
                     
 
