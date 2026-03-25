@@ -711,9 +711,11 @@ echo "<option value='$m' $sel>$m</option>";
 
 <div class="col-md-3">
 <label>Moneda</label>
-<input name="tipo_moneda"
-class="form-control"
-value="<?= $cont['tipo_moneda'] ?>">
+<select name="tipo_moneda" class="form-select">
+<option>Soles</option>
+<option>Dólares</option>
+
+</select>
 </div>
 
 <div class="col-md-3">

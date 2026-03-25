@@ -111,8 +111,13 @@ foreach ($_POST['nombre_servicio'] as $i => $servicio) {
         ? 'Con ingreso'
         : 'Sin ingreso';
 
-    $servicio_adicional =
-        $_POST['servicio_adicional'][$i] ?? null;
+        $serviciosFila = $_POST['servicio_adicional'][$i] ?? [];
+
+        if (is_array($serviciosFila)) {
+            $servicio_adicional = implode(", ", $serviciosFila);
+        } else {
+            $servicio_adicional = $serviciosFila;
+        }
 
     $sqlDet = "INSERT INTO operaciones_detalle
     (
@@ -410,7 +415,7 @@ if (!empty($_POST['monto_multi'])) {
                     
             <td>
                
-                        <select name="servicio_adicional[]" class="form-select" multiple>
+                        <select name="servicio_adicional[0][]" class="form-select" multiple>
                             <option value="Ninguna">Ninguna</option>
                             <option value="Ingreso a Mollepata">Ingreso a Mollepata</option>
                             <option value="Bolsa de Dormir">Bolsa de Dormir</option>
@@ -742,15 +747,31 @@ document.querySelector("[name='saldo_ingreso[]']").value =
 })
 function agregarFila(){
 
-    let fila = document.querySelector("#bodyTours tr")
+let body = document.getElementById("bodyTours")
 
-    let nueva = fila.cloneNode(true)
+let fila = body.querySelector("tr")
 
-    nueva.querySelectorAll("input").forEach(i => i.value="")
+let nueva = fila.cloneNode(true)
 
-    nueva.querySelectorAll("select").forEach(s => s.selectedIndex=0)
+let index = body.querySelectorAll("tr").length
 
-    document.getElementById("bodyTours").appendChild(nueva)
+// limpiar inputs
+nueva.querySelectorAll("input").forEach(i => i.value="")
+
+// reset select
+nueva.querySelectorAll("select").forEach(s => {
+
+    s.selectedIndex = 0
+
+    if(s.name.includes("servicio_adicional")){
+
+        s.name = "servicio_adicional["+index+"][]"
+
+    }
+
+})
+
+body.appendChild(nueva)
 
 }
 

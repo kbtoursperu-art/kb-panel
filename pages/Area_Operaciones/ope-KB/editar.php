@@ -715,13 +715,15 @@ echo "<option value='$m' $sel>$m</option>";
 </select>
 </div>
 
+
 <div class="col-md-3">
 <label>Moneda</label>
-<input name="tipo_moneda"
-class="form-control"
-value="<?= $cont['tipo_moneda'] ?>">
-</div>
+<select name="tipo_moneda" class="form-select">
+<option>Soles</option>
+<option>Dólares</option>
 
+</select>
+</div>
 <div class="col-md-3">
 <label>Pagado</label>
 <input name="pagado_a_cuenta"
@@ -763,7 +765,6 @@ placeholder="Monto a pagar">
 <div class="col-md-3">
 <label>Moneda saldo</label>
 <select name="moneda_saldo" class="form-select">
-
 <option>Soles</option>
 <option>Dólares</option>
 
