@@ -86,8 +86,8 @@ $encargado = $_POST['Encargado'][0];
 
 $total = $_POST['total_operacion'][0];
 
-$pagado = $cont['pagado_a_cuenta'] ?? 0;
-$saldo  = $cont['saldo_pendiente'] ?? 0;
+$pagado = $_POST['pagado_a_cuenta'] ?? 0;
+$saldo  = $_POST['saldo_pendiente'] ?? 0;
 
 
 // =========================
@@ -242,40 +242,13 @@ $pagadoAd = $rowAd['total_adicional'] ?? 0;
 // PAGAR SALDO (SOLO CONTABILIDAD)
 // =========================
 
-if (isset($_POST['pagar_saldo']) && $_POST['pagar_saldo']!='') {
 
-$montoSaldo = floatval($_POST['pagar_saldo']);
+if (isset($_POST['pagar_saldo']) && $_POST['pagar_saldo'] != '') {
 
-$saldo -= $montoSaldo;
-$pagado += $montoSaldo;
+    $montoSaldo = floatval($_POST['pagar_saldo']);
 
-$metodoSaldo = $_POST['metodo_saldo'] ?? '';
-$monedaSaldo = $_POST['moneda_saldo'] ?? '';
-$fechaSaldo  = $_POST['fecha_pago_saldo'] ?? null;
-
-
-// ✅ guardar en pagos_operacion
-
-mysqli_query($conexion,"
-INSERT INTO pagos_operacion
-(
-id_operaciones,
-tipo_pago,
-metodo_pago,
-tipo_moneda,
-monto,
-fecha_pago
-)
-VALUES
-(
-$id,
-'saldo',
-'$metodoSaldo',
-'$monedaSaldo',
-'$montoSaldo',
-'$fechaSaldo'
-)
-");
+    $saldo -= $montoSaldo;
+    $pagado += $montoSaldo;
 
 }
 // =========================
@@ -455,7 +428,7 @@ class="form-control"><?= $op['observaciones'] ?></textarea>
 </thead>
 
 <tbody id="bodyTours">
-
+<?php $i = 0; ?>
 <?php while($t=mysqli_fetch_assoc($qTours)): ?>
 
 <tr>
@@ -651,7 +624,7 @@ X
 </td>
 
 </tr>
-
+<?php $i++; ?>
 <?php endwhile; ?>
 
 </tbody>
@@ -719,8 +692,16 @@ echo "<option value='$m' $sel>$m</option>";
 <div class="col-md-3">
 <label>Moneda</label>
 <select name="tipo_moneda" class="form-select">
-<option>Soles</option>
-<option>Dólares</option>
+
+<option value="Soles"
+<?= $cont['tipo_moneda']=="Soles" ? 'selected' : '' ?>>
+Soles
+</option>
+
+<option value="Dólares"
+<?= $cont['tipo_moneda']=="Dólares" ? 'selected' : '' ?>>
+Dólares
+</option>
 
 </select>
 </div>
@@ -906,18 +887,90 @@ Guardar cambios
 
 </div>
 <script>
-
+// ================== DURACIÓN DE TOURS ==================
+const DURACION_TOURS = {
+    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
+    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
+    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
+    "SALKANTAY TREK 5D/4N WITH LUXURY DOMES": 5,
+    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
+    "SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES": 2,
+    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
+    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
+    "CAMINO INCA 4 DÍAS": 4,
+    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
+    "CAMINO INCA 2 DÍAS": 2,
+    "MACHU PICCHU DE UN DÍA": 1,
+    "MACHU PICCHU EN TREN 2 DÍAS": 2,
+    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
+    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
+    "CHOQUEQUIRAO 4 DÍAS": 4,
+    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
+    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
+    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
+    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
+    "INCA JUNGLE TRAIL 4 DAYS": 4,
+    "LAGUNA HUMANTAY DE UN DÍA": 1,
+    "MONTAÑA DE COLORES DE UN DÍA": 1,
+    "PALCOYO DE UN DÍA": 1,
+    "VALLE SAGRADO VIP DE UN DÍA": 1,
+    "VALLE TRADICIONAL": 1,
+    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
+    "MARAS MORAY DE UN DÍA": 1,
+    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
+    "WAQRAPUKARA DE UN DÍA": 1,
+    "CITY TOUR CUSCO MEDIO DÍA": 1,
+    "CUATRIMOTOS": 1,
+    "ICA – PARACAS DE UN DÍA": 1,
+    "PUNO DE UN DÍA": 1,
+    "MANU 4 DÍAS Y 3 NOCHES": 4
+};
 function agregarFila(){
 
-let fila = document.querySelector("#bodyTours tr")
+let tbody = document.getElementById("bodyTours")
+
+let filas = tbody.querySelectorAll("tr")
+
+let index = filas.length
+
+let fila = filas[0]
 
 let nueva = fila.cloneNode(true)
 
-nueva.querySelectorAll("input").forEach(i=>i.value="")
 
-nueva.querySelectorAll("select").forEach(s=>s.selectedIndex=0)
+// limpiar inputs
+nueva.querySelectorAll("input").forEach(i=>{
+i.value=""
+if(i.type=="checkbox") i.checked=false
+})
 
-document.getElementById("bodyTours").appendChild(nueva)
+
+// limpiar selects
+nueva.querySelectorAll("select").forEach(s=>{
+s.selectedIndex=0
+})
+
+
+// 🔹 corregir name servicio adicional
+let selectAd = nueva.querySelector("[name^='servicio_adicional']")
+
+if(selectAd){
+
+selectAd.name = "servicio_adicional["+index+"][]"
+
+}
+
+
+// 🔹 corregir name de tours
+nueva.querySelectorAll("[name='nombre_servicio[]']").forEach(e=>{})
+nueva.querySelectorAll("[name='precio_tour[]']").forEach(e=>{})
+nueva.querySelectorAll("[name='fecha_salida[]']").forEach(e=>{})
+nueva.querySelectorAll("[name='fecha_retorno[]']").forEach(e=>{})
+nueva.querySelectorAll("[name='modalidad_retorno[]']").forEach(e=>{})
+nueva.querySelectorAll("[name='incluye_ingreso[]']").forEach(e=>{})
+
+
+tbody.appendChild(nueva)
 
 }
 
@@ -975,44 +1028,39 @@ document.querySelector(
 (precio-pagado).toFixed(2)
 
 })
-// ================== DURACIÓN DE TOURS ==================
-const DURACION_TOURS = {
-    "SALKANTAY A MACHU PICCHU 5 DÍAS": 5,
-    "SALKANTAY A MACHU PICCHU 4 DÍAS": 4,
-    "SALKANTAY A MACHU PICCHU 3 DÍAS": 3,
-    "SALKANTAY TREK 5D/4N WITH LUXURY DOMES": 5,
-    "SALKANTAY TREK 4D / 3N WITH LUXURY DOMES": 4,
-    "SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES": 2,
-    "SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS": 2,
-    "SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)": 7,
-    "CAMINO INCA 4 DÍAS": 4,
-    "CAMINO INCA 4 DÍAS (PRIVADO)": 4,
-    "CAMINO INCA 2 DÍAS": 2,
-    "MACHU PICCHU DE UN DÍA": 1,
-    "MACHU PICCHU EN TREN 2 DÍAS": 2,
-    "VALLE SAGRADO A MACHU PICCHU 2 DÍAS": 2,
-    "CHOQUEQUIRAO 5 DÍAS (PRIVADO)": 5,
-    "CHOQUEQUIRAO 4 DÍAS": 4,
-    "CHOQUEQUIRAO 4 DÍAS (PRIVADO)": 4,
-    "LARES A MACHU PICCHU 4 DÍAS (PRIVADO)": 4,
-    "AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS": 4,
-    "HUCHUY QOSQO 3 DÍAS (PRIVADO)": 3,
-    "INCA JUNGLE TRAIL 4 DAYS": 4,
-    "LAGUNA HUMANTAY DE UN DÍA": 1,
-    "MONTAÑA DE COLORES DE UN DÍA": 1,
-    "PALCOYO DE UN DÍA": 1,
-    "VALLE SAGRADO VIP DE UN DÍA": 1,
-    "VALLE TRADICIONAL": 1,
-    "7 LAGUNAS DE AUSANGATE DE UN DÍA": 1,
-    "MARAS MORAY DE UN DÍA": 1,
-    "Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA": 1,
-    "WAQRAPUKARA DE UN DÍA": 1,
-    "CITY TOUR CUSCO MEDIO DÍA": 1,
-    "CUATRIMOTOS": 1,
-    "ICA – PARACAS DE UN DÍA": 1,
-    "PUNO DE UN DÍA": 1,
-    "MANU 4 DÍAS Y 3 NOCHES": 4
-};
+document.addEventListener("change", function(e){
+
+if(
+e.target.name=="nombre_servicio[]" ||
+e.target.name=="fecha_salida[]"
+){
+
+let fila = e.target.closest("tr")
+
+let servicio =
+fila.querySelector("[name='nombre_servicio[]']").value
+
+let salida =
+fila.querySelector("[name='fecha_salida[]']")
+
+let retorno =
+fila.querySelector("[name='fecha_retorno[]']")
+
+if(!salida.value) return
+
+let dias = DURACION_TOURS[servicio] || 1
+
+
+let f = new Date(salida.value)
+f.setDate(f.getDate() + dias - 1)
+
+retorno.value =
+f.toISOString().split("T")[0]
+
+}
+
+})
+
 // ================== PAGOS ==================
 function agregarPago(){
 
@@ -1094,11 +1142,6 @@ alert("Debe haber al menos 1 pago")
 return
 
 }
-
-btn.closest("tr").remove()
-
-}
-function eliminarPago(btn){
 
 btn.closest("tr").remove()
 

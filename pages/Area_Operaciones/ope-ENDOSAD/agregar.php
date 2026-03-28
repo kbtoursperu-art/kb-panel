@@ -53,8 +53,38 @@ if ($tipo_precio == 'total' && $total_operacion > 0) {
     $incluye_ingreso = isset($_POST['incluye_ingreso'][0]) ? 'Con ingreso' : 'Sin ingreso';
 
     $observaciones = $_POST['observaciones'][0];
-    $encargado = $_POST['Encargado'][0];
+        $encargado = $_POST['Encargado'][0];
+// =====================
+// DETECTAR EMPRESA AUTOMATICO
+// =====================
 
+// buscar en clientes_kb
+$qKB = mysqli_query($conexion,"
+SELECT id_cliente
+FROM clientes_kb
+WHERE id_cliente = $id_cliente
+");
+
+if (mysqli_num_rows($qKB) > 0) {
+
+    $empresa = "KB";
+
+} else {
+
+    // buscar en endosador
+$qEnd = mysqli_query($conexion,"
+SELECT id_cliente
+FROM clientes_endosadores
+WHERE id_cliente = $id_cliente
+");
+
+    if (mysqli_num_rows($qEnd) > 0) {
+        $empresa = "ENDOSADOR";
+    } else {
+        $empresa = "KB";
+    }
+
+}
     // servicios adicionales
  $servicios = $_POST['servicio_adicional'] ?? [];
 
@@ -67,19 +97,21 @@ $servicio_adicional = implode(", ", $servicios);
 $queryOp = "INSERT INTO operaciones (
     id_cliente,
     id_grupo,
+    empresa,
     fecha_reserva,
     observaciones,
     Encargado,
     total_operacion
-) VALUES (?,?,?,?,?,?)";
+) VALUES (?,?,?,?,?,?,?)";
 
     $stmtOp = mysqli_prepare($conexion, $queryOp);
 
     mysqli_stmt_bind_param(
     $stmtOp,
-    "iisssd",
+    "iissssd",
     $id_cliente,
     $id_grupo,
+    $empresa,
     $fecha_reserva,
     $observaciones,
     $encargado,
@@ -111,12 +143,12 @@ foreach ($_POST['nombre_servicio'] as $i => $servicio) {
         ? 'Con ingreso'
         : 'Sin ingreso';
 
-    $serviciosFila = $_POST['servicio_adicional'][$i] ?? [];
+ $serviciosFila = $_POST['servicio_adicional'][$i] ?? [];
 
 if (is_array($serviciosFila)) {
     $servicio_adicional = implode(", ", $serviciosFila);
 } else {
-    $servicio_adicional = $serviciosFila;
+    $servicio_adicional = "";
 }
 
     $sqlDet = "INSERT INTO operaciones_detalle
@@ -754,28 +786,15 @@ let fila = body.querySelector("tr")
 
 let nueva = fila.cloneNode(true)
 
-let index = body.querySelectorAll("tr").length
-
-// limpiar inputs
 nueva.querySelectorAll("input").forEach(i => i.value="")
 
-// reset select
 nueva.querySelectorAll("select").forEach(s => {
-
     s.selectedIndex = 0
-
-    if(s.name.includes("servicio_adicional")){
-
-        s.name = "servicio_adicional["+index+"][]"
-
-    }
-
 })
 
 body.appendChild(nueva)
 
 }
-
 
 
 function eliminarFila(btn){

@@ -5,221 +5,162 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
-
 /* =========================
-   MÉTRICAS PRINCIPALES
+   MÉTRICAS
 ========================= */
 $metrics = [
     'reservas_activas' => 0,
     'tours_programados' => 0,
-    'nuevos_clientes' => 0, // No existe fecha_registro actualmente
-    'ingresos_mes' => 0,
+    'nuevos_clientes' => 0,
     'ingresos_dia' => 0,
-    'saldo_pendiente_total' => 0,
-    'gastos_mes' => 0,
-    'balance_mes' => 0
+    'saldo_pendiente_total' => 0
 ];
 
 /* 🔹 Reservas activas */
-$sql = "SELECT COUNT(*) total FROM operaciones WHERE fecha_salida >= CURDATE()";
-$res = mysqli_query($conexion, $sql);
-if ($res) $metrics['reservas_activas'] = mysqli_fetch_assoc($res)['total'];
+$res = mysqli_query($conexion, "SELECT COUNT(*) total FROM operaciones_detalle WHERE fecha_salida >= CURDATE()");
+$metrics['reservas_activas'] = mysqli_fetch_assoc($res)['total'];
 
-/* 🔹 Tours programados */
-$sql = "SELECT COUNT(*) total FROM operaciones";
-$res = mysqli_query($conexion, $sql);
-if ($res) $metrics['tours_programados'] = mysqli_fetch_assoc($res)['total'];
+/* 🔹 Tours */
+$res = mysqli_query($conexion, "SELECT COUNT(*) total FROM operaciones_detalle");
+$metrics['tours_programados'] = mysqli_fetch_assoc($res)['total'];
 
-/* 🔹 Nuevos clientes (30 días) */
-/* 🔹 Nuevos clientes (30 días) */
-$sql = "SELECT COUNT(*) AS total FROM datos_clientes WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-$res = mysqli_query($conexion, $sql);
-if ($res) $metrics['nuevos_clientes'] = mysqli_fetch_assoc($res)['total'];
-
-
-/* 🔹 Ingresos mes */
-$sql = "
-SELECT SUM(
-    COALESCE(c.pagado_a_cuenta,0) +
-    COALESCE(c.pagado_adicional,0) +
-    COALESCE(c.monto_pago_saldo,0)
-) AS total
-FROM contabilidad c
-INNER JOIN operaciones o 
-    ON c.id_operaciones = o.id_operaciones
-WHERE MONTH(o.fecha_reserva) = MONTH(CURDATE())
-AND YEAR(o.fecha_reserva) = YEAR(CURDATE())
-";
-
-$res = mysqli_query($conexion, $sql);
-if ($res) {
-    $metrics['ingresos_mes'] = mysqli_fetch_assoc($res)['total'] ?? 0;
-}
+/* 🔹 Clientes */
+$res = mysqli_query($conexion, "SELECT COUNT(*) total FROM datos_clientes WHERE fecha_registro >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+$metrics['nuevos_clientes'] = mysqli_fetch_assoc($res)['total'];
 
 /* 🔹 Ingresos día */
-$sql = "
+$res = mysqli_query($conexion,"
 SELECT SUM(
-    COALESCE(c.pagado_a_cuenta,0) +
-    COALESCE(c.pagado_adicional,0) +
-    COALESCE(c.monto_pago_saldo,0)
-) AS total
+COALESCE(c.pagado_a_cuenta,0)+
+COALESCE(c.pagado_adicional,0)+
+COALESCE(c.monto_pago_saldo,0)
+) total
 FROM contabilidad c
-INNER JOIN operaciones o 
-    ON c.id_operaciones = o.id_operaciones
-WHERE DATE(o.fecha_reserva) = CURDATE()
-";
+INNER JOIN operaciones o ON c.id_operaciones=o.id_operaciones
+WHERE DATE(o.fecha_reserva)=CURDATE()
+");
+$metrics['ingresos_dia'] = mysqli_fetch_assoc($res)['total'] ?? 0;
 
-$res = mysqli_query($conexion, $sql);
-if ($res) {
-    $metrics['ingresos_dia'] = mysqli_fetch_assoc($res)['total'] ?? 0;
+/* 🔹 Saldos */
+$res = mysqli_query($conexion,"SELECT SUM(IFNULL(saldo_pendiente,0)) total FROM contabilidad WHERE estado='pendiente'");
+$metrics['saldo_pendiente_total'] = mysqli_fetch_assoc($res)['total'] ?? 0;
+
+/* =========================
+   GRÁFICO (7 días)
+========================= */
+$labels = [];
+$data = [];
+
+$q = mysqli_query($conexion,"
+SELECT DATE(o.fecha_reserva) fecha,
+SUM(
+COALESCE(c.pagado_a_cuenta,0)+
+COALESCE(c.pagado_adicional,0)+
+COALESCE(c.monto_pago_saldo,0)
+) total
+FROM contabilidad c
+INNER JOIN operaciones o ON c.id_operaciones=o.id_operaciones
+WHERE o.fecha_reserva >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+GROUP BY fecha
+ORDER BY fecha
+");
+
+while($row = mysqli_fetch_assoc($q)){
+    $labels[] = date('d/m', strtotime($row['fecha']));
+    $data[] = (float)$row['total'];
 }
 
-/* 🔹 Saldos pendientes */
-$sql = "SELECT SUM(IFNULL(saldo_pendiente,0)) total FROM contabilidad WHERE estado='pendiente'";
-$res = mysqli_query($conexion, $sql);
-if ($res) $metrics['saldo_pendiente_total'] = mysqli_fetch_assoc($res)['total'] ?? 0;
-
-$metrics['gastos_mes'] = 0;
-$metrics['balance_mes'] = $metrics['ingresos_mes'] - $metrics['gastos_mes'];
+/* =========================
+   TOP TOURS
+========================= */
+$top = mysqli_query($conexion,"
+SELECT nombre_servicio, COUNT(*) total
+FROM operaciones_detalle
+GROUP BY nombre_servicio
+ORDER BY total DESC
+LIMIT 5
+");
 
 /* =========================
-   Próximos Tours
+   EVENTOS
 ========================= */
-$sql = "SELECT nombre_servicio, fecha_salida FROM operaciones WHERE fecha_salida >= CURDATE() ORDER BY fecha_salida ASC LIMIT 5";
-$res = mysqli_query($conexion, $sql);
-$eventos = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
+$eventos = mysqli_fetch_all(mysqli_query($conexion,"
+SELECT nombre_servicio, fecha_salida 
+FROM operaciones_detalle 
+WHERE fecha_salida >= CURDATE() 
+ORDER BY fecha_salida ASC LIMIT 5
+"), MYSQLI_ASSOC);
 
 /* =========================
-   Notificaciones
+   NOTIFICACIONES
 ========================= */
-$sql = "SELECT observaciones mensaje, fecha_reserva FROM operaciones WHERE observaciones <> '' ORDER BY fecha_reserva DESC LIMIT 5";
-$notificaciones = mysqli_fetch_all(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
-
-$sql = "
-SELECT 
-    MONTH(o.fecha_salida) AS mes,
-    o.nombre_servicio,
-    COUNT(o.id_operaciones) AS cantidad,
-    ROUND(AVG(IFNULL(c.precio_servicio,0)),2) AS precio_promedio
-FROM operaciones o
-LEFT JOIN contabilidad c ON o.id_operaciones = c.id_operaciones
-LEFT JOIN datos_clientes d ON o.id_cliente = d.id_cliente
-WHERE o.fecha_salida >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-GROUP BY mes, o.nombre_servicio
-ORDER BY mes ASC
-";
-$estadisticas = mysqli_query($conexion, $sql);
-
-$meses = [
-    1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',
-    5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',
-    9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'
-];
+$notificaciones = mysqli_fetch_all(mysqli_query($conexion,"
+SELECT observaciones mensaje, fecha_reserva 
+FROM operaciones 
+WHERE observaciones <> '' 
+ORDER BY fecha_reserva DESC LIMIT 5
+"), MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard General - KB Adventures</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Gerencial</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { background:#f4f6f9; }
+.card { border-radius:15px; }
+</style>
 </head>
 
 <body>
-<?php include('../sidebar.php');?>
-<!-- CONTENT ACOMODADO AL NUEVO SIDEBAR -->
-<div class="content p-4">
-<div class="container-fluid">
+<div class="container-fluid p-4">
 
-<h2 class="text-center text-primary fw-bold mb-4">
-📊 Panel de Control - KB Adventures
-</h2>
+<h3 class="fw-bold mb-4">📊 Panel Gerencial</h3>
 
-<!-- MÉTRICAS PRINCIPALES -->
-<div class="row row-cols-1 row-cols-md-3 g-4 mb-4 text-center">
+<div class="row g-4">
 
-<div class="col">
-<a href="reservas-activas.php" class="text-decoration-none">
-<div class="card bg-primary text-white shadow-sm">
+<!-- RESERVAS -->
+<div class="col-md-3">
+<div class="card shadow border-0 h-100 text-center">
 <div class="card-body">
-<h5>Reservas Activas</h5>
-<h3><?= $metrics['reservas_activas'] ?></h3>
+<h6 class="text-muted">Reservas Activas</h6>
+<h2 id="kpi_reservas" class="fw-bold text-primary">0</h2>
 </div>
 </div>
-</a>
 </div>
 
-<div class="col">
-<a href="tous-programados.php" class="text-decoration-none">
-<div class="card bg-success text-white shadow-sm">
+<!-- TOURS -->
+<div class="col-md-3">
+<div class="card shadow border-0 h-100 text-center">
 <div class="card-body">
-<h5>Tours Programados</h5>
-<h3><?= $metrics['tours_programados'] ?></h3>
+<h6 class="text-muted">Tours Programados</h6>
+<h2 id="kpi_tours" class="fw-bold text-success">0</h2>
 </div>
 </div>
-</a>
 </div>
 
-<div class="col">
-<a href="nuevos-clientes.php" class="text-decoration-none">
-<div class="card bg-warning text-dark shadow-sm">
+<!-- CLIENTES -->
+<div class="col-md-3">
+<div class="card shadow border-0 h-100 text-center">
 <div class="card-body">
-<h5>Nuevos Clientes</h5>
-<h3><?= $metrics['nuevos_clientes'] ?></h3>
+<h6 class="text-muted">Clientes Nuevos</h6>
+<h2 id="kpi_clientes" class="fw-bold text-warning">0</h2>
 </div>
 </div>
-</a>
-</div>
-
 </div>
 
-<!-- FINANZAS -->
-<div class="row row-cols-1 row-cols-md-4 g-4 mb-4 text-center">
-
-<div class="col">
-<a href="ingresos_mensuales.php" class="text-decoration-none">
-<div class="card bg-info text-white shadow-sm">
+<!-- INGRESOS CLICKABLE -->
+<div class="col-md-3">
+<a href="ingreso-dia.php" target="_blank" class="text-decoration-none">
+<div class="card shadow border-0 h-100 bg-dark text-white text-center" style="cursor:pointer;">
 <div class="card-body">
-<h5>Ingresos del Mes</h5>
-<h3>S/. <?= number_format($metrics['ingresos_mes'],2) ?></h3>
-</div>
-</div>
-</a>
-</div>
-
-<div class="col">
-<a href="ingreso-dia.php" class="text-decoration-none">
-<div class="card bg-success text-white shadow-sm">
-<div class="card-body">
-<h5>Ingresos del Día</h5>
-<h3>S/. <?= number_format($metrics['ingresos_dia'],2) ?></h3>
-</div>
-</div>
-</a>
-</div>
-
-<div class="col">
-<a href="saldo-pendiente.php" class="text-decoration-none">
-<div class="card bg-warning text-dark shadow-sm">
-<div class="card-body">
-<h5>Saldos Pendientes</h5>
-<h3>S/. <?= number_format($metrics['saldo_pendiente_total'],2) ?></h3>
-</div>
-</div>
-</a>
-</div>
-
-<div class="col">
-<a href="balance-general.php" class="text-decoration-none">
-<div class="card bg-secondary text-white shadow-sm">
-<div class="card-body">
-<h5>Balance General</h5>
-<h3>S/. <?= number_format($metrics['balance_mes'],2) ?></h3>
+<h6 class="text-light">Ingresos del Día</h6>
+<h2 id="kpi_ingresos" class="fw-bold text-success">S/. 0</h2>
+<small>Ver detalle financiero →</small>
 </div>
 </div>
 </a>
@@ -227,72 +168,84 @@ $meses = [
 
 </div>
 
-<!-- EVENTOS Y NOTIFICACIONES -->
-<div class="row mb-4">
+<!-- SEGUNDA FILA -->
+<div class="row g-4 mt-2">
 
-<div class="col-md-6">
-<div class="card shadow-sm h-100">
-<div class="card-header bg-info text-white fw-bold">📅 Próximos Tours</div>
-<ul class="list-group list-group-flush">
-<?php foreach($eventos as $e): ?>
-<li class="list-group-item">
-<strong><?= date('d/m/Y',strtotime($e['fecha_salida'])) ?></strong>
-- <?= htmlspecialchars($e['nombre_servicio']) ?>
-</li>
-<?php endforeach; ?>
-</ul>
+<!-- GRÁFICO -->
+<div class="col-md-8">
+<div class="card shadow border-0">
+<div class="card-body">
+<h6 class="fw-bold">Ingresos últimos 7 días</h6>
+<canvas id="chart"></canvas>
+</div>
 </div>
 </div>
 
-<div class="col-md-6">
-<div class="card shadow-sm h-100">
-<div class="card-header bg-warning text-white fw-bold">🔔 Notificaciones</div>
-<ul class="list-group list-group-flush">
-<?php foreach($notificaciones as $n): ?>
-<li class="list-group-item">
-<strong><?= date('d/m/Y',strtotime($n['fecha_reserva'])) ?>:</strong>
-<?= htmlspecialchars($n['mensaje']) ?>
-</li>
-<?php endforeach; ?>
-</ul>
+<!-- SALDOS -->
+<div class="col-md-4">
+<div class="card shadow border-0 bg-warning text-center">
+<div class="card-body">
+<h6>Saldos Pendientes</h6>
+<h2 id="kpi_saldos">S/. 0</h2>
+</div>
 </div>
 </div>
 
 </div>
 
-<!-- ESTADÍSTICAS -->
-<div class="card shadow-sm mb-5">
-<div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
-📈 Estadísticas por Mes y Tour
-<a href="tours_mes.php" class="btn btn-sm btn-primary">Más detalles</a>
 </div>
 
-<div class="table-responsive">
-<table class="table table-striped text-center mb-0">
-<thead class="table-dark">
-<tr>
-<th>Mes</th>
-<th>Servicio</th>
-<th>Cantidad</th>
-<th>Precio Promedio</th>
-</tr>
-</thead>
-<tbody>
-<?php while($row=mysqli_fetch_assoc($estadisticas)): ?>
-<tr>
-<td><?= $meses[$row['mes']] ?></td>
-<td><?= htmlspecialchars($row['nombre_servicio']) ?></td>
-<td><?= $row['cantidad'] ?></td>
-<td>S/. <?= number_format($row['precio_promedio'],2) ?></td>
-</tr>
-<?php endwhile; ?>
-</tbody>
-</table>
-</div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-</div>
-</div>
+<script>
+let chart;
+
+function initChart(labels, data){
+    chart = new Chart(document.getElementById('chart'), {
+        type:'line',
+        data:{
+            labels:labels,
+            datasets:[{
+                label:'Ingresos',
+                data:data,
+                tension:0.4
+            }]
+        }
+    });
+}
+
+function loadDashboard(){
+
+fetch('api_dashboard.php')
+.then(r=>r.json())
+.then(data=>{
+
+    console.log(data);
+
+    document.getElementById('kpi_reservas').innerText = data.reservas_activas;
+    document.getElementById('kpi_tours').innerText = data.tours;
+    document.getElementById('kpi_clientes').innerText = data.clientes;
+    document.getElementById('kpi_ingresos').innerText = "S/. " + data.ingresos.toFixed(2);
+    document.getElementById('kpi_saldos').innerText = "S/. " + data.saldos.toFixed(2);
+
+    if(chart){
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.values;
+        chart.update();
+    }else{
+        initChart(data.labels, data.values);
+    }
+
+})
+.catch(error=>{
+    console.error("ERROR:", error);
+});
+
+}
+
+loadDashboard();
+setInterval(loadDashboard, 5000);
+</script>
 
 </body>
 </html>
