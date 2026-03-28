@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <div class="col-md-4">
         <label>Nacionalidad</label>
-        <select name="nacionalidad" id="nacionalidad" class="form-control select2" required>
+        <select name="nacionalidad" id="nacionalidad" class="form-control select2" >
             <option value="">Seleccionar país</option>
         </select>
     </div>
