@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agregar_cliente') {
 
-    $id_grupo = intval($_POST['id_grupo']);
+    $id_grupo_post = intval($_POST['id_grupo']);
 
     // 🔒 validar capacidad
     $cap = mysqli_fetch_assoc(mysqli_query(
@@ -521,7 +521,7 @@ $clientesGrupo = mysqli_stmt_get_result($stmt);
 <script>
 $(document).ready(function () {
 
-    const paisActual = <?= json_encode($cliente['nacionalidad']) ?>;
+    const paisActual = <?= json_encode($cliente['nacionalidad'] ?? null) ?>;
     const $select = $('#nacionalidad');
 
     $.ajax({

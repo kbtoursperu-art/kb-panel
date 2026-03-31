@@ -83,7 +83,12 @@ WHERE 1=1
 ";
 
 if (!empty($search_from) && !empty($search_to)) {
-    $query .= " AND o.fecha_salida BETWEEN '$search_from' AND '$search_to'";
+    $query .= " AND EXISTS (
+        SELECT 1 
+        FROM operaciones o2
+        WHERE o2.id_grupo = g.id_grupo
+        AND DATE(o2.fecha_reserva) BETWEEN '$search_from' AND '$search_to'
+    )";
 }
 
 $query .= "
