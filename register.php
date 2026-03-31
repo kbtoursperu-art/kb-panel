@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contraseña_hashed = password_hash($contraseña, PASSWORD_DEFAULT);
 
     // Verificar si el usuario ya existe en la base de datos
-    $checkUserQuery = "SELECT Usuario FROM Usuarios WHERE Usuario = ?";
+    $checkUserQuery = "SELECT Usuario FROM usuarios WHERE Usuario = ?";
     $stmt = $conexion->prepare($checkUserQuery);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->close();
 
     // Insertar el nuevo usuario en la base de datos usando prepared statements
-    $insertUserQuery = "INSERT INTO Usuarios (Usuario, Contraseña, Area, EsAdmin) VALUES (?, ?, ?, ?)";
+    $insertUserQuery = "INSERT INTO usuarios (Usuario, Contraseña, Area, EsAdmin) VALUES (?, ?, ?, ?)";
     $stmt = $conexion->prepare($insertUserQuery);
     $stmt->bind_param("sssi", $usuario, $contraseña_hashed, $area, $es_admin);
 
