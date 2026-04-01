@@ -16,7 +16,7 @@ $cliente = null;
 
 if ($id_cliente) {
     $sqlCliente = "
-    SELECT d.*, k.fecha_nacimiento, k.foto_pasaporte, k.nro_whatsapp, k.id_grupo
+    SELECT d.*, k.fecha_nacimiento, k.foto_pasaporte, k.nro_whatsapp, k.id_grupo, k.hotel
     FROM datos_clientes d
     JOIN clientes_kb k ON d.id_cliente = k.id_cliente
     WHERE d.id_cliente = ?
@@ -118,21 +118,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
 
     /* ---- UPDATE DATOS_CLIENTES ---- */
     $sql1 = "UPDATE datos_clientes 
-             SET nombre=?, apellido=?, genero=?, nro_pasaporte=?, nacionalidad=?, Comida=?, hotel=? 
+             SET nombre=?, apellido=?, genero=?, nro_pasaporte=?, nacionalidad=?, Comida=?
              WHERE id_cliente=?";
     $stmt1 = mysqli_prepare($conexion, $sql1);
-    mysqli_stmt_bind_param($stmt1, "sssssssi",
-        $nombre, $apellido, $genero, $nro_pasaporte, $nacionalidad, $Comida, $hotel, $id_cliente
+    mysqli_stmt_bind_param($stmt1, "ssssssi",
+        $nombre, $apellido, $genero, $nro_pasaporte, $nacionalidad, $Comida, $id_cliente
     );
     mysqli_stmt_execute($stmt1);
 
     /* ---- UPDATE CLIENTES_KB ---- */
     $sql2 = "UPDATE clientes_kb
-             SET fecha_nacimiento=?, nro_whatsapp=?, id_grupo=?, foto_pasaporte=? 
+             SET fecha_nacimiento=?, nro_whatsapp=?, id_grupo=?, foto_pasaporte=?, hotel=?
              WHERE id_cliente=?";
     $stmt2 = mysqli_prepare($conexion, $sql2);
-    mysqli_stmt_bind_param($stmt2, "ssisi",
-        $fecha_nacimiento, $nro_whatsapp, $id_grupo, $foto_path, $id_cliente
+    mysqli_stmt_bind_param($stmt2, "ssissi",
+        $fecha_nacimiento, $nro_whatsapp, $id_grupo, $foto_path, $hotel, $id_cliente
     );
     mysqli_stmt_execute($stmt2);
 
@@ -300,7 +300,7 @@ $clientesGrupo = mysqli_stmt_get_result($stmt);
             <div class="col-md-4">
                 <label class="form-label">Fecha nacimiento</label>
                 <input type="date" class="form-control" name="fecha_nacimiento"
-                       value="<?= $cliente['fecha_nacimiento'] ?>" required>
+                       value="<?= $cliente['fecha_nacimiento'] ?>" >
             </div>
 
             <div class="col-md-4">
@@ -320,7 +320,8 @@ $clientesGrupo = mysqli_stmt_get_result($stmt);
 
           <div class="col-md-4">
     <label>País</label>
-    <select name="nacionalidad" id="nacionalidad" class="form-control select2" required>
+    <select name="nacionalidad" id="nacionalidad" class="form-control select2" >
+      <option value="">Seleccionar país</option>
         <!-- el país actual se inyecta por JS -->
     </select>
 </div>

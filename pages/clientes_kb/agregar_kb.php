@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (id_cliente, fecha_nacimiento, foto_pasaporte, nro_whatsapp, id_grupo, hotel)
             VALUES (?, ?, ?, ?, ?, ?)
         ");
-        mysqli_stmt_bind_param($stmtKB, "iissis", $id_cliente, $fecha_nacimiento, $foto_pasaporte, $nro_whatsapp, $id_grupo, $hotel);
+        mysqli_stmt_bind_param($stmtKB, "isssis", $id_cliente, $fecha_nacimiento, $foto_pasaporte, $nro_whatsapp, $id_grupo, $hotel);
         mysqli_stmt_execute($stmtKB);
 
         // Aumentar registrados
