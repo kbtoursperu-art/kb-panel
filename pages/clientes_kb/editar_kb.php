@@ -18,7 +18,7 @@ if ($id_cliente) {
     $sqlCliente = "
     SELECT d.*, k.fecha_nacimiento, k.foto_pasaporte, k.nro_whatsapp, k.id_grupo
     FROM datos_clientes d
-    JOIN Clientes_KB k ON d.id_cliente = k.id_cliente
+    JOIN clientes_kb k ON d.id_cliente = k.id_cliente
     WHERE d.id_cliente = ?
     ";
 
@@ -42,7 +42,7 @@ SELECT
     g.cantidad,
     (
         SELECT COUNT(*) 
-        FROM Clientes_KB 
+        FROM clientes_kb
         WHERE id_grupo = g.id_grupo
     ) AS ocupados
 FROM grupos g
