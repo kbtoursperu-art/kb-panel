@@ -14,52 +14,40 @@ SELECT
     g.id_grupo,
     g.nombre_grupo,
 
-    -- PRIMER CLIENTE (KB + ENDOSADOR)
-    (
-        SELECT CONCAT(d.nombre,' ',d.apellido)
-        FROM (
-            SELECT id_cliente, id_grupo FROM clientes_kb
-            UNION ALL
-            SELECT id_cliente, id_grupo FROM clientes_endosadores
-        ) t
-        LEFT JOIN datos_clientes d 
-            ON d.id_cliente = t.id_cliente
-        WHERE t.id_grupo = g.id_grupo
-        LIMIT 1
-    ) AS primer_cliente,
+    -- PRIMER CLIENTE
+    MIN(CONCAT(d.nombre,' ',d.apellido)) AS primer_cliente,
 
-    -- PASAJEROS
-    (
-        SELECT COUNT(*)
-        FROM (
-            SELECT id_cliente, id_grupo FROM clientes_kb
-            UNION ALL
-            SELECT id_cliente, id_grupo FROM clientes_endosadores
-        ) t
-        WHERE t.id_grupo = g.id_grupo
-    ) AS pasajeros,
+    -- TOTAL PASAJEROS
+    COUNT(DISTINCT ck.id_cliente) + COUNT(DISTINCT ce.id_cliente) AS pasajeros,
 
+    -- OPERACIONES
+    o.id_operaciones,
 
-    -- Operaciones
-    MAX(o.id_operaciones) AS id_operaciones,
-    GROUP_CONCAT(DISTINCT od.nombre_servicio SEPARATOR '<br>') AS nombre_servicio,
-    GROUP_CONCAT(DISTINCT od.servicio_adicional SEPARATOR '<br>') AS servicio_adicional,
-    MAX(o.fecha_salida) AS fecha_salida,
-    MAX(o.observaciones) AS observaciones,
-    MAX(o.Encargado) AS Encargado,
+    -- SERVICIOS + FECHAS (PRO)
+    GROUP_CONCAT(
+        DISTINCT CONCAT(od.nombre_servicio, ' (', od.fecha_salida, ')')
+        SEPARATOR '<br>'
+    ) AS servicios,
 
-    -- Contabilidad
-    MAX(c.id_contabilidad) AS id_contabilidad,
-    MAX(c.precio_servicio) AS precio_servicio,
-    MAX(c.pagado_a_cuenta) AS pagado_a_cuenta,
-    MAX(c.saldo_pendiente) AS saldo_pendiente,
-    MAX(c.estado) AS estado,
-    MAX(c.nro_boleta_total) AS nro_boleta_total
+    o.observaciones,
+    o.Encargado,
+
+    -- CONTABILIDAD
+    c.id_contabilidad,
+    c.precio_servicio,
+    c.pagado_a_cuenta,
+    c.saldo_pendiente,
+    c.estado,
+    c.nro_boleta_total
 
 FROM grupos g
 
-LEFT JOIN clientes_kb k ON k.id_grupo = g.id_grupo
-LEFT JOIN datos_clientes d ON d.id_cliente = k.id_cliente
+LEFT JOIN clientes_kb ck ON ck.id_grupo = g.id_grupo
+LEFT JOIN clientes_endosadores ce ON ce.id_grupo = g.id_grupo
+
+LEFT JOIN datos_clientes d 
+    ON d.id_cliente = ck.id_cliente
+
 LEFT JOIN operaciones o ON o.id_grupo = g.id_grupo
 LEFT JOIN operaciones_detalle od ON od.id_operaciones = o.id_operaciones
 LEFT JOIN contabilidad c ON c.id_operaciones = o.id_operaciones
@@ -68,7 +56,7 @@ WHERE 1=1
 ";
 
 if (!empty($search_from) && !empty($search_to)) {
-    $query .= " AND o.fecha_salida BETWEEN '$search_from' AND '$search_to'";
+    $query .= " AND od.fecha_salida BETWEEN '$search_from' AND '$search_to'";
 }
 
 $query .= "
