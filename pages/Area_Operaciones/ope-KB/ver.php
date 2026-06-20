@@ -10,30 +10,23 @@ if (!isset($_GET['id_grupo'])) {
 
 $id_grupo = intval($_GET['id_grupo']);
 
-
 /* ================= GRUPO ================= */
-
 $qGrupo = mysqli_query($conexion,"
 SELECT *
 FROM grupos
 WHERE id_grupo = $id_grupo
 ");
-
 $grupo = mysqli_fetch_assoc($qGrupo);
 
-
-
 /* ================= CLIENTES ================= */
-
 $qClientes = mysqli_query($conexion,"
-SELECT d.nombre,d.apellido,k.es_pagador
-FROM clientes_kb k
-JOIN datos_clientes d ON d.id_cliente = k.id_cliente
-WHERE k.id_grupo = $id_grupo
+SELECT d.nombre,d.apellido,cg.es_pagador
+FROM clientes_grupo cg
+JOIN datos_clientes d ON d.id_cliente = cg.id_cliente
+WHERE cg.id_grupo = $id_grupo
 ");
 
 /* ================= OPERACION ================= */
-
 $qOperacion = mysqli_query($conexion,"
 SELECT *
 FROM operaciones
@@ -43,105 +36,93 @@ LIMIT 1
 ");
 
 $op = mysqli_fetch_assoc($qOperacion);
+$id_operacion = $op['id_operaciones'] ?? 0;
 
-$id_operacion = 0;
-
-if ($op && isset($op['id_operaciones'])) {
-    $id_operacion = $op['id_operaciones'];
-}
-
-
-/* ================= CONTABILIDAD ================= */
-
-$conta = [];
-
-if ($id_operacion > 0) {
-
-    $qConta = mysqli_query($conexion,"
-    SELECT *
-   FROM contabilidad
-WHERE id_grupo = $id_grupo
-ORDER BY id_contabilidad DESC
-LIMIT 1
-    ");
-
-    $conta = mysqli_fetch_assoc($qConta);
-
-    if ($conta) {
-        $op = array_merge($op, $conta);
-    }
-}
 /* ================= DETALLE ================= */
-
 $qDetalle = mysqli_query($conexion,"
-SELECT *
-FROM operaciones_detalle
-WHERE id_operaciones = $id_operacion
+SELECT od.*, s.nombre AS nombre_servicio
+FROM operaciones_detalle od
+LEFT JOIN servicios s ON s.id_servicio = od.id_servicio
+WHERE od.id_operaciones = $id_operacion
 ");
-/* ================= PAGOS OPERACION ================= */
 
+/* ================= PAGOS ================= */
 $qPagos = mysqli_query($conexion,"
 SELECT *
-FROM pagos_operacion
+FROM pagos
 WHERE id_operaciones = $id_operacion
-ORDER BY id_pago ASC
 ");
 
-/* ================= PAGOS SALDO ================= */
-
-$qSaldo = mysqli_query($conexion,"
+/* ================= CONTABILIDAD ================= */
+$qConta = mysqli_query($conexion,"
 SELECT *
-FROM pagos_operacion
+FROM contabilidad
 WHERE id_operaciones = $id_operacion
-AND tipo_pago = 'saldo'
-ORDER BY id_pago ASC
+LIMIT 1
 ");
+$cont = mysqli_fetch_assoc($qConta);
 
-if (!$qSaldo) {
-    die("Error en saldo: " . mysqli_error($conexion));
+/* ================= CALCULOS ================= */
+$total_soles = 0;
+$total_dolares = 0;
+
+while($d = mysqli_fetch_assoc($qDetalle)){
+    if($d['tipo_moneda'] == 'Soles'){
+        $total_soles += $d['precio'];
+    } else {
+        $total_dolares += $d['precio'];
+    }
 }
+
+mysqli_data_seek($qDetalle, 0);
+
+$pagado_soles = 0;
+$pagado_dolares = 0;
+
+while($p = mysqli_fetch_assoc($qPagos)){
+    if($p['tipo'] == 'tour'){
+        if($p['moneda'] == 'Soles'){
+            $pagado_soles += $p['monto'];
+        } else {
+            $pagado_dolares += $p['monto'];
+        }
+    }
+}
+
+mysqli_data_seek($qPagos, 0);
+
+$saldo_soles = $total_soles - $pagado_soles;
+$saldo_dolares = $total_dolares - $pagado_dolares;
+
+$estado = ($saldo_soles <= 0 && $saldo_dolares <= 0)
+    ? 'PAGADO'
+    : 'PENDIENTE';
 ?>
+
+
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-
+<meta charset="UTF-8">
+<title>Vista de Grupo</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-
-.card{
-border-radius:12px;
-}
-
-.badge{
-font-size:13px;
-}
-
-</style>
-
 </head>
-<body>
+
+<body class="bg-light">
 <?php include '../../sidebar.php'; ?>
+
 <div class="container mt-4">
 
-<h3 class="text-primary mb-3">
+<h3 class="text-primary">
 Grupo: <?= $grupo['nombre_grupo'] ?? '-' ?>
 </h3>
 
-
-
 <!-- ================= CLIENTES ================= -->
-
 <div class="card mb-3">
-
-<div class="card-header bg-primary text-white">
-Clientes
-</div>
-
+<div class="card-header bg-primary text-white">👥 Clientes</div>
 <div class="card-body">
 
 <table class="table table-sm">
-
 <tr>
 <th>#</th>
 <th>Nombre</th>
@@ -149,27 +130,15 @@ Clientes
 </tr>
 
 <?php $i=1; while($c=mysqli_fetch_assoc($qClientes)): ?>
-
 <tr>
-
 <td><?= $i++ ?></td>
-
+<td><?= $c['nombre']." ".$c['apellido'] ?></td>
 <td>
-<?= $c['nombre']." ".$c['apellido'] ?>
+<?= $c['es_pagador'] 
+? '<span class="badge bg-success">SI</span>' 
+: '<span class="badge bg-secondary">NO</span>' ?>
 </td>
-
-<td>
-
-<?php
-echo $c['es_pagador']
-? '<span class="badge bg-success">SI</span>'
-: '<span class="badge bg-secondary">NO</span>';
-?>
-
-</td>
-
 </tr>
-
 <?php endwhile; ?>
 
 </table>
@@ -177,166 +146,85 @@ echo $c['es_pagador']
 </div>
 </div>
 
-
-
-<!-- ================= TOURS ================= -->
-
+<!-- ================= RESUMEN ================= -->
 <div class="card mb-3">
-
-<div class="card-header bg-info text-white">
-Tours
-</div>
-
+<div class="card-header bg-dark text-white">💰 Resumen financiero</div>
 <div class="card-body">
 
-<table class="table table-bordered">
-
-<tr>
-<th>Servicio</th>
-<th>Salida</th>
-<th>Retorno</th>
-<th>Ingreso</th>
-<th>Modalidad</th>
-<th>Adicional</th>
+<table class="table table-bordered text-center">
+<tr class="table-light">
+<th></th>
+<th>Soles (S/)</th>
+<th>Dólares ($)</th>
 </tr>
-
-<?php while($d=mysqli_fetch_assoc($qDetalle)): ?>
-
-<tr>
-
-<td>
-<span class="badge bg-primary">
-<?= $d['nombre_servicio'] ?>
-</span>
-</td>
-
-<td><?= $d['fecha_salida'] ?></td>
-
-<td><?= $d['fecha_retorno'] ?></td>
-
-<td><?= $d['incluye_ingreso'] ?></td>
-
-<td><?= $d['modalidad_retorno'] ?></td>
-
-<td>
-
-<?php
-if (!empty($d['servicio_adicional'])) {
-echo '<span class="badge bg-warning text-dark">'
-.$d['servicio_adicional'].
-'</span>';
-}
-?>
-
-</td>
-
-</tr>
-
-<?php endwhile; ?>
-
-</table>
-
-</div>
-</div>
-
-
-
-<!-- ================= PAGOS ================= -->
-
-<div class="card mb-3">
-
-<div class="card-header bg-success text-white">
-Pagos
-</div>
-
-<div class="card-body">
-
-<table class="table">
 
 <tr>
 <th>Total</th>
-<th>Pagado</th>
-<th>Saldo</th>
-<th>Metodo</th>
-<th>Moneda</th>
+<td><?= number_format($total_soles,2) ?></td>
+<td><?= number_format($total_dolares,2) ?></td>
 </tr>
 
 <tr>
+<th>Pagado</th>
+<td><?= number_format($pagado_soles,2) ?></td>
+<td><?= number_format($pagado_dolares,2) ?></td>
+</tr>
 
-<td><?= $op['precio_servicio'] ?? 0 ?></td>
-
-<td><?= $op['pagado_a_cuenta'] ?? 0 ?></td>
-
-<td><?= $op['saldo_pendiente'] ?? 0 ?></td>
-
-<td><?= $op['metodo_pago'] ?? '-' ?></td>
-
-<td><?= $op['tipo_moneda'] ?? '-' ?></td>
-
+<tr>
+<th>Saldo</th>
+<td class="text-danger"><?= number_format($saldo_soles,2) ?></td>
+<td class="text-danger"><?= number_format($saldo_dolares,2) ?></td>
 </tr>
 
 </table>
 
+<h5>
+Estado:
+<span class="badge <?= $estado=='PAGADO'?'bg-success':'bg-warning' ?>">
+<?= $estado ?>
+</span>
+</h5>
+
 </div>
 </div>
 
-
-
-<!-- ================= SALDO ================= -->
-
+<!-- ================= TOURS ================= -->
 <div class="card mb-3">
-
-<div class="card-header bg-warning">
-Pago saldo
-</div>
-
+<div class="card-header bg-info text-white">🎯 Tours</div>
 <div class="card-body">
 
 <table class="table table-bordered">
-
 <tr>
-<th>Método</th>
+<th>Servicio</th>
+<th>Precio</th>
 <th>Moneda</th>
-<th>Monto</th>
-<th>Fecha</th>
+<th>Salida</th>
+<th>Retorno</th>
+<th>Modalidad</th>
 </tr>
 
-<?php while($s=mysqli_fetch_assoc($qSaldo)): ?>
-
+<?php while($d=mysqli_fetch_assoc($qDetalle)): ?>
 <tr>
-
-<td><?= $s['metodo_pago'] ?></td>
-
-<td><?= $s['tipo_moneda'] ?></td>
-
-<td>
-<span class="badge bg-success">
-<?= $s['monto'] ?>
-</span>
-</td>
-
-<td><?= $s['fecha_pago'] ?></td>
-
+<td><strong><?= $d['nombre_servicio'] ?></strong></td>
+<td><?= number_format($d['precio'],2) ?></td>
+<td><?= $d['tipo_moneda']=='Soles'?'S/':'$' ?></td>
+<td><?= $d['fecha_salida'] ?></td>
+<td><?= $d['fecha_retorno'] ?></td>
+<td><?= $d['modalidad_retorno'] ?></td>
 </tr>
-
 <?php endwhile; ?>
 
 </table>
 
 </div>
 </div>
-<!-- ================= PAGOS REALIZADOS ================= -->
 
+<!-- ================= PAGOS ================= -->
 <div class="card mb-3">
-
-<div class="card-header bg-secondary text-white">
-Pagos realizados
-</div>
-
+<div class="card-header bg-success text-white">💳 Pagos</div>
 <div class="card-body">
 
-<table class="table table-bordered">
-
+<table class="table table-bordered text-center">
 <tr>
 <th>Tipo</th>
 <th>Método</th>
@@ -346,25 +234,13 @@ Pagos realizados
 </tr>
 
 <?php while($p=mysqli_fetch_assoc($qPagos)): ?>
-
 <tr>
-
-<td><?= $p['tipo_pago'] ?></td>
-
+<td><?= strtoupper($p['tipo']) ?></td>
 <td><?= $p['metodo_pago'] ?></td>
-
-<td><?= $p['tipo_moneda'] ?></td>
-
-<td>
-<span class="badge bg-success">
-<?= $p['monto'] ?>
-</span>
-</td>
-
-<td><?= $p['fecha_pago'] ?></td>
-
+<td><?= $p['moneda']=='Soles'?'S/':'$' ?></td>
+<td class="text-success"><?= number_format($p['monto'],2) ?></td>
+<td><?= $p['fecha'] ?></td>
 </tr>
-
 <?php endwhile; ?>
 
 </table>
@@ -373,37 +249,23 @@ Pagos realizados
 </div>
 
 <!-- ================= CONTABILIDAD ================= -->
-
 <div class="card mb-3">
-
-<div class="card-header bg-dark text-white">
-Contabilidad
-</div>
-
+<div class="card-header bg-secondary text-white">📊 Contabilidad</div>
 <div class="card-body">
 
 <table class="table">
-
 <tr>
+<th>Comisión</th>
 <th>Estado</th>
-<th>Boleta cuenta</th>
-<th>Boleta total</th>
-<th>Comp adicional</th>
-<th>Detraccion</th>
 </tr>
 
 <tr>
-
-<td><?= $op['estado'] ?? '-' ?></td>
-
-<td><?= $op['nro_boleta_cuenta'] ?? '-' ?></td>
-
-<td><?= $op['nro_boleta_total'] ?? '-' ?></td>
-
-<td><?= $op['Nro_Comprobante_adicional'] ?? '-' ?></td>
-
-<td><?= $op['detraccion'] ?? '-' ?></td>
-
+<td><?= number_format($cont['comision'] ?? 0,2) ?></td>
+<td>
+<span class="badge bg-info">
+<?= $cont['estado'] ?? '-' ?>
+</span>
+</td>
 </tr>
 
 </table>
@@ -411,9 +273,6 @@ Contabilidad
 </div>
 </div>
 
-
-
 </div>
-
 </body>
 </html>

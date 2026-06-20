@@ -10,6 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contraseña = trim($_POST["contraseña"]);
     $area = trim($_POST["area"]);
     $es_admin = isset($_POST["admin"]) ? 1 : 0;
+    $rol = $es_admin ? "admin" : "usuario";
 
     // Validar que los campos no estén vacíos
     if (empty($usuario) || empty($contraseña) || empty($area)) {
@@ -20,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contraseña_hashed = password_hash($contraseña, PASSWORD_DEFAULT);
 
     // Verificar si el usuario ya existe en la base de datos
-    $checkUserQuery = "SELECT Usuario FROM usuarios WHERE Usuario = ?";
+    $checkUserQuery = "SELECT usuario FROM usuarios WHERE usuario = ?";
     $stmt = $conexion->prepare($checkUserQuery);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
@@ -32,9 +33,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->close();
 
     // Insertar el nuevo usuario en la base de datos usando prepared statements
-    $insertUserQuery = "INSERT INTO usuarios (Usuario, Contraseña, Area, EsAdmin) VALUES (?, ?, ?, ?)";
+    $insertUserQuery = "INSERT INTO usuarios (usuario, contrasena, area, es_admin, rol) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conexion->prepare($insertUserQuery);
-    $stmt->bind_param("sssi", $usuario, $contraseña_hashed, $area, $es_admin);
+    $stmt->bind_param("sssis", $usuario, $contraseña_hashed, $area, $es_admin, $rol);
 
     if ($stmt->execute()) {
         $mensaje = "Usuario registrado con éxito.";

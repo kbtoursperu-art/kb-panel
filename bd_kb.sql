@@ -1,499 +1,345 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 CREATE DATABASE IF NOT EXISTS bd_kb;
 USE bd_kb;
 
--- =======================================
--- 📌 TABLA DE CLIENTES
--- =======================================
-CREATE TABLE Datos_clientes (
-    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    genero ENUM('Masculino', 'Femenino', 'Otro'),
-    nro_pasaporte VARCHAR(50) UNIQUE NOT NULL,
-    tipo_cliente ENUM('KB', 'Endosador') NOT NULL,
-    nacionalidad VARCHAR(100),
-    Comida VARCHAR(50),
-    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+-- =====================================
+-- CLIENTES
+-- =====================================
+CREATE TABLE datos_clientes (
+  id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  apellido VARCHAR(100) NOT NULL,
+  dni VARCHAR(20) UNIQUE,
+  email VARCHAR(100),
+  telefono VARCHAR(20),
+  genero ENUM('M','F','Otro'),
+  nro_pasaporte VARCHAR(50),
+  comida VARCHAR(50),
+  nacionalidad VARCHAR(50),
+  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  hotel VARCHAR(150),
+  fecha_nacimiento DATE,
+  foto_pasaporte VARCHAR(255),
+
+  INDEX (dni),
+  INDEX (apellido)
 );
 
-CREATE TABLE Clientes_KB (
-    id_cliente INT PRIMARY KEY,
-    edad INT,
-    fecha_nacimiento DATE NULL;
-    foto_pasaporte VARCHAR(255),
-    nro_whatsapp VARCHAR(20),
-    es_pagador BOOLEAN DEFAULT FALSE,
-    grupo VARCHAR(20) NOT NULL,
-    hotel VARCHAR(100),
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
+-- =====================================
+-- GRUPOS
+-- =====================================
+CREATE TABLE grupos (
+  id_grupo INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_grupo VARCHAR(50) NOT NULL,
+  hotel VARCHAR(100),
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  cantidad INT DEFAULT 0,
+  estado ENUM('abierto','cerrado') DEFAULT 'abierto',
+
+  INDEX (nombre_grupo)
 );
 
-CREATE TABLE Clientes_Endosadores (
-    id_cliente INT PRIMARY KEY,
-    empresa_endosadora VARCHAR(100),
-    contacto VARCHAR(100),
-    telefono_contacto VARCHAR(20),
-    email_contacto VARCHAR(100),
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
+-- =====================================
+-- CLIENTES POR GRUPO
+-- =====================================
+CREATE TABLE clientes_grupo (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_cliente INT NOT NULL,
+  id_grupo INT NOT NULL,
+  tipo_cliente ENUM('KB','ENDOSADOR') DEFAULT 'KB',
+  empresa_endosadora VARCHAR(100),
+  contacto VARCHAR(100),
+  telefono_contacto VARCHAR(20),
+  email_contacto VARCHAR(100),
+  es_pagador TINYINT(1) DEFAULT 0,
+
+  UNIQUE KEY unique_cliente_grupo (id_cliente, id_grupo),
+
+  INDEX (id_cliente),
+  INDEX (id_grupo),
+
+  FOREIGN KEY (id_cliente) REFERENCES datos_clientes(id_cliente) ON DELETE CASCADE,
+  FOREIGN KEY (id_grupo) REFERENCES grupos(id_grupo) ON DELETE CASCADE
 );
 
--- =======================================
--- 📌 TABLA DE OPERACIONES
--- =======================================
-CREATE TABLE Operaciones (
-    id_operaciones INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    fecha_reserva DATE,
-   nombre_servicio ENUM(
-       -- 🏔️ SALKANTAY TREKS
-'SALKANTAY A MACHU PICCHU 5 DÍAS',
-'SALKANTAY A MACHU PICCHU 4 DÍAS',
-'SALKANTAY A MACHU PICCHU 3 DÍAS',
-'SALKANTAY Y LAGUNA HUMANTAY 2 DÍAS',
-'SALKANTAY Y CAMINO INCA 7 DÍAS (PRIVADO)',
-'SALKANTAY TREK 5D/4N WITH LUXURY DOMES (PRIVADO)',
-'SALKANTAY TREK 4D / 3N WITH LUXURY DOMES (PRIVADO)',
-'SALKANTAY & HUMANTAY LAKE 2D WITH LUXURY DOMES (PRIVADO)',
-
--- 🏞️ CAMINO INCA
-'CAMINO INCA 4 DÍAS',
-'CAMINO INCA 4 DÍAS (PRIVADO)',
-'CAMINO INCA 2 DÍAS',
-'CAMINO INCA FULL DAY',
-
--- 🏯 MACHU PICCHU TOURS
-'MACHU PICCHU DE UN DÍA',
-'MACHU PICCHU EN TREN 2 DÍAS',
-'VALLE SAGRADO A MACHU PICCHU 2 DÍAS',
-
--- TOURS CHOQUEQUIRAO
-'CHOQUEQUIRAO 4 DÍAS',
-'CHOQUEQUIRAO 4 DÍAS (PRIVADO)',
-'CHOQUEQUIRAO 5 DÍAS (PRIVADO)',
-
--- TOURS ALTERNATIVOS 
-'Q’ESHUACHAKA Y 4 LAGUNAS DE UN DÍA',
-'HUCHUY QOSQO 3 DÍAS (PRIVADO)',
-'AUSANGATE Y MONTAÑA DE COLORES 4 DÍAS',
-'LARES A MACHU PICCHU 4 DÍAS (PRIVADO)',
-'INCA JUNGLE TRAIL 4 DAYS',
-
--- 🌄 TOURS DE UN DÍA O CORTOS
-'LAGUNA HUMANTAY DE UN DIA',
-'MONTAÑA DE COLORES DE UN DIA',
-'PALCOYO DE UN DIA',
-'VALLE SAGRADO VIP DE UN DIA',
-'MARAS MORAY DE UN DIA',
-'WAQRAPUKARA DE UN DIA',
-'7 LAGUNAS DE AUSANGATE DE UN DIA',
-'CITY TOUR CUSCO MEDIO DIA',
-'VALLE TRADICIONAL',
-'VALLE SUR MEDIO DIA',
-'CUATRIMOTOS MARAS Y MORAY',
-'CUATRIMOTOS MONTAÑA DE COLORES',
-'TRANSP. BY CAR',
-'MIRABUS',
-
--- 🏝️ TOURS FUERA DE CUSCO
-'ICA – PARACAS DE UN DIA',
-'PUNO DE UN DÍA',
-'MANU 4 DÍAS Y 3 NOCHES' 
-    ),
-    servicio_adicional VARCHAR(255),
-    modalidad_retorno ENUM('Tren', 'Carro', 'Sin retorno'),
-    incluye_ingreso ENUM('Con ingreso', 'Sin ingreso'),
-    fecha_salida DATE,
-    fecha_retorno DATE,
-    empresa VARCHAR(50),
-    observaciones VARCHAR(255),
-    Encargado VARCHAR(50),
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
+-- =====================================
+-- SERVICIOS
+-- =====================================
+CREATE TABLE servicios (
+  id_servicio INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200),
+  duracion_dias INT,
+  activo TINYINT(1) DEFAULT 1
 );
 
--- =======================================
--- 📌 TABLA DE CONTABILIDAD (CORREGIDA)
--- =======================================
-CREATE TABLE Contabilidad (
-    id_contabilidad INT AUTO_INCREMENT PRIMARY KEY, 
-    id_operaciones INT NOT NULL,
-    metodo_pago ENUM('Efectivo', 'We travel', 'Izipay', 'PAYPAL', 'Bcp','CULQI', 'YAPE'),
-    tipo_moneda ENUM('Dólares', 'Soles'),
-    precio_servicio_adicional DECIMAL (10,2),
-    comision DECIMAL(10,2),
-    precio_servicio DECIMAL(10,2),
-    pagado_a_cuenta DECIMAL(10,2),
-    saldo_pendiente DECIMAL(10,2),
-    fecha_pago_saldo DATE,
-    estado ENUM('pendiente', 'pagado', 'reembolsado') DEFAULT 'pendiente',
-    modalidad_recibo ENUM('FACTURA','FAC_EXPORTACION','BV_INTANGIBLE','BV_IGV'),
-    nro_boleta_cuenta VARCHAR(50),
-    nro_boleta_total VARCHAR(50),
-    Nro_Comprobante_adicional VARCHAR(50),
-    detraccion DECIMAL(10,2),
-    NotaCredito BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (id_operaciones) REFERENCES Operaciones(id_operaciones) ON DELETE CASCADE
-);
--- =======================================
--- 📌 TABLA DE VENTAS
--- =======================================
-CREATE TABLE Venta (
-    id_venta INT AUTO_INCREMENT PRIMARY KEY,
-    id_operaciones INT NOT NULL,
-    id_contabilidad INT NOT NULL,  
-    nro_voucher VARCHAR(50) UNIQUE NOT NULL,
-    FOREIGN KEY (id_operaciones) REFERENCES Operaciones(id_operaciones) ON DELETE CASCADE,
-    FOREIGN KEY (id_contabilidad) REFERENCES Contabilidad(id_contabilidad) ON DELETE CASCADE
+
+-- =====================================
+-- OPERACIONES
+-- =====================================
+CREATE TABLE operaciones (
+  id_operaciones INT AUTO_INCREMENT PRIMARY KEY,
+  id_cliente INT NOT NULL,
+  fecha_reserva DATE,
+  observaciones VARCHAR(255),
+  encargado VARCHAR(50),
+  id_grupo INT,
+  tipo_precio ENUM('por_tour','total') DEFAULT 'por_tour',
+  total_operacion DECIMAL(10,2) DEFAULT 0.00,
+  estado ENUM('pendiente','confirmado','cancelado') DEFAULT 'pendiente',
+
+  INDEX (id_cliente),
+  INDEX (id_grupo),
+
+  FOREIGN KEY (id_cliente) REFERENCES datos_clientes(id_cliente) ON DELETE CASCADE,
+  FOREIGN KEY (id_grupo) REFERENCES grupos(id_grupo) ON DELETE SET NULL
 );
 
--- =======================================
--- 📌 TABLA DE PLANIFICACIÓN
--- =======================================
-CREATE TABLE Planificacion (
-    id_planificacion INT AUTO_INCREMENT PRIMARY KEY, 
-    id_operaciones INT NOT NULL,
-    nombre_guia VARCHAR(100),
-    nombre_cocinero VARCHAR(100),
-    nombre_asistente VARCHAR(100),
-    FOREIGN KEY (id_operaciones) REFERENCES Operaciones(id_operaciones) ON DELETE CASCADE
+-- =====================================
+-- DETALLE OPERACIONES
+-- =====================================
+CREATE TABLE operaciones_detalle (
+  id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+  id_operaciones INT NOT NULL,
+  precio DECIMAL(10,2),
+  fecha_salida DATE,
+  fecha_retorno DATE,
+  modalidad_retorno ENUM('Carro','Tren','Caminata'),
+  incluye_ingreso ENUM('SI','NO'),
+  servicio_adicional TEXT,
+  tipo_moneda ENUM('Soles','Dólares') DEFAULT 'Soles',
+  id_servicio INT,
+
+  INDEX (id_operaciones),
+
+  FOREIGN KEY (id_operaciones) REFERENCES operaciones(id_operaciones) ON DELETE CASCADE
+);
+USE bd_kb;
+
+CREATE TABLE adicionales_detalle (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_detalle INT NOT NULL,
+  nombre VARCHAR(100),
+  precio DECIMAL(10,2),
+
+  INDEX (id_detalle),
+
+  FOREIGN KEY (id_detalle)
+  REFERENCES operaciones_detalle(id_detalle)
+  ON DELETE CASCADE
+);
+-- =====================================
+-- PAGOS
+-- =====================================
+CREATE TABLE pagos (
+  id_pago INT AUTO_INCREMENT PRIMARY KEY,
+  id_operaciones INT NOT NULL,
+  id_detalle INT NULL,
+  tipo ENUM('tour','adicional','cuenta','saldo','reembolso') DEFAULT 'tour',
+  metodo_pago VARCHAR(50),
+  moneda ENUM('Soles','Dólares'),
+  monto DECIMAL(10,2),
+  fecha DATE,
+  observacion TEXT,
+  tipo_cambio DECIMAL(10,3) DEFAULT 1.000,
+  monto_convertido DECIMAL(10,2),
+
+  INDEX (id_operaciones),
+  INDEX (id_detalle),
+
+  FOREIGN KEY (id_operaciones) REFERENCES operaciones(id_operaciones) ON DELETE CASCADE,
+  FOREIGN KEY (id_detalle) REFERENCES operaciones_detalle(id_detalle) ON DELETE CASCADE
 );
 
--- =======================================
--- 📌 TABLA HISTORIAL DE VIAJES
--- =======================================
-CREATE TABLE historial_viajes (
-    id_historial INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    fecha_viaje DATE NOT NULL,
-    destino VARCHAR(255) NOT NULL,
-    tipo_servicio VARCHAR(100) NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
+-- =====================================
+-- CONTABILIDAD
+-- =====================================
+CREATE TABLE contabilidad (
+  id_contabilidad INT AUTO_INCREMENT PRIMARY KEY,
+  id_operaciones INT,
+  comision DECIMAL(10,2),
+  estado ENUM('pendiente','pagado','cancelado') DEFAULT 'pendiente',
+  modalidad_recibo VARCHAR(50),
+  nro_boleta_cuenta VARCHAR(50),
+  nro_boleta_total VARCHAR(50),
+  detraccion DECIMAL(10,2),
+  igv DECIMAL(10,2),
+  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX (id_operaciones),
+
+  FOREIGN KEY (id_operaciones) REFERENCES operaciones(id_operaciones)
 );
 
--- =======================================
--- 📌 TABLA PERFIL CLIENTES
--- =======================================
-CREATE TABLE perfil_clientes (
-    id_perfil INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    direccion VARCHAR(255),
-    telefono VARCHAR(20),
-    email VARCHAR(100) NOT NULL,
-    fecha_nacimiento DATE,
-    ocupacion VARCHAR(100),
-    intereses TEXT,
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
+-- =====================================
+-- PLANIFICACION (corregido)
+-- =====================================
+CREATE TABLE planificacion (
+  id_planificacion INT AUTO_INCREMENT PRIMARY KEY,
+  id_operaciones INT NULL,
+  id_grupo INT NOT NULL,
+  nombre_guia VARCHAR(100),
+  nombre_cocinero VARCHAR(100),
+  nombre_asistente VARCHAR(100),
+  grupo_operativo VARCHAR(100),
+
+  INDEX (id_operaciones),
+  INDEX (id_grupo),
+
+  FOREIGN KEY (id_operaciones) REFERENCES operaciones(id_operaciones),
+  FOREIGN KEY (id_grupo) REFERENCES grupos(id_grupo)
 );
 
--- =======================================
--- 📌 TABLA CORREOS ENVIADOS
--- =======================================
-CREATE TABLE correos_enviados (
-    id_correo INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    email_destino VARCHAR(100) NOT NULL,
-    asunto VARCHAR(255) NOT NULL,
-    mensaje TEXT NOT NULL,
-    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES Datos_clientes(id_cliente) ON DELETE CASCADE
-);
-
--- ==========================================================
--- 📦 SISTEMA DE ALMACÉN TURÍSTICO - ESTRUCTURA FINAL
--- ==========================================================
-
--- =======================================
--- 🔹 TABLA DE PRODUCTOS
--- =======================================
+-- =====================================
+-- ALMACEN
+-- =====================================
 CREATE TABLE almacen_items (
-    id_item INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    tipo ENUM('Consumible','Retornable','Garantia') NOT NULL
+  id_item INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  tipo ENUM('Consumible','Retornable','Garantia')
 );
 
--- =======================================
--- 🔹 TABLA DE STOCK
--- =======================================
 CREATE TABLE almacen_stock (
-    id_stock INT AUTO_INCREMENT PRIMARY KEY,
-    id_item INT NOT NULL,
-    talla VARCHAR(10) NULL,
-    cantidad_total INT NOT NULL DEFAULT 0,
-    cantidad_disponible INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE
+  id_stock INT AUTO_INCREMENT PRIMARY KEY,
+  id_item INT,
+  talla VARCHAR(10),
+  cantidad_total INT DEFAULT 0,
+  cantidad_disponible INT DEFAULT 0,
+
+  INDEX (id_item),
+
+  FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE
 );
 
--- =======================================
--- 🔹 TABLA DE SALIDAS (a guías)
--- =======================================
 CREATE TABLE almacen_salidas (
-    id_salida INT AUTO_INCREMENT PRIMARY KEY,
-    id_stock INT NOT NULL,
-    nombre_guia VARCHAR(100) NOT NULL,
-    cantidad INT NOT NULL,
-    fecha_salida DATE NOT NULL,
-    garantia_original DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    observacion TEXT,
-    estado ENUM('Pendiente','Parcial','Devuelto') NOT NULL DEFAULT 'Pendiente',
-    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE CASCADE
+  id_salida INT AUTO_INCREMENT PRIMARY KEY,
+  id_stock INT,
+  nombre_guia VARCHAR(100),
+  cantidad INT,
+  fecha_salida DATE,
+  garantia_original DECIMAL(10,2) DEFAULT 0.00,
+  observacion TEXT,
+  estado ENUM('Pendiente','Parcial','Devuelto') DEFAULT 'Pendiente',
+
+  INDEX (id_stock),
+
+  FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE CASCADE
 );
 
--- =======================================
--- 🔹 TABLA DE DEVOLUCIONES
--- =======================================
 CREATE TABLE almacen_devoluciones (
-    id_devolucion INT AUTO_INCREMENT PRIMARY KEY,
-    id_salida INT NOT NULL,
-    cantidad_devuelta INT NOT NULL,
-    monto_devuelto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    fecha_devolucion DATE NOT NULL DEFAULT CURRENT_DATE,
-    observacion TEXT,
-    FOREIGN KEY (id_salida) REFERENCES almacen_salidas(id_salida) ON DELETE CASCADE
+  id_devolucion INT AUTO_INCREMENT PRIMARY KEY,
+  id_salida INT,
+  cantidad_devuelta INT,
+  monto_devuelto DECIMAL(10,2),
+  fecha_devolucion DATE DEFAULT CURRENT_DATE,
+  observacion TEXT,
+
+  INDEX (id_salida),
+
+  FOREIGN KEY (id_salida) REFERENCES almacen_salidas(id_salida) ON DELETE CASCADE
 );
 
--- =======================================
--- 🔹 TABLA DE MOVIMIENTOS (KARDEX)
--- =======================================
-CREATE TABLE almacen_movimientos (
-    id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
-    id_stock INT NULL,
-    tipo ENUM('Ingreso','Salida','Devolucion','Regalo','Garantia') NOT NULL,
-    cantidad INT NOT NULL,
-    monto DECIMAL(10,2) DEFAULT 0.00,
-    referencia VARCHAR(100),
-    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_stock) REFERENCES almacen_stock(id_stock) ON DELETE SET NULL
+-- =====================================
+-- USUARIOS (corregido)
+-- =====================================
+CREATE TABLE usuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario VARCHAR(255),
+  contrasena VARCHAR(255),
+  area ENUM('Operaciones','Ventas','Almacén','Contabilidad','Planificación','Clientes'),
+  es_admin TINYINT(1) DEFAULT 0,
+  rol ENUM('admin','almacen') DEFAULT 'almacen'
 );
 
--- =======================================
--- 🔹 VISTA DE SALIDAS PENDIENTES
--- =======================================
-CREATE VIEW vista_pendientes AS
-SELECT
-    s.id_salida,
-    i.nombre AS producto,
-    s.nombre_guia,
-    s.cantidad,
-    IFNULL(SUM(d.cantidad_devuelta),0) AS devuelto,
-    (s.cantidad - IFNULL(SUM(d.cantidad_devuelta),0)) AS pendiente
-FROM almacen_salidas s
-JOIN almacen_stock st ON s.id_stock = st.id_stock
-JOIN almacen_items i ON st.id_item = i.id_item
-LEFT JOIN almacen_devoluciones d ON s.id_salida = d.id_salida
-GROUP BY s.id_salida
-HAVING pendiente > 0;
+INSERT INTO usuarios (usuario, contrasena, area, es_admin, rol) VALUES
+('anais', '$2y$10$GrnccL7TXBSfQc7Bri/GhOq2kkZF3fkHtQLURFP/ekgjP5qeyYBrS', 'Operaciones', 1, 'almacen'),
+('Nayruth', '$2y$10$zX79WRTrSp6kLBq8M7ib2ubyV83SlcZi/zd/XnfLpui3qbO4n0yaK', 'Operaciones', 0, 'almacen');
 
--- =======================================
--- 🔹 DATA INICIAL
--- =======================================
-
-INSERT INTO almacen_items (nombre, tipo) VALUES
-('Bastón', 'Retornable'),
-('Sleeping Bag', 'Retornable'),
-('Dafor Bag', 'Garantia'),
-('Polo KB', 'Consumible');
-
-INSERT INTO almacen_stock (id_item, talla, cantidad_total, cantidad_disponible) VALUES
-(1, NULL, 10, 10),
-(2, NULL, 5, 5),
-(3, NULL, 3, 3),
-(4, 'S', 20, 20),
-(4, 'M', 20, 20),
-(4, 'L', 20, 20),
-(4, 'XL', 15, 15);
-
-CREATE OR REPLACE VIEW vista_garantias_guias AS
-SELECT
-    s.nombre_guia AS guia,
-
-    SUM(
-        CASE
-            WHEN i.tipo = 'Garantia'
-            THEN s.garantia_original
-            ELSE 0
-        END
-    ) AS total_entregado,
-
-    SUM(
-        CASE
-            WHEN i.tipo = 'Garantia'
-            THEN IFNULL(d.total_devuelto,0)
-            ELSE 0
-        END
-    ) AS total_devuelto,
-
-    SUM(
-        CASE
-            WHEN i.tipo = 'Garantia'
-            THEN (s.garantia_original - IFNULL(d.total_devuelto,0))
-            ELSE 0
-        END
-    ) AS pendiente
-
-FROM almacen_salidas s
-JOIN almacen_stock st ON s.id_stock = st.id_stock
-JOIN almacen_items i ON st.id_item = i.id_item
-
-LEFT JOIN (
-    SELECT
-        id_salida,
-        SUM(monto_devuelto) AS total_devuelto
-    FROM almacen_devoluciones
-    GROUP BY id_salida
-) d ON d.id_salida = s.id_salida
-
-GROUP BY s.nombre_guia
-HAVING total_entregado > 0;
-
+-- =====================================
+-- TRIGGERS PRO
+-- =====================================
 DELIMITER $$
 
+-- VALIDAR STOCK
+CREATE TRIGGER trg_validar_stock_salida
+BEFORE INSERT ON almacen_salidas
+FOR EACH ROW
+BEGIN
+    DECLARE stock_actual INT;
+
+    SELECT cantidad_disponible
+    INTO stock_actual
+    FROM almacen_stock
+    WHERE id_stock = NEW.id_stock;
+
+    IF NEW.cantidad > stock_actual THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Stock insuficiente';
+    END IF;
+END$$
+
+-- CALCULAR DEVOLUCION
 CREATE TRIGGER trg_calcular_monto_devuelto
 BEFORE INSERT ON almacen_devoluciones
 FOR EACH ROW
 BEGIN
-    DECLARE g_total DECIMAL(10,2);
-    DECLARE cant_total INT;
+    DECLARE g_total DECIMAL(10,2);
+    DECLARE cant_total INT;
 
-    SELECT garantia_original, cantidad
-    INTO g_total, cant_total
-    FROM almacen_salidas
-    WHERE id_salida = NEW.id_salida;
+    SELECT garantia_original, cantidad
+    INTO g_total, cant_total
+    FROM almacen_salidas
+    WHERE id_salida = NEW.id_salida;
 
-    SET NEW.monto_devuelto =
-        (g_total / cant_total) * NEW.cantidad_devuelta;
+    IF cant_total > 0 THEN
+        SET NEW.monto_devuelto = (g_total / cant_total) * NEW.cantidad_devuelta;
+    ELSE
+        SET NEW.monto_devuelto = 0;
+    END IF;
 END$$
 
-DELIMITER ;
+-- ACTUALIZAR ESTADO
+CREATE TRIGGER trg_actualizar_estado_salida
+AFTER INSERT ON almacen_devoluciones
+FOR EACH ROW
+BEGIN
+    DECLARE total_salida INT;
+    DECLARE total_devuelto INT;
 
-UPDATE almacen_devoluciones d
-JOIN almacen_salidas s ON s.id_salida = d.id_salida
-SET d.monto_devuelto = (s.garantia_original / s.cantidad) * d.cantidad_devuelta
-WHERE d.monto_devuelto = 0;
+    SELECT cantidad INTO total_salida FROM almacen_salidas WHERE id_salida = NEW.id_salida;
 
-DELIMITER $$
+    SELECT IFNULL(SUM(cantidad_devuelta),0)
+    INTO total_devuelto
+    FROM almacen_devoluciones
+    WHERE id_salida = NEW.id_salida;
 
+    IF total_devuelto = 0 THEN
+        UPDATE almacen_salidas SET estado = 'Pendiente' WHERE id_salida = NEW.id_salida;
+    ELSEIF total_devuelto < total_salida THEN
+        UPDATE almacen_salidas SET estado = 'Parcial' WHERE id_salida = NEW.id_salida;
+    ELSE
+        UPDATE almacen_salidas SET estado = 'Devuelto' WHERE id_salida = NEW.id_salida;
+    END IF;
+END$$
+
+-- DEVOLVER STOCK
 CREATE TRIGGER trg_devolver_stock
 AFTER INSERT ON almacen_devoluciones
 FOR EACH ROW
 BEGIN
-    DECLARE v_id_stock INT;
+    DECLARE v_id_stock INT;
 
-    -- Obtener el id_stock desde la salida
-    SELECT id_stock
-    INTO v_id_stock
-    FROM almacen_salidas
-    WHERE id_salida = NEW.id_salida;
+    SELECT id_stock INTO v_id_stock
+    FROM almacen_salidas
+    WHERE id_salida = NEW.id_salida;
 
-    -- DEVOLVER AL STOCK DISPONIBLE
-    UPDATE almacen_stock
-    SET cantidad_disponible = cantidad_disponible + NEW.cantidad_devuelta
-    WHERE id_stock = v_id_stock;
+    UPDATE almacen_stock
+    SET cantidad_disponible = cantidad_disponible + NEW.cantidad_devuelta
+    WHERE id_stock = v_id_stock;
 END$$
 
 DELIMITER ;
 
--- =======================================
--- 📌 TABLA DE USUARIOS
--- =======================================
-CREATE TABLE Usuarios (
-    ID INT AUTO_INCREMENT PRIMARY KEY,
-    Usuario VARCHAR(255) NOT NULL UNIQUE,
-    Contraseña VARCHAR(255) NOT NULL,
-    Area ENUM('Operaciones', 'Ventas', 'Almacén', 'Contabilidad', 'Planificación', 'Clientes') NOT NULL,
-    EsAdmin TINYINT(1) NOT NULL DEFAULT 0
-);
-
--- =======================================
--- 📌 VISTAS
--- =======================================
--- =======================================
--- 📌 VISTA PARA CLIENTES KB
--- =======================================
-CREATE OR REPLACE VIEW Vista_Operaciones_KB AS
-SELECT 
-o.id_operaciones,
-    o.id_cliente,
-    o.fecha_reserva,
-    o.nombre_servicio,
-    o.servicio_adicional,
-    o.modalidad_retorno,
-    o.incluye_ingreso,
-    o.fecha_salida,
-    o.fecha_retorno,
-    o.empresa,
-    o.observaciones,
-    o.Encargado,
-    c.metodo_pago, 
-    c.tipo_moneda, 
-    c.precio_servicio, 
-    c.pagado_a_cuenta, 
-    c.saldo_pendiente, 
-    c.fecha_pago_saldo, 
-    c.comision,
-    d.nombre AS nombre_cliente, 
-    d.nro_pasaporte, 
-    d.tipo_cliente,
-    kb.grupo, 
-    kb.hotel
-FROM Operaciones o
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN Clientes_KB kb ON d.id_cliente = kb.id_cliente
-WHERE d.tipo_cliente = 'KB';
-
--- =======================================
--- 📌 VISTA PARA CLIENTES ENDOSADORES
--- =======================================
-CREATE OR REPLACE VIEW Vista_Operaciones_Endosador AS
-SELECT 
-    o.id_operaciones,
-    o.fecha_reserva,
-    o.nombre_servicio,
-    o.fecha_salida,
-    o.fecha_retorno,
-    o.servicio_adicional,
-    o.modalidad_retorno,
-    d.id_cliente,
-    d.nombre AS nombre_cliente,
-    d.apellido,
-    d.nro_pasaporte,
-    d.tipo_cliente,
-    e.empresa_endosadora,
-    e.contacto,
-    e.telefono_contacto,
-    e.email_contacto,
-    c.precio_servicio,
-    c.pagado_a_cuenta,
-    c.saldo_pendiente,
-    c.fecha_pago_saldo,
-    c.metodo_pago,
-    c.tipo_moneda,
-    c.comision
-FROM Operaciones o
-LEFT JOIN Contabilidad c ON o.id_operaciones = c.id_operaciones
-LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN Clientes_Endosadores e ON o.id_cliente = e.id_cliente
-WHERE d.tipo_cliente = 'Endosador';
-
-
-CREATE OR REPLACE VIEW Vista_Ventas AS
-SELECT 
-    v.*, 
-    o.nombre_servicio, o.fecha_salida, o.fecha_retorno, o.fecha_reserva, 
-    kb.grupo,
-    c.metodo_pago, c.precio_servicio, c.pagado_a_cuenta, 
-    c.saldo_pendiente, c.fecha_pago_saldo
-FROM Venta v
-LEFT JOIN Operaciones o ON v.id_operaciones = o.id_operaciones
-LEFT JOIN Datos_clientes d ON o.id_cliente = d.id_cliente
-LEFT JOIN Clientes_KB kb ON d.id_cliente = kb.id_cliente
-LEFT JOIN Contabilidad c ON v.id_contabilidad = c.id_contabilidad;
-
-CREATE OR REPLACE VIEW Vista_Planificacion AS
-SELECT p.*, o.nombre_servicio, o.fecha_salida, o.fecha_retorno
-FROM Planificacion p
-LEFT JOIN Operaciones o ON p.id_operaciones = o.id_operaciones;
-
-CREATE OR REPLACE VIEW Vista_DatosClientes AS
-SELECT * FROM Datos_clientes;
-
-ALTER TABLE Datos_clientes AUTO_INCREMENT = 1;
+COMMIT;

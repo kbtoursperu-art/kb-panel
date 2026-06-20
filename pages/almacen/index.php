@@ -39,7 +39,7 @@ if (isset($_GET['get_stock']) && isset($_GET['id_item'])) {
     ");
     $out = [];
     if ($res) {
-        while ($r = mysqli_fetch_assoc($res)) $out[] = $r;
+        while ($r = mysqli_fetch_assoc($res)) $out[] = $r;-
     }
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($out);

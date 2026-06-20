@@ -148,7 +148,7 @@
                             <option value="Contabilidad">Contabilidad</option>
                             <option value="Ventas">Ventas</option>
                             <option value="Almacén">Almacén</option>
-                            <option value="Admin">Administrador</option>
+                            <option value="Administrador">Administrador</option>
                         </select>
                     </div>
 
