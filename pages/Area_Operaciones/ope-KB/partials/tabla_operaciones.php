@@ -36,6 +36,7 @@
                         <th>Saldo</th>
                         <th>Estado</th>
                         <th>Financiero</th>
+
                         <th>Acciones</th>
                     </tr>
 
@@ -188,52 +189,61 @@
 
                     <!-- ESTADO -->
 
-                    <td>
+<!-- ESTADO -->
 
-                        <?php
+<td>
 
-                        switch($row['estado'] ?? 'pendiente') {
+<?php
 
-                            case 'confirmado':
-                                echo '<span class="estado-confirmado">Confirmado</span>';
-                                break;
+$total_general   = $total_soles + $total_dolares;
+$pagado_general  = $pagado_soles + $pagado_dolares;
 
-                            case 'cancelado':
-                                echo '<span class="estado-cancelado">Cancelado</span>';
-                                break;
+if ($total_general <= 0) {
 
-                            default:
-                                echo '<span class="estado-pendiente">Pendiente</span>';
+    echo '<span class="estado-pendiente">Pendiente</span>';
 
-                        }
+} elseif ($pagado_general >= $total_general) {
 
-                        ?>
+    echo '<span class="estado-confirmado">Confirmado</span>';
 
-                    </td>
+} elseif ($pagado_general > 0) {
 
-                    <!-- FINANCIERO -->
+    echo '<span class="estado-parcial">Parcial</span>';
 
-                    <td>
+} else {
 
-                        <?php
+    echo '<span class="estado-pendiente">Pendiente</span>';
 
-                        if ($saldo_soles <= 0 && $saldo_dolares <= 0) {
+}
 
-                            echo '<span class="estado-confirmado">Pagado</span>';
+?>
 
-                        } elseif ($pagado_soles > 0 || $pagado_dolares > 0) {
+</td>
+                   <!-- FINANCIERO -->
 
-                            echo '<span class="estado-parcial">Parcial</span>';
+<!-- FINANCIERO -->
 
-                        } else {
+<td>
 
-                            echo '<span class="estado-pendiente">Pendiente</span>';
+<?php
 
-                        }
+switch($row['estado_contabilidad'] ?? 'pendiente') {
 
-                        ?>
+    case 'pagado':
+        echo '<span class="estado-confirmado">Pagado</span>';
+        break;
 
-                    </td>
+    case 'cancelado':
+        echo '<span class="estado-cancelado">Cancelado</span>';
+        break;
+
+    default:
+        echo '<span class="estado-pendiente">Pendiente</span>';
+}
+
+?>
+
+</td>
 
                     <!-- ACCIONES -->
 

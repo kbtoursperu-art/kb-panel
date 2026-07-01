@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
 include '../conexion.php';
 date_default_timezone_set("America/Lima");
 $hoy = date("Y-m-d");

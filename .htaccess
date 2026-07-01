@@ -1,0 +1,7 @@
+Options -Indexes
+
+# Bloquear acceso a archivos sensibles
+<FilesMatch "\.(env|sql|log|ini|bak)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

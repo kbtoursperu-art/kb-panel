@@ -109,10 +109,7 @@ CREATE TABLE IF NOT EXISTS `clientes_kb` (
   PRIMARY KEY (`id_cliente`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- contabilidad
-CREATE TABLE IF NOT EXISTS `contabilidad` (
-  `id_contabilidad` INT(11) NOT NULL AUTO_INCREMENT,
-  `id_operaciones` INT(11) NOT NULL,
+OT NULL,
   `metodo_pago` ENUM('Efectivo','We travel','Izipay','PAYPAL','Bcp','CULQI','YAPE') DEFAULT NULL,
   `metodo_pago_adicional` ENUM('Efectivo','We travel','Izipay','PAYPAL','Bcp','CULQI','YAPE') DEFAULT NULL,
   `tipo_moneda` ENUM('Dólares','Soles') DEFAULT NULL,
@@ -121,7 +118,10 @@ CREATE TABLE IF NOT EXISTS `contabilidad` (
   `precio_servicio` DECIMAL(10,2) DEFAULT NULL,
   `precio_servicio_adicional` DECIMAL(10,2) DEFAULT 0.00,
   `pagado_adicional` DECIMAL(10,2) DEFAULT NULL,
-  `saldo_adicional` DECIMAL(10,2) DEFAULT NULL,
+  `saldo_adicional` DECIMAL(10,2) DEFAULT-- contabilidad
+CREATE TABLE IF NOT EXISTS `contabilidad` (
+  `id_contabilidad` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_operaciones` INT(11) N NULL,
   `pagado_a_cuenta` DECIMAL(10,2) DEFAULT NULL,
   `saldo_pendiente` DECIMAL(10,2) DEFAULT NULL,
   `fecha_pago_saldo` DATE DEFAULT NULL,

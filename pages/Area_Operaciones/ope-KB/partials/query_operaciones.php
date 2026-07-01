@@ -13,10 +13,12 @@ SELECT
 
     MIN(CONCAT(dc.nombre,' ',dc.apellido)) AS primer_cliente,
 
-    op.id_operaciones,
-    op.observaciones,
-    op.encargado,
-    op.estado,
+   op.id_operaciones,
+op.observaciones,
+op.encargado,
+op.estado,
+
+COALESCE(cont.estado,'pendiente') AS estado_contabilidad,
 
     det.nombre_servicio,
     det.fecha_salida,
@@ -50,7 +52,8 @@ LEFT JOIN (
     FROM operaciones o
     GROUP BY o.id_grupo
 ) op ON op.id_grupo = g.id_grupo
-
+LEFT JOIN contabilidad cont
+ON cont.id_operaciones = op.id_operaciones
 LEFT JOIN (
     SELECT 
         x.id_grupo,

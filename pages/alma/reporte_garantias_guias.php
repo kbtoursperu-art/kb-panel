@@ -47,6 +47,7 @@ while($r = mysqli_fetch_assoc($res)):
     <td class="<?= $r['pendiente'] > 0 ? 'text-danger fw-bold' : 'text-success fw-bold' ?>">
         S/ <?= number_format($r['pendiente'], 2) ?>
     </td>
+    
 
     <td>
         <?php if($r['pendiente'] <= 0): ?>

@@ -521,8 +521,10 @@ textarea.field-input{resize:vertical;min-height:80px}
                     <i class="bi bi-info-circle me-1"></i>Fecha de registro
                 </label>
                 <div class="info-display mono">
-                    <?= $row['fecha_conta'] ? date('d/m/Y H:i', strtotime($row['fecha_conta'])) : '—' ?>
-                </div>
+    <?= !empty($row['fecha_registro']) 
+        ? date('d/m/Y H:i', strtotime($row['fecha_registro'])) 
+        : '—' ?>
+</div>
             </div>
         </div>
 

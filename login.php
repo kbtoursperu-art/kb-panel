@@ -1,59 +1,117 @@
 <?php
 session_start();
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 include('conexion.php');
 
+/* =========================
+   INICIALIZAR SEGURIDAD
+========================= */
+if (!isset($_SESSION['attempts'])) {
+    $_SESSION['attempts'] = 0;
+}
+
+if (!isset($_SESSION['block_time'])) {
+    $_SESSION['block_time'] = 0;
+}
+
+/* =========================
+   BLOQUEO POR INTENTOS
+========================= */
+if ($_SESSION['block_time'] > time()) {
+    die("🚫 Demasiados intentos. Intenta nuevamente en unos minutos.");
+}
+
 $error = '';
 
+/* =========================
+   LOGIN
+========================= */
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario_ingresado    = trim($_POST["usuario"]    ?? '');
+
+    $usuario_ingresado    = trim($_POST["usuario"] ?? '');
     $contrasena_ingresada = trim($_POST["contrasena"] ?? '');
-    $area_seleccionada    = trim($_POST["area"]        ?? '');
+    $area_seleccionada    = trim($_POST["area"] ?? '');
 
     if (empty($area_seleccionada)) {
         $error = "Por favor selecciona un área.";
     } else {
-        $sql  = "SELECT id, usuario, contrasena, area, es_admin, rol FROM usuarios WHERE usuario = ?";
+
+        $sql = "SELECT id, usuario, contrasena, area, es_admin, rol 
+                FROM usuarios 
+                WHERE usuario = ?";
+
         $stmt = $conexion->prepare($sql);
         $stmt->bind_param("s", $usuario_ingresado);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result && $result->num_rows === 1) {
-            $row             = $result->fetch_assoc();
+
+            $row = $result->fetch_assoc();
+
             $contrasena_hash = $row["contrasena"];
             $area_usuario    = $row["area"];
             $es_admin        = $row["es_admin"];
 
+            /* =========================
+               PASSWORD CORRECTO
+            ========================= */
             if (password_verify($contrasena_ingresada, $contrasena_hash)) {
-                // Área de operaciones puede acceder a contabilidad y planificación
+
+                // RESET SEGURIDAD
+                $_SESSION['attempts'] = 0;
+                $_SESSION['block_time'] = 0;
+
+                // SESIÓN USUARIO
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['usuario']  = $row['usuario'];
+                $_SESSION['area']     = $area_usuario;
+                $_SESSION['EsAdmin']  = $es_admin;
+
+                /* =========================
+                   PERMISOS POR ÁREA
+                ========================= */
                 $areas_permitidas = [$area_usuario];
+
                 if ($area_usuario === "Operaciones") {
                     $areas_permitidas[] = "Contabilidad";
                     $areas_permitidas[] = "Planificación";
                 }
+
                 if ($es_admin) {
                     $areas_permitidas[] = "Administrador";
                 }
 
                 if (in_array($area_seleccionada, $areas_permitidas)) {
-                    $_SESSION["id"]      = $row["id"];
-                    $_SESSION["usuario"] = $row["usuario"];
-                    $_SESSION["area"]    = $area_usuario;
-                    $_SESSION["EsAdmin"] = $es_admin;
+
                     header("Location: pages/principal.php");
                     exit();
+
                 } else {
                     $error = "El área seleccionada no está permitida para este usuario.";
                 }
+
             } else {
+
+                /* =========================
+                   LOGIN FALLIDO
+                ========================= */
+                $_SESSION['attempts']++;
+
+                if ($_SESSION['attempts'] >= 5) {
+                    $_SESSION['block_time'] = time() + 300; // 5 minutos
+                }
+
                 $error = "Usuario o contraseña incorrectos.";
             }
+
         } else {
             $error = "Usuario o contraseña incorrectos.";
         }
+
         $stmt->close();
     }
 }
