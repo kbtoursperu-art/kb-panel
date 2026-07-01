@@ -10,7 +10,7 @@ if ($_SERVER['HTTP_HOST'] === 'localhost') {
     // 🔹 ENTORNO HOSTINGER (PRODUCCIÓN)
     $servidor = "localhost";
     $usuario = "u455910502_user_kbpanel";
-    $contrasena = "Kbdistema1"; // ❗ poner SOLO en Hostinger
+    $contrasena = "Kbsistema2026"; // ❗ poner SOLO en Hostinger
     $base_de_datos = "u455910502_kb_panel";
 }
 
