@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 if (!isset($_SESSION["usuario"])) {
@@ -30,7 +29,9 @@ $stocks = mysqli_fetch_all($stock_res, MYSQLI_ASSOC);
 $recientes_res = mysqli_query($conexion,"
     SELECT s.id_salida, s.nombre_guia, s.cantidad, s.fecha_salida,
            s.garantia_original, s.estado, s.observacion,
-           i.nombre AS producto, st.talla
+           i.nombre AS producto, i.tipo AS tipo_producto, st.talla,
+           (SELECT COALESCE(SUM(d.cantidad_devuelta),0)
+              FROM almacen_devoluciones d WHERE d.id_salida = s.id_salida) AS total_devuelto
     FROM almacen_salidas s
     JOIN almacen_stock st ON st.id_stock = s.id_stock
     JOIN almacen_items i ON i.id_item = st.id_item
@@ -167,6 +168,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
     border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;
     align-items:flex-start;gap:10px;font-size:12px;color:#92400e}
 .warn-box i{font-size:18px;flex-shrink:0;margin-top:2px}
+
+/* ── acciones (editar/eliminar) ── */
+.action-btns{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);
+    background:var(--surface);color:var(--text-muted);display:inline-flex;
+    align-items:center;justify-content:center;font-size:13px;cursor:pointer;
+    transition:all .15s;flex-shrink:0}
+.icon-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.icon-btn.edit:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
+.icon-btn.delete:hover{border-color:var(--danger);color:var(--danger);background:#fee2e2}
+.icon-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* modal */
+.modal-content{border:none;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md)}
+.modal-header{background:var(--surface-2);border-bottom:1px solid var(--border);padding:18px 24px}
+.modal-header .modal-title{font-family:'Outfit',sans-serif;font-weight:700;font-size:16px;
+    display:flex;align-items:center;gap:8px}
+.modal-body{padding:24px}
+.modal-footer{border-top:1px solid var(--border);padding:16px 24px}
+.modal-footer .btn-kb{padding:9px 20px}
+.readonly-chip{background:var(--surface-3);border:1px dashed var(--border);border-radius:9px;
+    padding:9px 13px;font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+.delete-warning-box{background:linear-gradient(135deg,#fee2e2,#fef2f2);border:1.5px solid #fecaca;
+    border-radius:10px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
+.delete-warning-box i{font-size:22px;color:var(--danger);flex-shrink:0;margin-top:1px}
+.delete-warning-box strong{display:block;margin-bottom:3px;color:#991b1b}
 
 @media(max-width:860px){
     .two-col{grid-template-columns:1fr}
@@ -337,7 +364,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
                 <div style="position:relative">
                     <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);
                                  color:var(--text-muted);font-weight:600;font-size:13px">S/</span>
-                    <input type="number" step="0.01" min="0" name="garantia_original"
+                    <input type="number" step="0.01" min="0" name="garantia"
                            id="inputGarantia" class="kb-input garantia-active"
                            placeholder="0.00" style="padding-left:34px">
                 </div>
@@ -390,12 +417,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
                     <th>Fecha</th>
                     <th>Garantía</th>
                     <th>Estado</th>
+                    <th style="text-align:right">Acciones</th>
                 </tr>
             </thead>
             <tbody>
             <?php if (empty($recientes)): ?>
             <tr>
-                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">
+                <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">
                     <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:8px;color:#cbd5e1"></i>
                     <div style="font-weight:600;margin-bottom:4px">Sin salidas registradas</div>
                     <div style="font-size:12px">Las salidas que registres aparecerán aquí.</div>
@@ -408,6 +436,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
                     'Devuelto' => 'est-devuelto',
                     default    => 'est-pendiente',
                 };
+                $tiene_devoluciones = $r['total_devuelto'] > 0;
             ?>
             <tr>
                 <td>
@@ -444,6 +473,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
                     <span class="estado-badge <?= $est_class ?>">
                         <?= $r['estado'] ?>
                     </span>
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <button type="button" class="icon-btn edit"
+                                title="Editar salida"
+                                data-id="<?= $r['id_salida'] ?>"
+                                data-guia="<?= htmlspecialchars($r['nombre_guia'], ENT_QUOTES) ?>"
+                                data-cantidad="<?= $r['cantidad'] ?>"
+                                data-fecha="<?= htmlspecialchars($r['fecha_salida']) ?>"
+                                data-garantia="<?= $r['garantia_original'] ?>"
+                                data-observacion="<?= htmlspecialchars($r['observacion'] ?? '', ENT_QUOTES) ?>"
+                                data-producto="<?= htmlspecialchars($r['producto'] . ($r['talla'] ? ' · '.$r['talla'] : ''), ENT_QUOTES) ?>"
+                                data-tipo="<?= htmlspecialchars($r['tipo_producto']) ?>"
+                                data-devuelto="<?= $r['total_devuelto'] ?>"
+                                onclick="abrirModalEditar(this)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="icon-btn delete"
+                                title="<?= $tiene_devoluciones ? 'No se puede eliminar: ya tiene devoluciones' : 'Eliminar salida' ?>"
+                                data-id="<?= $r['id_salida'] ?>"
+                                data-guia="<?= htmlspecialchars($r['nombre_guia'], ENT_QUOTES) ?>"
+                                data-producto="<?= htmlspecialchars($r['producto'] . ($r['talla'] ? ' · '.$r['talla'] : ''), ENT_QUOTES) ?>"
+                                data-cantidad="<?= $r['cantidad'] ?>"
+                                <?= $tiene_devoluciones ? 'disabled' : 'onclick="abrirModalEliminar(this)"' ?>>
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -508,8 +564,116 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface-2);color:var(--te
 </div><!-- /.main-content -->
 </div><!-- /.kb-content -->
 
+<!-- ═══ MODAL EDITAR SALIDA ═══ -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="acciones/editar_salida_action.php" method="POST" id="formEditar" novalidate>
+        <input type="hidden" name="id_salida" id="edit_id_salida">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-pencil-square text-primary"></i> Editar Salida</div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="field-group">
+            <label class="field-label">Producto</label>
+            <div class="readonly-chip">
+              <i class="bi bi-box-seam"></i>
+              <span id="edit_producto_label">—</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label field-required">Guía</label>
+            <div class="select-wrap">
+              <select name="nombre_guia" id="edit_nombre_guia" class="kb-select" required>
+                <?php foreach ($guias as $g): ?>
+                <option value="<?= htmlspecialchars($g['nombre_guia']) ?>">
+                    <?= htmlspecialchars($g['nombre_guia']) ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+              <i class="bi bi-chevron-down chevron"></i>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="field-group">
+              <label class="field-label field-required">Cantidad</label>
+              <input type="number" name="cantidad" id="edit_cantidad" class="kb-input" min="1" max="9999" required>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="edit_devuelto_hint" hidden>
+                Ya se devolvieron <strong id="edit_devuelto_val">0</strong> und. — no puede bajar de ahí.
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label field-required">Fecha de salida</label>
+              <input type="date" name="fecha_salida" id="edit_fecha" class="kb-input" required>
+            </div>
+          </div>
+
+          <div class="field-group" id="edit_grupoGarantia" style="display:none">
+            <div class="garantia-badge">
+              <i class="bi bi-shield-lock-fill"></i>
+              Producto con garantía — ingrese el monto
+            </div>
+            <label class="field-label field-required">Monto de garantía (S/)</label>
+            <div style="position:relative">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);
+                           color:var(--text-muted);font-weight:600;font-size:13px">S/</span>
+              <input type="number" step="0.01" min="0" name="garantia" id="edit_garantia"
+                     class="kb-input garantia-active" placeholder="0.00" style="padding-left:34px">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Observación</label>
+            <textarea name="observacion" id="edit_observacion" class="kb-textarea"></textarea>
+          </div>
+
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn-kb btn-outline-kb" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn-kb btn-danger-kb"><i class="bi bi-check-lg"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ELIMINAR SALIDA ═══ -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="acciones/eliminar_salida_action.php" method="POST">
+        <input type="hidden" name="id_salida" id="del_id_salida">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-trash3 text-danger"></i> Eliminar Salida</div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="delete-warning-box">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+              <strong>Esta acción no se puede deshacer.</strong>
+              Se eliminará la salida de <span id="del_cantidad">—</span> und. de
+              "<span id="del_producto">—</span>" entregada a <strong id="del_guia">—</strong>,
+              y el stock será restaurado automáticamente.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn-kb btn-outline-kb" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn-kb btn-danger-kb"><i class="bi bi-trash3"></i> Sí, Eliminar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ── Preview producto + garantía ──
+// ── Preview producto + garantía (form nueva salida) ──
 document.getElementById('selProducto').addEventListener('change', function () {
     const opt      = this.options[this.selectedIndex];
     const preview  = document.getElementById('previewProducto');
@@ -532,7 +696,6 @@ document.getElementById('selProducto').addEventListener('change', function () {
     const nombre = opt.dataset.nombre;
     const talla  = opt.dataset.talla;
 
-    // Preview
     document.getElementById('pv-nombre').textContent = nombre + (talla ? ' · ' + talla : '');
     document.getElementById('pv-disp').textContent   = disp + ' unidades';
     document.getElementById('pv-tipo').textContent   = tipo;
@@ -541,12 +704,10 @@ document.getElementById('selProducto').addEventListener('change', function () {
     if (disp <= 3) preview.classList.add('warning');
     preview.classList.add('visible');
 
-    // Max disponible
     inputC.max = disp;
     maxVal.textContent = disp;
     maxDisp.hidden = false;
 
-    // Garantía
     if (tipo === 'Garantia') {
         grupoG.style.display = 'block';
         inputG.required = true;
@@ -558,7 +719,6 @@ document.getElementById('selProducto').addEventListener('change', function () {
     }
 });
 
-// ── Validación cantidad vs disponible ──
 document.getElementById('inputCantidad').addEventListener('input', function () {
     const max = parseInt(this.max) || 0;
     const val = parseInt(this.value) || 0;
@@ -571,7 +731,6 @@ document.getElementById('inputCantidad').addEventListener('input', function () {
     }
 });
 
-// ── Submit con spinner ──
 document.getElementById('formSalida').addEventListener('submit', function (e) {
     const guia    = document.getElementById('selGuia').value;
     const prod    = document.getElementById('selProducto').value;
@@ -593,16 +752,68 @@ document.getElementById('formSalida').addEventListener('submit', function (e) {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Registrando…';
 });
 
-// ── Limpiar error al cambiar campo ──
 document.querySelectorAll('.kb-input, .kb-select').forEach(el => {
     el.addEventListener('change', () => el.classList.remove('error'));
     el.addEventListener('input',  () => el.classList.remove('error'));
 });
 
-// ── Toast auto-cerrar ──
 const toast = document.getElementById('toastMsg');
 if (toast) setTimeout(() => { toast.style.opacity = '0'; }, 3500);
+
+// ── MODAL EDITAR: poblar datos ──
+const modalEditarEl = document.getElementById('modalEditar');
+const bsModalEditar  = new bootstrap.Modal(modalEditarEl);
+
+function abrirModalEditar(btn) {
+    const d = btn.dataset;
+
+    document.getElementById('edit_id_salida').value   = d.id;
+    document.getElementById('edit_producto_label').textContent = d.producto;
+    document.getElementById('edit_nombre_guia').value = d.guia;
+    document.getElementById('edit_cantidad').value    = d.cantidad;
+    document.getElementById('edit_fecha').value       = d.fecha;
+    document.getElementById('edit_observacion').value = d.observacion;
+
+    const grupoG = document.getElementById('edit_grupoGarantia');
+    const inputG = document.getElementById('edit_garantia');
+    if (d.tipo === 'Garantia') {
+        grupoG.style.display = 'block';
+        inputG.required = true;
+        inputG.value = parseFloat(d.garantia).toFixed(2);
+    } else {
+        grupoG.style.display = 'none';
+        inputG.required = false;
+        inputG.value = '';
+    }
+
+    const devuelto = parseInt(d.devuelto) || 0;
+    const hint = document.getElementById('edit_devuelto_hint');
+    const cantidadInput = document.getElementById('edit_cantidad');
+    if (devuelto > 0) {
+        hint.hidden = false;
+        document.getElementById('edit_devuelto_val').textContent = devuelto;
+        cantidadInput.min = devuelto;
+    } else {
+        hint.hidden = true;
+        cantidadInput.min = 1;
+    }
+
+    bsModalEditar.show();
+}
+
+// ── MODAL ELIMINAR: poblar datos ──
+const modalEliminarEl = document.getElementById('modalEliminar');
+const bsModalEliminar  = new bootstrap.Modal(modalEliminarEl);
+
+function abrirModalEliminar(btn) {
+    const d = btn.dataset;
+    document.getElementById('del_id_salida').value = d.id;
+    document.getElementById('del_producto').textContent = d.producto;
+    document.getElementById('del_guia').textContent = d.guia;
+    document.getElementById('del_cantidad').textContent = d.cantidad;
+    bsModalEliminar.show();
+}
 </script>
+
 </body>
 </html>
-

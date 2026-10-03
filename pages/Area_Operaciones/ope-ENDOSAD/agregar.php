@@ -336,10 +336,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <option value="29">Q'ESHUACHAKA Y 4 LAGUNAS DE UN DÍA</option>
                                 <option value="30">WAQRAPUKARA DE UN DÍA</option>
                                 <option value="31">CITY TOUR CUSCO MEDIO DÍA</option>
-                                <option value="32">CUATRIMOTOS</option>
+                                <option value="32">MONTAÑA DE COLORES CUATRIMOTOS 1 DIA</option>
                                 <option value="33">ICA – PARACAS DE UN DÍA</option>
                                 <option value="34">PUNO DE UN DÍA</option>
                                 <option value="35">MANU 4 DÍAS Y 3 NOCHES</option>
+                                <option value="35">QUELLCAYA 1 DIA</option>
+                                <option value="35">PALLAYPUNCHO 1 DIA </option>
+                                <option value="35">MARAS MORAY CUATRIMOTO 1 DIA </option>
                             </select>
                         </td>
                         <td>

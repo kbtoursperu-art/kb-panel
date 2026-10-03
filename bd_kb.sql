@@ -212,7 +212,22 @@ CREATE TABLE almacen_stock (
 
   FOREIGN KEY (id_item) REFERENCES almacen_items(id_item) ON DELETE CASCADE
 );
+CREATE TABLE almacen_movimientos (
+    id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
+    id_stock INT NOT NULL,
+    tipo ENUM('Entrada','Salida','Devolucion') NOT NULL,
+    cantidad INT NOT NULL,
+    monto DECIMAL(10,2) DEFAULT 0.00,
+    referencia VARCHAR(255),
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    INDEX (id_stock),
+
+    CONSTRAINT fk_movimiento_stock
+        FOREIGN KEY (id_stock)
+        REFERENCES almacen_stock(id_stock)
+        ON DELETE CASCADE
+);
 CREATE TABLE almacen_salidas (
   id_salida INT AUTO_INCREMENT PRIMARY KEY,
   id_stock INT,

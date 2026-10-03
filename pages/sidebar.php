@@ -404,7 +404,7 @@ $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($
 
             <div class="section-label">Principal</div>
 
-            <a href="/pages/principal.php" class="nav-item <?= basename($_SERVER['PHP_SELF']) == 'principal.php' ? 'active' : '' ?>">
+            <a href="/panel/pages/principal.php" class="nav-item <?= basename($_SERVER['PHP_SELF']) == 'principal.php' ? 'active' : '' ?>">
                 <span class="nav-icon-wrap"><i class="fas fa-home" aria-hidden="true"></i></span>
                 <span class="nav-label">Inicio</span>
                 <span class="sb-tooltip">Inicio</span>
@@ -420,23 +420,23 @@ $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($
                     <span class="sb-tooltip">Operaciones</span>
                 </div>
                 <div class="submenu" id="sub-operaciones">
-                    <a href="/pages/clientes_kb/index.php" class="nav-item">
+                    <a href="/panel/pages/clientes_kb/index.php" class="nav-item">
                         <span class="sub-dot" aria-hidden="true"></span>
                         <span class="nav-label">Clientes KB</span>
                     </a>
-                    <a href="/pages/cliente_endosador/index.php" class="nav-item">
+                    <a href="/panel/pages/cliente_endosador/index.php" class="nav-item">
                         <span class="sub-dot" aria-hidden="true"></span>
                         <span class="nav-label">Clientes Endosador</span>
                     </a>
-                    <a href="/pages/Area_Operaciones/ope-KB/index.php" class="nav-item">
+                    <a href="/panel/pages/Area_Operaciones/ope-KB/index.php" class="nav-item">
                         <span class="sub-dot" aria-hidden="true"></span>
                         <span class="nav-label">Operaciones KB</span>
                     </a>
-                    <a href="/pages/Area_Operaciones/ope-ENDOSAD/index.php" class="nav-item">
+                    <a href="/panel/pages/Area_Operaciones/ope-ENDOSAD/index.php" class="nav-item">
                         <span class="sub-dot" aria-hidden="true"></span>
                         <span class="nav-label">Operaciones Endosador</span>
                     </a>
-                    <a href="/pages/alma/dashboard_almacen.php" class="nav-item">
+                    <a href="/panel/pages/alma/dashboard_almacen.php" class="nav-item">
                         <span class="sub-dot" aria-hidden="true"></span>
                         <span class="nav-label">Almacén</span>
                     </a>
@@ -444,7 +444,7 @@ $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($
             <?php endif; ?>
 
             <?php if ($esAdmin == 1 || $area == "Planificación"): ?>
-                <a href="/pages/Area_planificacion/index.php" class="nav-item">
+                <a href="/panel/pages/Area_planificacion/index.php" class="nav-item">
                     <span class="nav-icon-wrap"><i class="fas fa-cogs" aria-hidden="true"></i></span>
                     <span class="nav-label">Planificación</span>
                     <span class="sb-tooltip">Planificación</span>
@@ -452,7 +452,7 @@ $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($
             <?php endif; ?>
 
             <?php if ($esAdmin == 1 || $area == "Contabilidad"): ?>
-                <a href="/pages/Area_contabilidad/index.php" class="nav-item">
+                <a href="/panel/pages/Area_contabilidad/index.php" class="nav-item">
                     <span class="nav-icon-wrap"><i class="fas fa-calculator" aria-hidden="true"></i></span>
                     <span class="nav-label">Contabilidad</span>
                     <span class="sb-tooltip">Contabilidad</span>
@@ -460,7 +460,7 @@ $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($
             <?php endif; ?>
 
             <?php if ($esAdmin == 1): ?>
-                <a href="/pages/admin/resumen.php" class="nav-item">
+                <a href="/panel/pages/admin/resumen.php" class="nav-item">
                     <span class="nav-icon-wrap"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>
                     <span class="nav-label">Resumen</span>
                     <span class="sb-tooltip">Resumen</span>
