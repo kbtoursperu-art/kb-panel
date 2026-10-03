@@ -374,7 +374,7 @@ if (!$result_kb) die("<pre>ERROR SQL: " . mysqli_error($conexion) . "\n\n$query_
         padding: 7px 12px;
         min-width: 220px;
     }
-    .kb-search input { background: transparent; border: none; outline: none; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--text); width: 100%; }
+    .kb-search input { background: transparent; border: none; outline: none; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--bg); width: 100%; }
     .kb-search i { font-size: 14px; color: var(--muted); }
 
     /* ─── EXPORT BTN ─────────────────────────────────────── */
@@ -662,8 +662,23 @@ $(function () {
             exportOptions: { columns: ':not(:last-child)' }
         }],
         language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json'
-        },
+    decimal: ",",
+    emptyTable: "No hay datos disponibles",
+    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+    infoEmpty: "Mostrando 0 a 0 de 0 registros",
+    infoFiltered: "(filtrado de _MAX_ registros)",
+    lengthMenu: "Mostrar _MENU_ registros",
+    loadingRecords: "Cargando...",
+    processing: "Procesando...",
+    search: "Buscar:",
+    zeroRecords: "No se encontraron clientes",
+    paginate: {
+        first: "Primero",
+        last: "Último",
+        next: "Siguiente",
+        previous: "Anterior"
+    }
+},
         pageLength: 15,
         order: [[0, 'desc']],
         scrollX: false,

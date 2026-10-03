@@ -39,10 +39,6 @@ if (!$resultGrupo) {
 
 $grupo = mysqli_fetch_assoc($resultGrupo);
 
-echo "<pre>";
-var_dump($grupo);
-echo "</pre>";
-
 $grupo_lleno = $grupo ? ($grupo['registrados'] >= $grupo['cantidad']) : false;
 
 // ── Procesar formulario ─────────────────────────────────────────────────
@@ -512,6 +508,7 @@ exit;
                 <?= $pct ?>% ocupado
             </span>
         </div>
+        
     <?php else: ?>
         <div class="new-group-box">
             <i class="fas fa-folder-plus"></i>
