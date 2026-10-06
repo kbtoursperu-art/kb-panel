@@ -1,787 +1,247 @@
 <style>
-.team-section{
-    max-width:1300px;
-    margin:70px auto;
-    padding:20px;
-    font-family:'Poppins',sans-serif;
+/* ==========================================
+   KB ADVENTURES — ABOUT SECTION
+========================================== */
+.kb-about {
+    width: 100%;
+    background: #ffffff;
+    padding: 100px 20px;
+    box-sizing: border-box;
 }
-.team-section h2{
-    text-align:center;
-    font-size:42px;
-    color:#1F496F;
-    margin-bottom:15px;
-    font-weight:700;
+.kb-about-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+   display: grid;
+    grid-template-columns: 1fr 0.95fr;
+    gap: 75px;
+   align-items: center;
 }
-.team-section .description{
-    max-width:850px;
-    margin:0 auto 50px;
-    text-align:center;
-    color:#ece6e6;
-    line-height:1.8;
-    font-size:17px;
+/* ==========================================
+   TEXTO
+========================================== */
+.kb-about-label {
+    margin: 0 0 12px;
+  font-family: Poppins, Arial, sans-serif;
+   font-size: 13px;
+    font-weight: 600;
+   letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #0069AD;
 }
-.slider-container{
-    position:relative;
-    overflow:hidden;
+.kb-about-title {
+    margin: 0 0 18px;
+    font-family: Poppins, Arial, sans-serif;
+    font-size: 44px;
+    line-height: 1.15;
+    font-weight: 600;
+    color: #1F496F;
 }
-.slider-track{
-    display:flex;
-    transition:transform .5s ease;
+.kb-about-line {
+    width: 55px;
+    height: 3px;
+   margin-bottom: 28px;
+    background: #FABA2C;
 }
-.slide{
-    flex:0 0 33.333%;
-    padding:15px;
+.kb-about-text {
+    max-width: 570px;
+    margin: 0 0 20px;
+   font-family: Poppins, Arial, sans-serif;
+   font-size: 16px;
+    line-height: 1.8;
+   color: #53677A;
 }
-.guide-card{
-    background:#fff;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.12);
-    transition:.35s;
+/* ==========================================
+   EXPERIENCIA
+========================================== */
+.kb-about-experience {
+    display: flex;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 25px;
+   border-top: 1px solid rgba(31,73,111,0.15);
 }
-.guide-card:hover{
-    transform:translateY(-8px);
-    box-shadow:0 18px 40px rgba(0,0,0,.18);
+.kb-about-number {
+    margin-right: 16px;
+   font-family: Poppins, Arial, sans-serif;
+   font-size: 42px;
+    line-height: 1;
+    font-weight: 600;
+   color: #0069AD;
 }
-.guide-card img{
-    width:100%;
-    height:360px;
-    object-fit:cover;
-    display:block;
+.kb-about-experience-text {
+    font-family: Poppins, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #53677A;
 }
-.guide-info{
-    padding:25px;
-    text-align:center;
+.kb-about-experience-tet strong {
+    display: block;
+   color: #1F496F;
+    font-size: 15px;
 }
-.guide-info h3{
-    color:#1F496F;
-    font-size:24px;
-    margin-bottom:8px;
+/* ==========================================
+   BOTÓN
+========================================== */
+.kb-about-button {
+    display: inline-flex;
+   margin-top: 30px;
+   padding: 13px 24px;
+   background: #0069AD;
+    color: #ffffff;
+   border-radius: 6px;
+   text-decoration: none;
+   font-family: Poppins, Arial, sans-serif;
+   font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
-.guide-info span{
-    display:block;
-    color:#D88932;
-    font-weight:600;
-    margin-bottom:15px;
+.kb-about-button:hover {
+    background: #1F496F;
+    transform: translateY(-2px);
 }
-.guide-info p{
-    color:#666;
-    line-height:1.7;
-    font-size:15px;
+/* ==========================================
+   IMAGEN
+========================================== */
+.kb-about-visual {
+    position: relative;
+   min-height: 520px;
+   border-radius: 18px;
+   overflow: hidden;
+   background-image:
+        linear-gradient(
+            to bottom,
+            rgba(7,29,43,0.05),
+            rgba(7,29,43,0.30)
+        ),
+        url('https://kbtourstravel.com/wp-content/uploads/2024/05/image00352.jpg');
+    background-size: cover;
+    background-position: center;
 }
-.slider-btn{
- position:absolute;
-    top:45%;
-    transform:translateY(-50%);
-    width:48px;
-    height:48px;
-    border:none;
-    border-radius:50%;
-    background:#1F496F;
-    color:#fff;
-    font-size:22px;
-	    cursor:pointer;
-    z-index:100;
-    transition:.3s;
+/* ==========================================
+   BADGE SOBRE LA FOTO
+========================================== */
+.kb-about-badge {
+    position: absolute;
+   right: 25px;
+    bottom: 25px;
+   min-width: 180px;
+    padding: 18px 22px;
+    box-sizing: border-box;
+   background: rgba(7,29,43,0.88);
+    border-radius: 8px;
+   border-left: 4px solid #FABA2C;
+    color: #ffffff;
+   font-family: Poppins, Arial, sans-serif;
 }
-.slider-btn:hover{
-    background:#163954;
+.kb-about-badge-number {
+    display: block;
+   margin-bottom: 3px;
+   font-size: 28px;
+    line-height: 1;
+   font-weight: 600;
+    color: #FABA2C;
 }
-#prev{
-    left:8px;
+.kb-about-badge-text {
+    font-size: 12px;
+    line-height: 1.4;
+   color: rgba(255,255,255,0.9);
 }
-#next{
-    right:8px;
-}
-@media(max-width:768px){
-    .slide{
-        flex:0 0 50%;
+/* ==========================================
+   TABLET
+========================================== */
+@media (max-width: 900px) {
+   .kb-about-inner {
+        grid-template-columns: 1fr;
+       gap: 45px;
     }
-    .guide-card img{
-        height:320px;
+   .kb-about-visual {
+        min-height: 450px;
     }
 }
-@media(max-width:576px){
-    .slide{
-        flex:0 0 100%;
-	    }
-    .guide-card img{
-        height:300px;
+/* ==========================================
+   MOBILE
+========================================== */
+@media (max-width: 600px) {
+    .kb-about {
+        padding: 65px 18px;
     }
-    .team-section h2{
-        font-size:32px;
+    .kb-about-title {
+        font-size: 32px;
+    }    .kb-about-text {
+        font-size: 15px;
+        line-height: 1.7;
+    }
+   .kb-about-experience {
+        margin-top: 25px;
+    }
+  .kb-about-number {
+        font-size: 36px;
+    }
+   .kb-about-visual {
+        min-height: 360px;
+       border-radius: 14px;
+    }
+    .kb-about-badge {
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+       min-width: auto;
     }
 }
 </style>
 
-<section class="team-section">
-<h2>Meet Our Experienced Team</h2>
-<p class="description">We are proud to have highly trained male and female guides dedicated to creating memorable and unique experiences. Their passion for culture and nature ensures every moment of your journey is extraordinary.</p>
+<section class="kb-about">
+<div class="kb-about-inner">
 
-<div class="slider-container">
+<!-- ========================== TEXTO =========================== -->
+<div class="kb-about-content">
+<div class="kb-about-label">ABOUT KB ADVENTURES</div>
+<h2 class="kb-about-title">Local knowledge.
+Unforgettable adventures.</h2>
+<div class="kb-about-line"></div>
+<p class="kb-about-text">K.B. Adventures is a local tour operator specialized
+in trekking in the Andean region of Peru.</p>
+<p class="kb-about-text">We have over 26 years of experience in trekking and
+adventure tours, including Machu Picchu, the Inca Trail
+and the Salkantay Trek.</p>
+<p class="kb-about-text">Based in Cusco, our local team is passionate about
+sharing the landscapes, culture and traditions of the
+Andes with travelers from around the world.</p>
+<!-- EXPERIENCIA -->
+<div class="kb-about-experience">
+<div class="kb-about-number">26+</div>
+<div class="kb-about-experience-text">
 
-<button id="prev" class="slider-btn">❮</button>
-<div class="slider-track">
-<div class="slide">
-<div class="guide-card">
+<strong>
+Years of experience
+</strong>
 
-<img src="https://kbtourstravel.com/wp-content/uploads/2024/11/033.jpg" alt="Guide" />
-<div class="guide-info">
-<h3>Climaco Zapata</h3>
-Lead Tour Guide
+Creating unforgettable adventures
+in Peru.
 
-Expert guide with years of experience leading unforgettable adventures through Machu Picchu and the Andes.
+</div>
+</div>
+<!-- BOTÓN -->
+
+<a class="kb-about-button" href="https://kbtourstravel.com/about-us/">
+MEET OUR TEAM →
+</a>
+
+</div>
+<!-- ========================== FOTO =========================== -->
+<div class="kb-about-visual">
+<div class="kb-about-badge">
+
+<span class="kb-about-badge-number">
+CUSCO
+</span>
+
+<span class="kb-about-badge-text">
+Local experts in the heart
+of the Peruvian Andes.
+</span>
 
 </div>
 </div>
 </div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2024/12/g02.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Wilfredo Yucra</h3>
-Adventure Guide
-
-Passionate about sharing the beauty of Peru, its mountains, traditions and culture with every traveler.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2024/11/011.jpg" alt="Guide" />
-<div class="guide-info">
-<h3>Maritza Galindo</h3>
-Mountain Guide
-
-Professional trekking guide specialized in Salkantay Trek, Rainbow Mountain and high-altitude expeditions.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Raul-Cordova-Llamocca.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Raul Cordova</h3>
-Cultural Guide
-
-Friendly, knowledgeable and dedicated to making every trip educational, enjoyable and unforgettable.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Jean-Paul-Jordan.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Jean Paul Jordan</h3>
-Professional Guide
-
-Committed to providing safe adventures while sharing the history and natural beauty of Peru.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Carlos-Cusiyupanqui.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Carlos Cusiyupanqui</h3>
-Experienced in guiding travelers through Peru's most remarkable destinations, with a passion for Andean culture and meaningful local experiences.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/rene-chchaca-condori.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Rene Chchaca</h3>
-Dedicated to helping travelers discover the beauty of the Andes while providing friendly service, local knowledge and memorable trekking experiences.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Ruben-quispe-Maza.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Ruben Quispe Maza</h3>
-Passionate about mountain adventures and Andean traditions, focused on making every journey comfortable, informative and enjoyable.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Ronaldo-Garcia-Percca.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Ronaldo Garcia</h3>
-Enthusiastic guide who enjoys exploring the mountains with travelers and sharing the natural beauty, history and traditions of the Peruvian Andes.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Lucas-quispe-machacca.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Lucas Quispe</h3>
-Committed to creating unforgettable trekking experiences while sharing his knowledge of Peru's landscapes, communities and Andean heritage.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Walter-Ccoto.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Walter Ccoto</h3>
-Friendly and dedicated guide who combines local knowledge with a passion for adventure to help travelers experience Peru beyond the usual tourist routes.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Ricardo-Jafet-Rayme-Navarro.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Ricardo Rayme Navarro</h3>
-Experienced in accompanying travelers on unforgettable adventures, with a strong commitment to safety, good service and authentic Andean experiences.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/07/Guia-David-1.webp" alt="Guide" />
-<div class="guide-info">
-<h3>David</h3>
-Committed to providing safe and enjoyable adventures while sharing the history, culture and natural beauty that make Peru unique.
-
-</div>
-</div>
-</div>
-
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Edison-Qquesuallpa-Fuentes.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Edison Qquesuallpa</h3>
-Passionate about guiding travelers through the Andes and introducing them to the landscapes, traditions and communities that make each journey special.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Paul.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Paul</h3>
-Enthusiastic and approachable guide dedicated to making every adventure enjoyable, sharing local insights and creating lasting memories for travelers.
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Manoel-Francisco-Tinta-Aranya.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Manoel Tinta Aranya</h3>
-Passionate about Peru's mountains and culture, focused on providing travelers with an authentic, safe and memorable experience in the Andes.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Ronal.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Ronal</h3>
-Dedicated to exploring Peru's incredible landscapes with travelers while sharing local stories, traditions and the spirit of Andean adventure.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/Alfredo-Gomez.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Alfredo Gomez</h3>
-Experienced and enthusiastic guide who enjoys helping travelers discover Peru's mountains, history and culture through unforgettable adventures.
-
-</div>
-</div>
-</div>
-<div class="slide">
-<div class="guide-card">
-
-<img src="https://kbtourstravel.com/wp-content/uploads/2026/08/VIDAL-1.webp" alt="Guide" />
-<div class="guide-info">
-<h3>Vidal</h3>
-Passionate about adventure and Andean culture, dedicated to guiding travelers through Peru's beautiful landscapes while providing a safe, friendly and memorable experience.
-
-</div>
-</div>
-</div>
-</div>
-<button id="next" class="slider-btn">❯</button>
-
-</div>
-</section><script>
-const track=document.querySelector('.slider-track');
-const slides=document.querySelectorAll('.slide');
-const prev=document.getElementById('prev');
-const next=document.getElementById('next');
-
-let currentIndex=0;
-
-function getVisibleSlides(){
-    if(window.innerWidth<=576) return 1;
-    if(window.innerWidth<=768) return 2; return 3; } function updateSlider(){ if(!track || slides.length===0) return; const visibleSlides=getVisibleSlides(); const slideWidth=slides[0].offsetWidth; const maxIndex=Math.max(0,slides.length-visibleSlides); if(currentIndex>maxIndex){
-        currentIndex=maxIndex;
-    }
-
-    track.style.transform=`translateX(-${currentIndex*slideWidth}px)`;
-}
-
-next.addEventListener('click',()=>{
-
-    const visibleSlides=getVisibleSlides();
-    const maxIndex=Math.max(0,slides.length-visibleSlides);
-
-    currentIndex=currentIndex<maxIndex ? currentIndex+1 : 0; updateSlider(); }); prev.addEventListener('click',()=>{
-
-    const visibleSlides=getVisibleSlides();
-    const maxIndex=Math.max(0,slides.length-visibleSlides);
-
-    currentIndex=currentIndex>0 ? currentIndex-1 : maxIndex;
-
-    updateSlider();
-
-});
-
-window.addEventListener('resize',updateSlider);
-window.addEventListener('load',updateSlider);
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<style>
-/* CONTENEDOR */
-.faq-wrap {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-}
-
-/* HEADER */
-.faq-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-/* SWITCH */
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: #4a5568;
-}
-
-.switch {
-  position: relative;
-  width: 45px;
-  height: 24px;
-  display: inline-block;
-}
-
-.switch input {
-  display: none;
-}
-
-.sliders {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #cbd5e0;
-  border-radius: 20px;
-  transition: .3s;
-}
-
-.sliders:before {
-  content: "";
-  position: absolute;
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background: white;
-  border-radius: 50%;
-  transition: .3s;
-}
-
-input:checked + .slider {
-  background-color: #3182ce;
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-/* ITEM */
-.faq-item {
-  background: #fff;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  overflow: hidden;
-}
-
-/* QUESTION */
-.faq-question {
-  width: 100%;
-  text-align: left;
-  padding: 18px 20px;
-  border: none;
-  background: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  color: #2b6cb0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.faq-question:hover {
-  background: #f7fafc;
-}
-
-/* ICON */
-.icon {
-  font-size: 18px;
-  transition: .3s;
-  flex-shrink: 0;
-}
-
-/* ANSWER */
-.faq-answer {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.35s ease;
-  padding: 0 20px;
-  color: #4a5568;
-  line-height: 1.6;
-}
-
-.faq-item.active .faq-answer {
-  padding: 0 20px 18px;
-  max-height: 3000px;
-}
-
-.faq-item.active .icon {
-  transform: rotate(180deg);
-}
-</style>
-
-<div class="faq-wrap">
-
-  <div class="faq-header">
-        <div class="toggle">
-      Expand all
-
-      <label class="switch">
-        <input type="checkbox" id="toggleAll">
-        <span class="sliders"></span>
-      </label>
-    </div>
-  </div>
-
-  <!-- ITEM -->
-  <div class="faq-item">
-    <button class="faq-question">
-      How can I get the Student Discount for the Machu Picchu Entrance?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-
-        <p style="font-size: 16px; color: #000; margin-bottom: 20px;">
-            If you are a student, you may be eligible for a <strong style="color: #2d6db0;">$20 USD discount</strong>. However, you must meet the <strong style="color: #2d6db0;">Peruvian government requirements</strong>, as the discount is applied to the cost of your Machu Picchu ticket and is not something that we are able to negotiate.
-        </p>
-
-        <p style="font-size: 16px; color: #000; margin-bottom: 20px;">
-            To be able to receive the discount, please <strong style="color: #2d6db0;">send us a photo of both sides of your student card</strong>, and another photo of your passport after your booking. The student ID must be an original ID from your university in <strong style="color: #2d6db0;">PVC material</strong> and include:
-        </p>
-
-        <ul style="font-size: 16px; color: #000; margin-bottom: 20px;">
-            <li><strong style="color: #2d6db0;">University information</strong></li>
-            <li><strong style="color: #2d6db0;">Personal student information</strong></li>
-            <li><strong style="color: #2d6db0;">Student picture</strong></li>
-            <li><strong style="color: #2d6db0;">Expiration date valid only for one year</strong></li>
-            <li><strong style="color: #2d6db0;">Must coincide with the year of visit</strong></li>
-        </ul>
-
-        <p style="font-size: 16px; color: #000; margin-bottom: 20px;">
-            You also need to bring your <strong style="color: #2d6db0;">original student card</strong> on the day you visit Machu Picchu for verification at the checkpoint.
-        </p>
-
-        <p style="font-size: 16px; color: #000;">
-            Please check if your student card includes the following requirements:
-        </p>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <figure>
-            <img style="width: 100%; max-width: 600px; height: auto; border-radius: 8px;" src="https://kbtourstravel.com/wp-content/uploads/2022/09/VALID-CARD-DATA.png" alt="Student Card Example">
-            </figure>
-
-            <p style="font-size: 16px; color: #2d6db0; margin-top: 10px;">
-            Example of a student card meeting all the requirements.
-            </p>
-        </div>
-</div>
-    </div>
-
-
-  <div class="faq-item">
-    <button class="faq-question">
-     What is the difference between the 5 Day and 4 Day Salkantay Trek?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; color: #000; margin-bottom: 20px;">On the <strong style="color: #2d6db0;">4-Day Salkantay Trek</strong> to Machu Picchu, you'll experience many of the same breathtaking landscapes as the 5-Day Trek. The key difference is that on Day 3, instead of staying at the <strong style="color: #2d6db0;">Cocalmayo campsite</strong>, we go directly to <strong style="color: #2d6db0;">Hidroeléctrica</strong> and <strong style="color: #2d6db0;">Aguas Calientes</strong>. This makes Day 3 more challenging, as it includes a <strong style="color: #2d6db0;">3-hour hike</strong> from Hidroeléctrica to Aguas Calientes. On Day 4, you'll visit the <strong style="color: #2d6db0;">Machu Picchu site</strong>.</p>
-<p style="font-size: 16px; color: #000; margin-bottom: 20px;">In contrast, the <strong style="color: #2d6db0;">5-Day Salkantay Trek</strong> offers a more relaxed pace. On Day 3, we stay at the <strong style="color: #2d6db0;">Lucmabamba campsite</strong>, allowing time to unwind and even visit the <strong style="color: #2d6db0;">Cocalmayo hot springs</strong> (this activity is not included). On Day 4, we explore the remarkable archaeological site of <strong style="color: #2d6db0;">Llactapata</strong>, walking part of the original <strong style="color: #2d6db0;">Inca Trail</strong>, which is not covered in the 4-Day trek. We then continue to Hidroeléctrica and Aguas Calientes, with the visit to Machu Picchu scheduled for Day 5.</p>
-
-  </div>
-</div>
-  <div class="faq-item">
-    <button class="faq-question">
-      What should I pack for the Private Salkantay Trek?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-      <ul style="font-size: 16px; color: #000; margin-bottom: 20px;">
-<li><strong style="font-size: 16px; color: #2d6db0;">One personal daypack</strong> (a 30 to 50 L backpack is sufficient). Before your trek, we will provide you with an extra <strong style="font-size: 16px; color: #2d6db0;">duffle bag</strong> from our office to carry your extra clothes and personal items (max. 5kg).</li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Reusable water bottle</strong></li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Small coins in Peruvian Soles</strong> (Bathrooms are free at the campsites but cost 1 Sol along the route. Keep small change on hand for water bottles, snacks, and toilet paper.)</li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Rain jacket or rain poncho</strong></li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Strong footwear</strong> (Waterproof trekking boots recommended.)</li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Sleeping bag</strong> (also available for rent)</li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Flashlight/headlamp and batteries</strong></li>
-<li><strong style="font-size: 16px; color: #2d6db0;">Clothes for the entire trek:</strong>
-<ul>
-<li>Two <strong style="font-size: 16px; color: #2d6db0;">long-sleeve trekking shirts</strong></li>
-<li>Two <strong style="font-size: 16px; color: #2d6db0;">short-sleeve shirts</strong></li>
-<li><strong style="font-size: 16px;">Leggings or trekking pants</strong></li>
-<li><strong style="font-size: 16px;">Shorts</strong></li>
-<li>Four pairs of <strong>underwear</strong></li>
-<li><strong style="font-size: 16px;">Sweatpants</strong> for the night</li>
-<li>Three pairs of <strong>hiking socks</strong></li>
-<li><strong style="font-size: 16px;">A rain poncho</strong></li>
-<li><strong style="font-size: 16px;">An insulated jacket</strong></li>
-<li><strong style="font-size: 16px;">Gloves</strong></li>
-<li><strong style="font-size: 16px;">Beanie</strong></li>
-<li><strong style="font-size: 16px;">A hat with a brim</strong></li>
-<li><strong style="font-size: 16px;">Hiking boots</strong></li>
-<li><strong style="font-size: 16px;">Bathing suit and small towel</strong> (if you plan to visit the hot springs)</li>
-<li><strong style="font-size: 16px;">Sandals</strong> to rest your feet at the campsites</li>
-<li><strong style="font-size: 16px;">Sunscreen</strong></li>
-<li><strong style="font-size: 16px;">Insect repellent</strong></li>
-<li><strong style="font-size: 16px;">Additional snacks</strong> (we supply you with plenty of food already)</li>
-<li><strong style="font-size: 16px;">Original passport</strong> (mandatory for entrance to Machu Picchu)</li>
-</ul>
-</li>
-</ul>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     How can I prepare for the hike and prevent altitude sickness?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; color: #000; margin-bottom: 20px;">The best way to prepare yourself for this trekking experience is easy: <strong style="color: #2d6db0;">spend at least 2 to 3 days</strong> at a high-altitude place like <strong style="color: #2d6db0;">Cusco</strong>, so your body gets used to the high altitude. If you have already been to a high altitude destination before arriving in Cusco, we still recommend you spend at least <strong style="color: #2d6db0;">one full day in Cusco</strong> to rest, recuperate from your trip, and enjoy the beautiful views of the city before your trek.</p>
-<p style="font-size: 16px; color: #000; margin-bottom: 20px;">Additionally, taking good care of your body helps deal with the extra pressures that altitude creates. We recommend you <strong style="color: #2d6db0;">eat healthy food</strong>, <strong style="color: #2d6db0;">drink lots of water</strong>, and <strong style="color: #2d6db0;">stay away from alcohol</strong>. <strong style="color: #2d6db0;">Chewing coca leaves</strong> and <strong style="color: #2d6db0;">drinking coca tea</strong> help to alleviate any discomfort associated with the altitude.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     More Details about the Huayna Picchu Mountain or Machu Picchu Mountain Add-On
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; color: #000; margin-bottom: 20px;">The entrance ticket to <strong style="color: #2d6db0;">Huayna Picchu Mountain</strong> or <strong style="color: #2d6db0;">Machu Picchu Mountain</strong> are additional add-ons that you can choose to purchase besides the Machu Picchu visit that is already included in this trek. You can visit one of these mountains after your Machu Picchu visit to see the Inca Citadel from the top.</p>
-<p style="font-size: 16px; color: #000; margin-bottom: 20px;">Please <strong style="color: #2d6db0;">send us an email asking about availability</strong>. Then, if available, you can select which mountain you would like to climb when you make your reservation online. <strong style="color: #2d6db0;">Huayna Picchu or Machu Picchu Mountain are an additional 65 USD</strong>.</p>
-<h5 style="font-size: 20px; color: #2d6db0; margin-top: 20px;">❓ <strong>What is Huayna Picchu Mountain?</strong></h5>
-<p style="font-size: 16px; color: #000; margin-bottom: 20px;">Huayna Picchu Mountain is home to the <strong style="color: #2d6db0;">Temple of the Moon</strong> and is the famous mountain peak seen behind the ruins in all the classic photos of Machu Picchu. Huayna Picchu is an approximately <strong style="color: #2d6db0;">45-minute climb</strong> with more ruins at the top and offers an incredible view of the Machu Picchu ruins. The visit to Huayna Picchu takes approximately <strong style="color: #2d6db0;">2 hours</strong>. <strong style="color: #2d6db0;">Huayna Picchu Mountain is an additional 65 USD</strong>.</p>
-<h5 style="font-size: 20px; color: #2d6db0; margin-top: 20px;">❓ <strong>What is Machu Picchu Mountain?</strong></h5>
-<p style="font-size: 16px; color: #000; margin-bottom: 20px;">Machu Picchu Mountain is an additional hike within Machu Picchu that offers a much higher view of the ruins and overlooks the entire valley. <strong style="color: #2d6db0;">Machu Picchu Mountain is an additional 65 USD</strong>.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     What are the differences between the Salkantay Trek and the Inca Trail?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; margin-bottom: 20px;">The <strong style="color: #2d6db0;">Inca Trail</strong> is more crowded than the <strong style="color: #2d6db0;">Salkantay Trek</strong> because it is an <strong style="color: #2d6db0;">original trail of the Incas</strong> and one of the most <strong style="color: #2d6db0;">famous hikes</strong> in the world, attracting thousands of trekkers every year. It is the only trek that leads directly to <strong style="color: #2d6db0;">Machu Picchu</strong>, but is therefore a lot more <strong style="color: #2d6db0;">expensive</strong> than the Salkantay Trek.</p>
-<p style="font-size: 16px; margin-bottom: 20px;">On the <strong style="color: #2d6db0;">Salkantay Trek</strong> you will spend the last night in a hotel in <strong style="color: #2d6db0;">Aguas Calientes</strong> before visiting <strong style="color: #2d6db0;">Machu Picchu</strong> the next day. During the <strong style="color: #2d6db0;">Inca Trail</strong> you will discover <strong style="color: #2d6db0;">ancient Inca ruins</strong>, whereas the Salkantay offers more <strong style="color: #2d6db0;">wildlife</strong> and high <strong style="color: #2d6db0;">mountain sceneries</strong>. Many trekkers consider the <strong style="color: #2d6db0;">Salkantay Trek</strong> to be a bit more <strong style="color: #2d6db0;">strenuous</strong> than the Inca Trail because the general <strong style="color: #2d6db0;">altitude</strong> is higher.</p>
-<p style="font-size: 16px;">The <strong style="color: #2d6db0;">Salkantay Trek</strong> offers the best alternative to the <strong style="color: #2d6db0;">Inca Trail</strong> for everybody who doesn’t like <strong style="color: #2d6db0;">crowded paths</strong> and enjoys different <strong style="color: #2d6db0;">landscapes</strong> during the trek.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     I’ve made my reservation for the Salkantay Trek with Sky Domes, now what?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; margin-bottom: 20px;"><strong style="color: #2d6db0;">Congratulations</strong>, adventure awaits you! We sent you a <strong style="color: #2d6db0;">confirmation e-mail</strong> with more details about your <strong style="color: #2d6db0;"> private salkantay trek adventure</strong>. The day before your departure at <strong style="color: #2d6db0;">17:00, 18:00 or 19:00</strong>, please stop by our office located in <strong style="color: #2d6db0;">Portal Espinar Nro 163</strong> to receive the <strong style="color: #2d6db0;">informative briefing</strong>. Our professional guide will tell you everything about your trek and clarify any last <strong style="color: #2d6db0;">questions</strong> you may have.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     What is the weather like during the Salkantay trek?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-    <p style="font-size: 16px; margin-bottom: 20px;">In general, <strong style="color: #2d6db0;">Salkantay</strong> is known for its <strong style="color: #2d6db0;">unpredictable weather</strong>, so please come prepared for both warm and cold temperatures, as well as <strong style="color: #2d6db0;">rainy and dry conditions</strong>. We have two main seasons in the Andes Mountains, the <strong style="color: #2d6db0;">rainy season</strong> (November-March) and the <strong style="color: #2d6db0;">dry season</strong> (April-October).</p>
-<p style="font-size: 16px; margin-bottom: 20px;">During the <strong style="color: #2d6db0;">rainy, warmer season</strong>, temperatures average around <strong style="color: #2d6db0;">15°C / 60°F</strong> during the day and <strong style="color: #2d6db0;">5°C / 40°F</strong> at night. However, with a high chance of <strong style="color: #2d6db0;">rain and wind</strong> at the Salkantay Pass, these temperatures may feel a lot colder to you.</p>
-<p style="font-size: 16px; margin-bottom: 20px;">During the <strong style="color: #2d6db0;">dry season</strong>, the weather is sunny and clear, with an average of <strong style="color: #2d6db0;">20°C / 70°F</strong> during the day but much colder at night, around <strong style="color: #2d6db0;">-3°C / 26°F</strong>.</p>
-<p style="font-size: 16px; margin-bottom: 20px;">Also, after the second day, as we descend into the <strong style="color: #2d6db0;">Peruvian Amazon basin</strong>, the weather changes to a more <strong style="color: #2d6db0;">humid and warmer climate</strong> – these humid temperatures are consistent throughout the year.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-    What type food is served on the Private Salkantay Trek with Luxury Domes?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-    <p style="font-size: 16px; margin-bottom: 20px;">We serve a variety of <strong style="color: #2d6db0;">local superfoods</strong> and traditional Peruvian dishes with <strong style="color: #2d6db0;">rice, chicken, beef, salad, potatoes, vegetables</strong>, delicious soups, and fruits. Everything will be freshly prepared by our <strong style="color: #2d6db0;">local chef</strong>.</p>
-<p style="font-size: 16px; margin-bottom: 20px;">We have a lot of <strong style="color: #2d6db0;">vegetarian travellers</strong> and our cooks have some great options for them to enjoy their meals. We can cater to all other types of <strong style="color: #2d6db0;">dietary requests</strong> with adequate preparation and clear communication.</p>
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     Do I need hiking experience to complete this trek?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; margin-bottom: 20px;"><strong style="color: #2d6db0;">Previous hiking experience</strong> is recommended but not required. Our guides are trained to support hikers of all <strong style="color: #2d6db0;">fitness levels</strong> and experience, ensuring that no one is left behind. Most importantly, make sure to <strong style="color: #2d6db0;">acclimate yourself to the altitude</strong> before your trek.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     Can I leave extra luggage in your office?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-     <p style="font-size: 16px; margin-bottom: 20px;">Yes, you can leave <strong style="color: #2d6db0;">extra luggage</strong> in our office <strong style="color: #2d6db0;">free of charge</strong>. Just let us know if you have any <strong style="color: #2d6db0;">fragile or technological items</strong> that require special care, and we’ll ensure they are handled appropriately.</p>
-
-  </div>
-  </div>
-<div class="faq-item">
-    <button class="faq-question">
-     What are the minimum and maximum group sizes for the Private Salkantay Trek?
-      <span class="icon">⌄</span>
-    </button>
-    <div class="faq-answer">
-    <p style="font-size: 16px; margin-bottom: 20px;">The <strong style="color: #2d6db0;">minimum group size</strong> is 4 people and the <strong style="color: #2d6db0;">maximum group size</strong> is 15 people. There will be an <strong style="color: #2d6db0;">assistant guide</strong> for groups over 12 people.</p>
-  </div>
-  </div>
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-  /* ABRIR Y CERRAR CADA PREGUNTA */
-
-  document.querySelectorAll(".faq-question").forEach(function (btn) {
-
-    btn.addEventListener("click", function () {
-
-      const item = this.closest(".faq-item");
-
-      item.classList.toggle("active");
-
-    });
-
-  });
-
-
-  /* EXPAND ALL */
-
-  const toggleAll = document.getElementById("toggleAll");
-
-  if (toggleAll) {
-
-    toggleAll.addEventListener("change", function () {
-
-      document.querySelectorAll(".faq-item").forEach(function (item) {
-
-        item.classList.toggle("active", this.checked);
-
-      }, this);
-
-    });
- 
-  }
-
-});
-</script>
+</section>
