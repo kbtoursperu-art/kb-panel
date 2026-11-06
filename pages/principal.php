@@ -132,12 +132,34 @@ while ($t = mysqli_fetch_assoc($qTipo)) {
 
 /* ── OPERACIONES POR ENCARGADO ── */
 $qEnc = mysqli_query($conexion,"
-    SELECT IFNULL(NULLIF(encargado,''),'Sin encargado') as encargado,
-           COUNT(*) total,
-           SUM(CASE WHEN estado='confirmado' THEN 1 ELSE 0 END) confirmadas,
-           SUM(CASE WHEN estado='pendiente'  THEN 1 ELSE 0 END) pendientes
+    SELECT
+        IFNULL(NULLIF(TRIM(encargado),''),'Sin encargado') AS encargado,
+        COUNT(*) AS total,
+        SUM(CASE WHEN estado='confirmado' THEN 1 ELSE 0 END) AS confirmadas,
+        SUM(CASE WHEN estado='pendiente' THEN 1 ELSE 0 END) AS pendientes
     FROM operaciones
-    GROUP BY encargado ORDER BY total DESC LIMIT 8
+    GROUP BY IFNULL(NULLIF(TRIM(encargado),''),'Sin encargado')
+    ORDER BY total DESC
+    LIMIT 8
+");
+
+/* ── OPERACIONES SIN ENCARGADO: DETALLE ── */
+$qSinEncargado = mysqli_query($conexion,"
+    SELECT
+        o.id_operaciones,
+        o.id_grupo,
+        o.fecha_reserva,
+        o.estado,
+        o.total_operacion,
+        dc.nombre,
+        dc.apellido,
+        g.nombre_grupo
+    FROM operaciones o
+    LEFT JOIN datos_clientes dc ON dc.id_cliente = o.id_cliente
+    LEFT JOIN grupos g ON g.id_grupo = o.id_grupo
+    WHERE o.encargado IS NULL
+       OR TRIM(o.encargado) = ''
+    ORDER BY o.id_operaciones DESC
 ");
 
 /* ── ULTIMAS 6 OPERACIONES ── */
@@ -680,6 +702,85 @@ body {
             <?php endforeach; ?>
             </tbody>
         </table>
+        <?php
+$sinEncargadoRows = [];
+while ($se = mysqli_fetch_assoc($qSinEncargado)) {
+    $sinEncargadoRows[] = $se;
+}
+?>
+
+<?php if (!empty($sinEncargadoRows)): ?>
+
+<div style="padding:16px 20px;border-top:1px solid var(--border);">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#d97706"></i>
+        <strong style="font-size:12px;color:#92400e;">
+            OPERACIONES SIN ENCARGADO
+        </strong>
+        <span class="estado-badge estado-pendiente">
+            <?= count($sinEncargadoRows) ?>
+        </span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <?php foreach ($sinEncargadoRows as $se): ?>
+
+        <div style="padding:12px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+
+                <div>
+                    <strong style="font-size:13px;">
+                        <?= htmlspecialchars(($se['nombre'] ?? '').' '.($se['apellido'] ?? '')) ?>
+                    </strong>
+
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">
+                        Operación #<?= $se['id_operaciones'] ?>
+                    </div>
+                </div>
+
+                <span class="estado-badge estado-<?= htmlspecialchars($se['estado']) ?>">
+                    <?= ucfirst(htmlspecialchars($se['estado'])) ?>
+                </span>
+
+            </div>
+
+            <div style="font-size:12px;margin-top:9px;color:var(--text-muted);">
+
+                <div>
+                    <i class="bi bi-people me-1"></i>
+                    Grupo:
+                    <strong style="color:var(--text);">
+                        <?= htmlspecialchars($se['nombre_grupo'] ?? 'Sin grupo') ?>
+                    </strong>
+                </div>
+
+                <div style="margin-top:4px;">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Reserva:
+                    <?= $se['fecha_reserva'] ? date('d/m/Y',strtotime($se['fecha_reserva'])) : '—' ?>
+                </div>
+
+                <div style="margin-top:4px;">
+                    <i class="bi bi-cash me-1"></i>
+                    Total:
+                    <strong style="color:var(--text);">
+                        <?= number_format((float)$se['total_operacion'],2) ?>
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <?php endforeach; ?>
+
+    </div>
+</div>
+
+<?php endif; ?>
         </div>
     </div>
 
